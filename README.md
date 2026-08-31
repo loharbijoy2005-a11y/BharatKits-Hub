@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏛️ BharatKits Hub
 
-## Getting Started
+**BharatKits Hub** is a client-first, high-performance web utility platform designed for Indian citizens and local cyber cafes. All processing is executed 100% client-side (in-browser) using the Canvas API, standard browser APIs, and libraries like `pdf-lib` and `qrcode.react`, guaranteeing complete data privacy.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 How to Deploy on Vercel (Live URL)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Deploying a Next.js App on Vercel is completely **free** and takes less than 2 minutes. There are two simple methods:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Method 1: Connecting your GitHub (Recommended & Easiest)
+1. Go to [vercel.com](https://vercel.com) and sign up/login using your **GitHub account**.
+2. Click the **Add New...** button in the dashboard, then select **Project**.
+3. You will see a list of your repositories. Search for `BharatKits-Hub` and click **Import**.
+4. In the configuration settings, leave everything as default (Vercel automatically detects Next.js configurations).
+5. Click **Deploy**.
+6. Once completed, Vercel will give you a live production domain (e.g. `bharatkits-hub.vercel.app`).
+> 💡 Every time you run `git push`, Vercel will automatically re-build and update your live site!
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Method 2: Deploying via Vercel CLI (Directly from Terminal)
+If you want to deploy directly from your local system terminal:
+1. Install Vercel CLI globally:
+   ```bash
+   npm install -g vercel
+   ```
+2. Log in to your Vercel account:
+   ```bash
+   vercel login
+   ```
+3. Run the initial deployment setup:
+   ```bash
+   vercel
+   ```
+   *(Choose defaults and select "Yes" to link the project).*
+4. Deploy the project to live production:
+   ```bash
+   vercel --prod
+   ```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Features Included
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Govt Directory**: Interactive bookmarks for UIDAI (Aadhaar), ECI (Voter ID), DigiLocker, Parivahan (DL, RC), Income Tax, GST, and state Bhulekh land lookups.
+2. **Form Photo Resizer**: Presets for passport photos (3.5x4.5cm) and signatures (4.5x1.5cm) with canvas scanner enhancement filters (Grayscale, Black & White, High Contrast).
+3. **ID PDF Combiner**: Auto-align front and back cards onto a printable A4 sheet.
+4. **Marriage Biodata & Resume Builder**: Custom profile PDF compilation.
+5. **UPI QR Code Studio**: Custom VPA pay codes with scan deep links.
+6. **Financial Calculators**: Loan EMI amortization tables and GST split logs.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## ⚙️ Running Locally
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Run development server:
+   ```bash
+   npm run dev
+   ```
+3. Open `http://localhost:3000` to preview.
