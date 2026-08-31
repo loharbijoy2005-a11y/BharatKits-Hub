@@ -185,7 +185,7 @@ export default function MediaTrimmer() {
             </div>
             <h3 className="text-lg font-extrabold text-slate-850 dark:text-white">Load Media File</h3>
             <p className="text-slate-500 dark:text-slate-400 text-xs mt-2 max-w-xs mx-auto leading-relaxed">
-              Supports MP4, MP3, WebM, WAV, etc. Sliced completely in the browser sandbox.
+              Supports MP4, MP3, WebM, WAV, etc. Processed locally in real-time.
             </p>
             <Button className="mt-8">Select File</Button>
           </div>

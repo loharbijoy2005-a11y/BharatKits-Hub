@@ -79,7 +79,7 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
         <div className="flex items-center gap-3">
           <span className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/30 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 select-none">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            100% Client-Side Privacy
+            Encrypted Local Processing
           </span>
           
           <button

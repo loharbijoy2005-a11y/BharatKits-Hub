@@ -245,7 +245,7 @@ export default function Page() {
                 </span>
               </h1>
               <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed font-semibold">
-                Client-side digital utilities for Indian citizens & cyber cafes. Complete privacy. No data uploads, everything processes securely in-browser.
+                Encrypted Local-First Utility Hub for Indian citizens & cyber cafes. Zero server logs, complete document privacy, processing securely on your terminal.
               </p>
             </div>
 
@@ -385,7 +385,7 @@ export default function Page() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            <span>100% Client-Side Hub. All files and codes process inside your web sandbox.</span>
+            <span>Zero-Server Retention Architecture. All processes and calculations are verified locally on this terminal.</span>
           </div>
           <div>
             <span>&copy; 2026 BharatKits Portal. Made for Digital India.</span>
