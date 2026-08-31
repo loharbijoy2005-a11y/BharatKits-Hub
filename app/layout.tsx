@@ -9,8 +9,8 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "OmniKits | All-in-One Daily Web Utility Suite",
-  description: "Complete, client-side, offline-capable productivity suite. No backend, no tracking, zero database storage. Your data never leaves your browser.",
+  title: "BharatKits | The Ultimate India Citizen & Daily Utility Hub",
+  description: "All-in-one digital tools for Indian citizens, cyber cafes, and small businesses. Resize photo/signature for official forms, combine ID cards to A4 PDF, generate UPI QRs, Loan EMIs, and access official government service directories.",
 };
 
 export default function RootLayout({

@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { ShieldCheck, Sun, Moon, Search, X, Hammer } from "lucide-react";
+import { ShieldCheck, Sun, Moon, Search, X, Landmark } from "lucide-react";
 
 interface HeaderProps {
   searchVal: string;
@@ -44,11 +44,11 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
           onClick={onGoHome}
           className="flex items-center gap-2 group shrink-0 focus:outline-none"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-brand-500/25 group-hover:scale-105 transition-transform">
-            <Hammer className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 via-slate-400 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-brand-500/25 group-hover:scale-105 transition-transform">
+            <Landmark className="w-5 h-5" />
           </div>
-          <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-brand-600 to-indigo-600 dark:from-brand-400 dark:to-indigo-400 bg-clip-text text-transparent">
-            OmniKits
+          <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-orange-600 via-slate-400 to-emerald-600 dark:from-orange-400 dark:to-emerald-450 bg-clip-text text-transparent">
+            BharatKits
           </span>
         </button>
 
@@ -62,7 +62,7 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
             value={searchVal}
             disabled={!showSearch}
             onChange={(e) => onSearch(e.target.value)}
-            placeholder="Search utility tools instantly... (e.g. PDF, GST)"
+            placeholder="Search citizen tools... (e.g. Aadhaar, photo resize, challan)"
             className="w-full pl-10 pr-10 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 dark:focus:border-brand-400 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 text-slate-800 dark:text-slate-100"
           />
           {searchVal && (
