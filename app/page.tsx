@@ -222,7 +222,7 @@ export default function Page() {
       <div className="fixed inset-0 -z-10 h-full w-full overflow-hidden pointer-events-none">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-orange-200 dark:bg-orange-950/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 dark:opacity-5 animate-blob"></div>
         <div className="absolute top-1/4 -right-10 w-96 h-96 bg-blue-200 dark:bg-blue-950/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 dark:opacity-5 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-emerald-105 dark:bg-emerald-950/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 dark:opacity-5 animate-blob animation-delay-4000"></div>
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-emerald-100 dark:bg-emerald-950/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 dark:opacity-5 animate-blob animation-delay-4000"></div>
       </div>
 
       {/* Global Header */}
@@ -240,7 +240,7 @@ export default function Page() {
             <div className="text-center max-w-2xl mx-auto space-y-3">
               <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                 Bharat
-                <span className="bg-gradient-to-r from-orange-500 via-slate-450 to-emerald-600 dark:from-orange-400 dark:to-emerald-450 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-orange-500 via-slate-400 to-emerald-600 dark:from-orange-400 dark:to-emerald-500 bg-clip-text text-transparent">
                   Kits Hub
                 </span>
               </h1>
@@ -264,7 +264,7 @@ export default function Page() {
                     onClick={() => setActiveCat(cat.id)}
                     className={`px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 whitespace-nowrap ${
                       activeCat === cat.id
-                        ? "bg-white dark:bg-slate-800 text-brand-650 dark:text-brand-400 shadow-sm"
+                        ? "bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm"
                         : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
                     }`}
                   >
@@ -305,13 +305,13 @@ export default function Page() {
                           </div>
                           
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[9px] uppercase font-black tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-450 select-none">
+                            <span className="text-[9px] uppercase font-black tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 select-none">
                               {getCategoryLabel(tool.category)}
                             </span>
                             
                             <button
                               onClick={(e) => toggleFavorite(tool.id, e)}
-                              className="p-1 rounded hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-450"
+                              className="p-1 rounded hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-400"
                               title={isFav ? "Remove Favorite" : "Add Favorite"}
                             >
                               <Star className={`w-4 h-4 ${isFav ? "text-amber-500 fill-amber-500" : "text-slate-300"}`} />
@@ -319,7 +319,7 @@ export default function Page() {
                           </div>
                         </div>
                         
-                        <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-brand-650 dark:group-hover:text-brand-400 transition-colors">
+                        <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                           {tool.title}
                         </h3>
                         
@@ -345,7 +345,7 @@ export default function Page() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setActiveView("dashboard")}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-550 hover:text-brand-650 dark:hover:text-brand-450 transition-colors bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 px-3.5 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-800/40"
+                  className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 px-3.5 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-800/40"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" /> Back to Hub
                 </button>
@@ -381,7 +381,7 @@ export default function Page() {
       </main>
 
       {/* Global Footer */}
-      <footer className="mt-auto border-t border-slate-200/50 dark:border-slate-850/20 glass shadow-sm py-6 transition-all duration-300 text-center text-xs text-slate-400 dark:text-slate-650 font-bold select-none">
+      <footer className="mt-auto border-t border-slate-200/50 dark:border-slate-800/20 glass shadow-sm py-6 transition-all duration-300 text-center text-xs text-slate-400 dark:text-slate-600 font-bold select-none">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />

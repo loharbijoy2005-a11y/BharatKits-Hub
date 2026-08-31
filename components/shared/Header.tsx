@@ -36,7 +36,7 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
   };
 
   return (
-    <header className="sticky top-0 z-50 glass border-b border-slate-200/50 dark:border-slate-850 shadow-sm transition-all duration-300">
+    <header className="sticky top-0 z-50 glass border-b border-slate-200/50 dark:border-slate-800 shadow-sm transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         
         {/* Logo */}
@@ -47,7 +47,7 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 via-slate-400 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-brand-500/25 group-hover:scale-105 transition-transform">
             <Landmark className="w-5 h-5" />
           </div>
-          <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-orange-600 via-slate-400 to-emerald-600 dark:from-orange-400 dark:to-emerald-450 bg-clip-text text-transparent">
+          <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-orange-600 via-slate-400 to-emerald-600 dark:from-orange-400 dark:to-emerald-500 bg-clip-text text-transparent">
             BharatKits
           </span>
         </button>
@@ -68,7 +68,7 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
           {searchVal && (
             <button
               onClick={() => onSearch("")}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-650 dark:hover:text-slate-200"
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
               <X className="w-4 h-4" />
             </button>
@@ -77,7 +77,7 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
 
         {/* Right Controls */}
         <div className="flex items-center gap-3">
-          <span className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-250/50 dark:border-emerald-900/30 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 select-none">
+          <span className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/30 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 select-none">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
             100% Client-Side Privacy
           </span>
@@ -85,7 +85,7 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
           <button
             onClick={toggleTheme}
             aria-label="Toggle dark mode"
-            className="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center justify-center text-lg border border-transparent hover:border-slate-250/50 dark:hover:border-slate-700/50 transition-all text-slate-600 dark:text-slate-400"
+            className="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center justify-center text-lg border border-transparent hover:border-slate-200/50 dark:hover:border-slate-700/50 transition-all text-slate-600 dark:text-slate-400"
           >
             {theme === "dark" ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5" />}
           </button>

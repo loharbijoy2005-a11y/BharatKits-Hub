@@ -73,7 +73,7 @@ export default function UpiQrGenerator() {
           <div className="space-y-4">
             {/* UPI ID VPA */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wide">
                 UPI ID (VPA) *
               </label>
               <input
@@ -81,13 +81,13 @@ export default function UpiQrGenerator() {
                 placeholder="e.g. name@okhdfcbank or merchant@ybl"
                 value={upiId}
                 onChange={(e) => setUpiId(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-850 dark:text-slate-150 font-bold"
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200 font-bold"
               />
             </div>
 
             {/* Recipient Name */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wide">
                 Recipient / Payee Name *
               </label>
               <input
@@ -95,7 +95,7 @@ export default function UpiQrGenerator() {
                 placeholder="e.g. Ramesh Kumar"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-850 dark:text-slate-150 font-bold"
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200 font-bold"
               />
             </div>
 
@@ -114,14 +114,14 @@ export default function UpiQrGenerator() {
                     placeholder="0.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-850 dark:text-slate-150 font-bold"
+                    className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200 font-bold"
                   />
                 </div>
               </div>
 
               {/* Note */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wide">
                   Payment Note (Optional)
                 </label>
                 <input
@@ -129,13 +129,13 @@ export default function UpiQrGenerator() {
                   placeholder="e.g. Shop Bill, Rent"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-850 dark:text-slate-150 font-bold"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-200 font-bold"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-850">
+          <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <Button variant="outline" className="w-1/3" onClick={handleReset} disabled={!upiId}>
               Clear
             </Button>
@@ -146,7 +146,7 @@ export default function UpiQrGenerator() {
         </div>
 
         {/* Security / Info Details */}
-        <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-3xl border border-slate-150 dark:border-slate-900/50 flex gap-2.5 items-start">
+        <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-3xl border border-slate-200 dark:border-slate-900/50 flex gap-2.5 items-start">
           <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <h4 className="text-[11px] font-black uppercase text-slate-800 dark:text-slate-200">
@@ -178,7 +178,7 @@ export default function UpiQrGenerator() {
                   Scan and Pay using UPI
                 </span>
                 {name && (
-                  <h4 className="text-sm font-black text-slate-850 dark:text-white mt-1">
+                  <h4 className="text-sm font-black text-slate-800 dark:text-white mt-1">
                     To: {name}
                   </h4>
                 )}

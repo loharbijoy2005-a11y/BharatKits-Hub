@@ -23,7 +23,7 @@ export function Button({
       "border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300",
     ghost:
       "hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300",
-    danger: "bg-red-650 hover:bg-red-700 text-white shadow-md shadow-red-500/10",
+    danger: "bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-500/10",
   };
 
   const sizes = {

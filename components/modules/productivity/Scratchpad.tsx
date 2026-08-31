@@ -165,7 +165,7 @@ Try typing some notes here!
         ) {
           return p;
         }
-        return `<p class="text-xs text-slate-650 dark:text-slate-350 leading-relaxed my-2">${p.replace(/\n/g, "<br>")}</p>`;
+        return `<p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed my-2">${p.replace(/\n/g, "<br>")}</p>`;
       })
       .join("\n");
 
@@ -254,13 +254,13 @@ Try typing some notes here!
         {activeNoteId !== null && activeNote ? (
           <div className="space-y-4">
             {/* Toolbar */}
-            <div className="flex flex-wrap justify-between items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-850 p-3 rounded-2xl shadow-sm">
-              <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/50 dark:border-slate-850">
+            <div className="flex flex-wrap justify-between items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 p-3 rounded-2xl shadow-sm">
+              <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/50 dark:border-slate-800">
                 <button
                   onClick={() => setPreviewMode("edit")}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all flex items-center gap-1 ${
                     previewMode === "edit"
-                      ? "bg-white dark:bg-slate-900 text-brand-650 dark:text-brand-400 shadow-sm"
+                      ? "bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm"
                       : "text-slate-500"
                   }`}
                 >
@@ -270,7 +270,7 @@ Try typing some notes here!
                   onClick={() => setPreviewMode("split")}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all flex items-center gap-1 ${
                     previewMode === "split"
-                      ? "bg-white dark:bg-slate-900 text-brand-650 dark:text-brand-400 shadow-sm"
+                      ? "bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm"
                       : "text-slate-500"
                   }`}
                 >
@@ -280,7 +280,7 @@ Try typing some notes here!
                   onClick={() => setPreviewMode("preview")}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all flex items-center gap-1 ${
                     previewMode === "preview"
-                      ? "bg-white dark:bg-slate-900 text-brand-650 dark:text-brand-400 shadow-sm"
+                      ? "bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm"
                       : "text-slate-500"
                   }`}
                 >
@@ -295,7 +295,7 @@ Try typing some notes here!
                 
                 <button
                   onClick={handleCopy}
-                  className="text-xs font-semibold text-slate-550 border border-slate-200 dark:border-slate-800 hover:border-brand-500 px-3 py-1.5 rounded-xl flex items-center gap-1 transition-all bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-900"
+                  className="text-xs font-semibold text-slate-500 border border-slate-200 dark:border-slate-800 hover:border-brand-500 px-3 py-1.5 rounded-xl flex items-center gap-1 transition-all bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-900"
                 >
                   {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                   Copy Text
@@ -303,7 +303,7 @@ Try typing some notes here!
                 
                 <button
                   onClick={handleDownload}
-                  className="text-xs font-semibold text-slate-550 border border-slate-200 dark:border-slate-800 hover:border-brand-500 px-3 py-1.5 rounded-xl flex items-center gap-1 transition-all bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-900"
+                  className="text-xs font-semibold text-slate-500 border border-slate-200 dark:border-slate-800 hover:border-brand-500 px-3 py-1.5 rounded-xl flex items-center gap-1 transition-all bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-900"
                 >
                   <Download className="w-3.5 h-3.5" /> Export TXT
                 </button>
@@ -316,7 +316,7 @@ Try typing some notes here!
                 
                 {/* Editor textarea */}
                 {(previewMode === "edit" || previewMode === "split") && (
-                  <div className={`${previewMode === "split" ? "md:col-span-6 md:border-r border-slate-150 dark:border-slate-800/80 md:pr-6" : "md:col-span-12"}`}>
+                  <div className={`${previewMode === "split" ? "md:col-span-6 md:border-r border-slate-200 md:pr-6" : "md:col-span-12"}`}>
                     <textarea
                       value={noteContent}
                       onChange={handleTextChange}
@@ -351,9 +351,9 @@ Try typing some notes here!
             </div>
           </div>
         ) : (
-          <div className="text-center py-20 text-slate-400 border border-slate-200/50 dark:border-slate-850 rounded-3xl bg-white/30 dark:bg-slate-950/20">
+          <div className="text-center py-20 text-slate-400 border border-slate-200/50 dark:border-slate-800 rounded-3xl bg-white/30 dark:bg-slate-950/20">
             <FileText className="w-12 h-12 mx-auto text-slate-200 dark:text-slate-800 mb-3 animate-pulse" />
-            <p className="text-base font-bold text-slate-750 dark:text-slate-350">No note loaded</p>
+            <p className="text-base font-bold text-slate-700 dark:text-slate-400">No note loaded</p>
             <p className="text-xs text-slate-400 mt-1">Please select an active note or add a new tab.</p>
           </div>
         )}
