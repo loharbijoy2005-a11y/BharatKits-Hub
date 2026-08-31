@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { CardDescription, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Image, Download, Trash2, Sliders, CheckCircle, RefreshCw, Info } from "lucide-react";
+import { Image, Download, Sliders, CheckCircle, RefreshCw, Info } from "lucide-react";
 
 interface Preset {
   name: string;
@@ -53,6 +53,7 @@ export default function GovtImageResizer() {
   const [customWidth, setCustomWidth] = useState<string>("350");
   const [customHeight, setCustomHeight] = useState<string>("450");
   const [targetKb, setTargetKb] = useState<number>(50);
+  const [filter, setFilter] = useState<"none" | "grayscale" | "monochrome" | "high-contrast">("none");
   
   const [processing, setProcessing] = useState<boolean>(false);
   const [resizedUrl, setResizedUrl] = useState<string | null>(null);
@@ -107,7 +108,7 @@ export default function GovtImageResizer() {
       // Draw and center crop / cover ratio
       const imageRatio = img.width / img.height;
       const canvasRatio = targetW / targetH;
-      let dx = 0, dy = 0, dWidth = targetW, dHeight = targetH;
+      let dx = 0, dy = 0;
 
       if (imageRatio > canvasRatio) {
         const sourceWidth = img.height * canvasRatio;
@@ -117,6 +118,40 @@ export default function GovtImageResizer() {
         const sourceHeight = img.width / canvasRatio;
         dy = (img.height - sourceHeight) / 2;
         ctx.drawImage(img, 0, dy, img.width, sourceHeight, 0, 0, targetW, targetH);
+      }
+
+      // Apply Scanner Filters
+      if (filter !== "none") {
+        const imgData = ctx.getImageData(0, 0, targetW, targetH);
+        const data = imgData.data;
+
+        if (filter === "grayscale") {
+          for (let i = 0; i < data.length; i += 4) {
+            const gray = 0.3 * data[i] + 0.59 * data[i + 1] + 0.11 * data[i + 2];
+            data[i] = gray;
+            data[i + 1] = gray;
+            data[i + 2] = gray;
+          }
+        } else if (filter === "monochrome") {
+          const threshold = 127;
+          for (let i = 0; i < data.length; i += 4) {
+            const gray = 0.3 * data[i] + 0.59 * data[i + 1] + 0.11 * data[i + 2];
+            const bw = gray >= threshold ? 255 : 0;
+            data[i] = bw;
+            data[i + 1] = bw;
+            data[i + 2] = bw;
+          }
+        } else if (filter === "high-contrast") {
+          const contrast = 60;
+          const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+          for (let i = 0; i < data.length; i += 4) {
+            data[i] = factor * (data[i] - 128) + 128;
+            data[i + 1] = factor * (data[i + 1] - 128) + 128;
+            data[i + 2] = factor * (data[i + 2] - 128) + 128;
+          }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
       }
 
       // Binary Search Quality Compression to target KB
@@ -140,9 +175,9 @@ export default function GovtImageResizer() {
         quality = q;
 
         if (sizeKb > targetKb) {
-          maxQuality = q; // shrink quality
+          maxQuality = q;
         } else {
-          minQuality = q; // raise quality (room for detail)
+          minQuality = q;
         }
       }
 
@@ -165,10 +200,10 @@ export default function GovtImageResizer() {
     setSelectedFile(null);
     setImageSrc(null);
     setResizedUrl(null);
+    setFilter("none");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Sync target KB when preset changes
   useEffect(() => {
     if (presetIdx !== -1) {
       setTargetKb(govtPresets[presetIdx].targetKb);
@@ -249,6 +284,24 @@ export default function GovtImageResizer() {
               onChange={(e) => setTargetKb(parseInt(e.target.value))}
               className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-600 dark:accent-brand-400"
             />
+          </div>
+
+          {/* Scan Filter Options */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide">Enhance / Filter Scan</label>
+            <select
+              value={filter}
+              onChange={(e) => {
+                setFilter(e.target.value as any);
+                setResizedUrl(null);
+              }}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-150"
+            >
+              <option value="none">Original Colors (No Filter)</option>
+              <option value="grayscale">Clean Grayscale (Gray Document)</option>
+              <option value="monochrome">Pure Black & White (Text Scan)</option>
+              <option value="high-contrast">High Contrast (Signature Booster)</option>
+            </select>
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-850">

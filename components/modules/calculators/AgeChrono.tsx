@@ -2,11 +2,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CardDescription, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Calendar, Cake, Gift, Heart, CalendarDays, Compass } from "lucide-react";
+import { Calendar, Cake, Gift, Heart, CalendarDays, Compass, HelpCircle } from "lucide-react";
 
 export default function AgeChrono() {
+  const [activeTab, setActiveTab] = useState<"live" | "job">("live");
+
+  // DOB
   const [birthdate, setBirthdate] = useState<string>("");
   const [hasCalculated, setHasCalculated] = useState<boolean>(false);
+
+  // Live Age States
   const [ageStats, setAgeStats] = useState({
     years: 0,
     months: 0,
@@ -32,6 +37,10 @@ export default function AgeChrono() {
   const [bornDay, setBornDay] = useState<string>("");
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Govt Job Cut-Off State
+  const [cutoffDate, setCutoffDate] = useState<string>(new Date().getFullYear() + "-01-01");
+  const [jobAgeResult, setJobAgeResult] = useState<{ years: number; months: number; days: number } | null>(null);
 
   const getZodiac = (day: number, month: number) => {
     if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return { name: "Aries", icon: "♈" };
@@ -67,12 +76,12 @@ export default function AgeChrono() {
     return animals[index >= 0 ? index : (index + 12) % 12];
   };
 
+  // Run Calculations
   const calculateAge = () => {
     if (!birthdate) return;
-    
-    // Parse DOB in local timezone to avoid UTC day-shift
-    const parts = birthdate.split("-");
-    const dob = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+
+    const dobParts = birthdate.split("-");
+    const dob = new Date(parseInt(dobParts[0]), parseInt(dobParts[1]) - 1, parseInt(dobParts[2]));
     const now = new Date();
 
     if (dob > now) {
@@ -86,8 +95,7 @@ export default function AgeChrono() {
 
     const updateAgeStats = () => {
       const current = new Date();
-      
-      // Calculate diff in Y/M/D
+
       let years = current.getFullYear() - dob.getFullYear();
       let months = current.getMonth() - dob.getMonth();
       let days = current.getDate() - dob.getDate();
@@ -122,7 +130,7 @@ export default function AgeChrono() {
         totalSeconds,
       });
 
-      // Calculate next birthday countdown
+      // Next Birthday
       let nextBday = new Date(current.getFullYear(), dob.getMonth(), dob.getDate());
       if (nextBday < current) {
         nextBday = new Date(current.getFullYear() + 1, dob.getMonth(), dob.getDate());
@@ -150,7 +158,7 @@ export default function AgeChrono() {
 
     updateAgeStats();
 
-    // Set Zodiac and birth attributes
+    // Zodiac details
     const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     setBornDay(weekdays[dob.getDay()]);
     setZodiac(getZodiac(dob.getDate(), dob.getMonth() + 1));
@@ -160,18 +168,52 @@ export default function AgeChrono() {
     intervalRef.current = setInterval(updateAgeStats, 1000);
   };
 
+  // Govt Job Cutoff calculations
+  const calculateJobEligibility = () => {
+    if (!birthdate || !cutoffDate) return;
+
+    const dobParts = birthdate.split("-");
+    const dob = new Date(parseInt(dobParts[0]), parseInt(dobParts[1]) - 1, parseInt(dobParts[2]));
+
+    const targetParts = cutoffDate.split("-");
+    const target = new Date(parseInt(targetParts[0]), parseInt(targetParts[1]) - 1, parseInt(targetParts[2]));
+
+    if (dob > target) {
+      setJobAgeResult(null);
+      return;
+    }
+
+    let years = target.getFullYear() - dob.getFullYear();
+    let months = target.getMonth() - dob.getMonth();
+    let days = target.getDate() - dob.getDate();
+
+    if (days < 0) {
+      const prevMonth = new Date(target.getFullYear(), target.getMonth(), 0);
+      days += prevMonth.getDate();
+      months--;
+    }
+    if (months < 0) {
+      months += 12;
+      years--;
+    }
+
+    setJobAgeResult({ years, months, days });
+  };
+
   useEffect(() => {
     if (birthdate) {
       calculateAge();
+      calculateJobEligibility();
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [birthdate]);
+  }, [birthdate, cutoffDate]);
 
   const handleReset = () => {
     setBirthdate("");
     setHasCalculated(false);
+    setJobAgeResult(null);
     if (intervalRef.current) clearInterval(intervalRef.current);
   };
 
@@ -180,25 +222,67 @@ export default function AgeChrono() {
       {/* Date picker Side */}
       <div className="lg:col-span-5 space-y-6">
         <div className="utility-card p-6 rounded-3xl border shadow-sm space-y-5">
-          <h3 className="text-md font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
-            Chronology Inputs
-          </h3>
+          <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+            <CardTitle>Chronology Inputs</CardTitle>
+            
+            <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-950 p-0.5 rounded-xl border border-slate-200/50 dark:border-slate-850">
+              <button
+                type="button"
+                onClick={() => setActiveTab("live")}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg transition-all ${
+                  activeTab === "live" ? "bg-white dark:bg-slate-900 text-brand-600 shadow-sm" : "text-slate-500"
+                }`}
+              >
+                Live Age
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("job")}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg transition-all ${
+                  activeTab === "job" ? "bg-white dark:bg-slate-900 text-brand-600 shadow-sm" : "text-slate-500"
+                }`}
+              >
+                Recruitment
+              </button>
+            </div>
+          </div>
 
-          <div className="space-y-2">
-            <label htmlFor="dob-input" className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide">
-              Select Date of Birth
-            </label>
-            <input
-              type="date"
-              id="dob-input"
-              value={birthdate}
-              onChange={(e) => setBirthdate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-sm font-bold text-slate-850 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-            />
+          <div className="space-y-4">
+            {/* Birthdate selection */}
+            <div className="space-y-2">
+              <label htmlFor="dob-input" className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide">
+                Select Date of Birth
+              </label>
+              <input
+                type="date"
+                id="dob-input"
+                value={birthdate}
+                onChange={(e) => setBirthdate(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-sm font-bold text-slate-850 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+              />
+            </div>
+
+            {/* Target Cutoff Date selection (Recruitment tab only) */}
+            {activeTab === "job" && (
+              <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-850 animate-fade-in">
+                <label htmlFor="cutoff-input" className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide">
+                  Eligibility Cut-Off Date
+                </label>
+                <input
+                  type="date"
+                  id="cutoff-input"
+                  value={cutoffDate}
+                  onChange={(e) => setCutoffDate(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-sm font-bold text-slate-850 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                />
+              </div>
+            )}
           </div>
 
           <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
-            Calculates exact chronological age markers down to seconds and tracks western/Chinese zodiac details offline.
+            {activeTab === "live"
+              ? "Calculates exact chronological age markers down to seconds and tracks western/Chinese zodiac details offline."
+              : "Determines candidate age as of specific cut-off dates requested by government job recruitment portals (e.g. UPSC, SSC, banking exams)."}
           </p>
 
           {hasCalculated && (
@@ -214,11 +298,11 @@ export default function AgeChrono() {
         {!hasCalculated ? (
           <div className="text-center py-20 text-slate-400 border border-slate-200/50 dark:border-slate-850 rounded-3xl bg-white/30 dark:bg-slate-950/20">
             <Calendar className="w-12 h-12 mx-auto text-slate-200 dark:text-slate-800 mb-3 animate-pulse" />
-            <p className="text-base font-bold text-slate-750 dark:text-slate-300">Awaiting Birthdate</p>
-            <p className="text-xs text-slate-400 mt-1">Please select your date of birth in the inputs block.</p>
+            <p className="text-base font-bold text-slate-750 dark:text-slate-300">Awaiting Input Details</p>
+            <p className="text-xs text-slate-400 mt-1">Please select the birthdate parameters to compute age metrics.</p>
           </div>
-        ) : (
-          <div className="space-y-6">
+        ) : activeTab === "live" ? (
+          <div className="space-y-6 animate-fade-in">
             {/* Age grid metrics */}
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-4 rounded-2xl text-center shadow-sm relative overflow-hidden group">
@@ -272,7 +356,6 @@ export default function AgeChrono() {
                 </div>
               </div>
 
-              {/* Progress bar */}
               <div className="mt-5 space-y-1.5">
                 <div className="w-full bg-black/25 rounded-full h-1.5 overflow-hidden">
                   <div
@@ -283,7 +366,7 @@ export default function AgeChrono() {
               </div>
             </div>
 
-            {/* Total Timelines stats list */}
+            {/* Total Elapsed stats */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-5 shadow-sm space-y-4">
               <h4 className="text-xs uppercase font-extrabold text-slate-400 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-1.5">
                 <CalendarDays className="w-4 h-4" /> Total Elapsed Timeline
@@ -315,33 +398,49 @@ export default function AgeChrono() {
                 </div>
               </div>
             </div>
+          </div>
+        ) : (
+          <div className="space-y-6 animate-fade-in">
+            {/* Recruitment calculation results */}
+            <div className="bg-gradient-to-tr from-brand-600 to-indigo-650 dark:from-brand-950/40 dark:to-indigo-950/40 text-white p-6 rounded-3xl border border-brand-500/20 shadow-md">
+              <span className="text-[10px] uppercase tracking-widest font-black opacity-75">Eligible Recruitment Age Result</span>
+              
+              {jobAgeResult ? (
+                <div className="mt-4 space-y-4">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <span className="block text-3xl font-black">{jobAgeResult.years}</span>
+                      <span className="text-[10px] uppercase opacity-75 font-semibold">Years</span>
+                    </div>
+                    <div>
+                      <span className="block text-3xl font-black">{jobAgeResult.months}</span>
+                      <span className="text-[10px] uppercase opacity-75 font-semibold">Months</span>
+                    </div>
+                    <div>
+                      <span className="block text-3xl font-black">{jobAgeResult.days}</span>
+                      <span className="text-[10px] uppercase opacity-75 font-semibold">Days</span>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-3 border-t border-white/10 text-center text-xs font-semibold">
+                    Calculated precisely for cut-off date: <span className="font-mono text-brand-200">{cutoffDate}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4 text-center text-xs opacity-75">
+                  Birthdate is ahead of cut-off date. Candidate not born yet on this cut-off.
+                </div>
+              )}
+            </div>
 
-            {/* Zodiac / Birthday facts */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-4 rounded-xl flex items-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950 flex items-center justify-center text-brand-600 dark:text-brand-400 shrink-0">
-                  <Heart className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="block text-[9px] text-slate-400 uppercase font-bold">Born Day</span>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{bornDay}</span>
-                </div>
-              </div>
-              
-              <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-4 rounded-xl flex items-center gap-3 shadow-sm">
-                <span className="text-2xl text-brand-500 shrink-0 select-none">{zodiac.icon}</span>
-                <div>
-                  <span className="block text-[9px] text-slate-400 uppercase font-bold">Zodiac</span>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{zodiac.name}</span>
-                </div>
-              </div>
-              
-              <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-4 rounded-xl flex items-center gap-3 shadow-sm">
-                <span className="text-2xl text-brand-500 shrink-0 select-none">{chineseZodiac.icon}</span>
-                <div>
-                  <span className="block text-[9px] text-slate-400 uppercase font-bold">Chinese Year</span>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{chineseZodiac.name}</span>
-                </div>
+            {/* Quick check information box */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-5 shadow-sm flex gap-3">
+              <HelpCircle className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <h4 className="text-xs font-extrabold text-slate-800 dark:text-slate-200">SSC / UPSC Eligibility Check</h4>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Recruitment portals in India strictly define eligibility cutoffs on specific dates (e.g. 1st Jan or 1st August of the exam year). Input your birthdate and the official cut-off date to calculate the exact years/months/days to fill in the application form.
+                </p>
               </div>
             </div>
           </div>

@@ -9,6 +9,7 @@ import UpiQrGenerator from "@/components/modules/productivity/UpiQrGenerator";
 import GstSplitter from "@/components/modules/calculators/GstSplitter";
 import AgeChrono from "@/components/modules/calculators/AgeChrono";
 import EmiCalculator from "@/components/modules/calculators/EmiCalculator";
+import CashMemoGenerator from "@/components/modules/calculators/CashMemoGenerator";
 
 import {
   Landmark,
@@ -23,6 +24,7 @@ import {
   Search,
   ShieldCheck,
   Star,
+  Receipt,
 } from "lucide-react";
 
 interface ToolItem {
@@ -153,6 +155,16 @@ const tools: ToolItem[] = [
     category: "calculators",
     color: "from-amber-500 to-orange-500",
     tags: ["age check", "birthday countdown", "exact age", "zodiac sign", "date diff"],
+  },
+  {
+    id: "cash-memo",
+    title: "GST Cash Memo Generator",
+    description:
+      "Generate itemized shop cash memos with SGST/CGST and automatic Indian Rupee words conversion.",
+    icon: Receipt,
+    category: "cyber-cafe",
+    color: "from-teal-500 to-emerald-500",
+    tags: ["cash memo", "shop bill", "invoice maker", "shop receipt", "store bill"],
   },
 ];
 
@@ -362,6 +374,7 @@ export default function Page() {
               {activeView === "gst-split" && <GstSplitter />}
               {activeView === "age-date" && <AgeChrono />}
               {activeView === "emi-calculator" && <EmiCalculator />}
+              {activeView === "cash-memo" && <CashMemoGenerator />}
             </div>
           </div>
         )}
