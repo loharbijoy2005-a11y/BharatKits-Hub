@@ -891,160 +891,303 @@ export default function PdfEditorStudio() {
     setSelectedAnnotationId(null);
   };
 
-  // Save PDF
+  // Save PDF (Bulletproof Export with Fallback)
   const handleExportEditedPdf = async () => {
-    if (!pdfBytes) return;
+    if (!pdfBytes) {
+      alert("No PDF loaded to save.");
+      return;
+    }
     setIsSavingPdf(true);
 
     try {
-      const pdfDoc = await PDFDocument.load(pdfBytes);
-      const pages = pdfDoc.getPages();
-
-      for (let i = 0; i < pages.length; i++) {
-        const page = pages[i];
-        const pageDim = pageDimensions[i] || { width: page.getWidth(), height: page.getHeight() };
-
-        const rot = pageRotations[i] || 0;
-        page.setRotation(degrees(rot));
-
-        const pageAnnotations = annotations.filter((a) => a.pageIndex === i);
-        const pageDrawings = drawings.filter((d) => d.pageIndex === i);
-
-        if (pageAnnotations.length === 0 && pageDrawings.length === 0) continue;
-
-        const overlayCanvas = document.createElement("canvas");
-        const scale = 2;
-        overlayCanvas.width = pageDim.width * scale;
-        overlayCanvas.height = pageDim.height * scale;
-        const ctx = overlayCanvas.getContext("2d");
-        if (!ctx) continue;
-
-        ctx.scale(scale, scale);
-
-        // 1. Draw drawings
-        pageDrawings.forEach((drawing) => {
-          if (drawing.points.length < 2) return;
-          ctx.save();
-          ctx.beginPath();
-          ctx.strokeStyle = drawing.strokeColor;
-          ctx.lineWidth = drawing.strokeWidth;
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
-
-          if (drawing.isHighlighter) {
-            ctx.globalAlpha = 0.45;
-            ctx.lineWidth = drawing.strokeWidth + 12;
-          }
-
-          const firstPoint = drawing.points[0];
-          ctx.moveTo((firstPoint.x / 100) * pageDim.width, (firstPoint.y / 100) * pageDim.height);
-
-          for (let j = 1; j < drawing.points.length; j++) {
-            const pt = drawing.points[j];
-            ctx.lineTo((pt.x / 100) * pageDim.width, (pt.y / 100) * pageDim.height);
-          }
-          ctx.stroke();
-          ctx.restore();
-        });
-
-        // 2. Draw annotations
-        for (const ann of pageAnnotations) {
-          const x = (ann.x / 100) * pageDim.width;
-          const y = (ann.y / 100) * pageDim.height;
-          const w = ((ann.width || 20) / 100) * pageDim.width;
-          const h = ((ann.height || 10) / 100) * pageDim.height;
-
-          if (ann.type === "text") {
-            ctx.save();
-            ctx.font = `${ann.isBold ? "bold " : ""}${ann.isItalic ? "italic " : ""}${ann.fontSize}px ${ann.fontFamily}`;
-            ctx.fillStyle = ann.color;
-            ctx.textBaseline = "top";
-            if (ann.bgColor) {
-              ctx.fillStyle = ann.bgColor;
-              ctx.fillRect(x - 4, y - 4, ctx.measureText(ann.text).width + 8, ann.fontSize + 8);
-              ctx.fillStyle = ann.color;
-            }
-            ctx.fillText(ann.text, x, y);
-            ctx.restore();
-          } else if (ann.type === "redaction") {
-            ctx.save();
-            ctx.fillStyle = ann.redactionType === "blackout" ? "#000000" : "#ffffff";
-            ctx.fillRect(x, y, w, h);
-            ctx.restore();
-          } else if (ann.type === "stamp") {
-            ctx.save();
-            ctx.strokeStyle = ann.borderColor;
-            ctx.lineWidth = 2.5;
-            ctx.strokeRect(x, y, w, h);
-            ctx.fillStyle = `${ann.borderColor}15`;
-            ctx.fillRect(x, y, w, h);
-
-            ctx.font = `bold ${Math.max(12, Math.min(22, w / 7))}px Arial, sans-serif`;
-            ctx.fillStyle = ann.color;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(ann.text, x + w / 2, y + (ann.subText ? h / 2 - 5 : h / 2));
-
-            if (ann.subText) {
-              ctx.font = `600 ${Math.max(8, w / 16)}px Arial, sans-serif`;
-              ctx.fillText(ann.subText, x + w / 2, y + h / 2 + 9);
-            }
-            ctx.restore();
-          } else if (ann.type === "shape") {
-            ctx.save();
-            ctx.strokeStyle = ann.strokeColor;
-            ctx.lineWidth = ann.strokeWidth;
-            if (ann.shapeType === "rectangle") {
-              ctx.strokeRect(x, y, w, h);
-            } else if (ann.shapeType === "circle") {
-              ctx.beginPath();
-              ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
-              ctx.stroke();
-            } else if (ann.shapeType === "checkmark") {
-              ctx.beginPath();
-              ctx.moveTo(x, y + h * 0.5);
-              ctx.lineTo(x + w * 0.35, y + h * 0.85);
-              ctx.lineTo(x + w, y + h * 0.15);
-              ctx.stroke();
-            } else if (ann.shapeType === "cross") {
-              ctx.beginPath();
-              ctx.moveTo(x, y);
-              ctx.lineTo(x + w, y + h);
-              ctx.moveTo(x + w, y);
-              ctx.lineTo(x, y + h);
-              ctx.stroke();
-            }
-            ctx.restore();
-          } else if (ann.type === "signature" || ann.type === "image") {
-            const img = new Image();
-            await new Promise<void>((resolve) => {
-              img.onload = () => {
-                ctx.drawImage(img, x, y, w, h);
-                resolve();
-              };
-              img.src = ann.dataUrl;
-            });
-          }
-        }
-
-        const overlayDataUrl = overlayCanvas.toDataURL("image/png");
-        const embeddedPng = await pdfDoc.embedPng(overlayDataUrl);
-
-        page.drawImage(embeddedPng, {
-          x: 0,
-          y: 0,
-          width: pageDim.width,
-          height: pageDim.height,
-        });
+      let pdfDoc: PDFDocument;
+      try {
+        pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+      } catch (loadErr) {
+        console.warn("Direct PDFDocument.load failed, creating clean document container:", loadErr);
+        pdfDoc = await PDFDocument.create();
       }
 
-      const finalPdfBytes = await pdfDoc.save();
+      const totalPages = pageCount || pdfDoc.getPageCount();
+
+      // If document was freshly created or pages need rebuilding
+      if (pdfDoc.getPageCount() === 0 && (window as unknown as { pdfjsLib?: unknown }).pdfjsLib) {
+        const pdfjs = (window as unknown as { pdfjsLib: { getDocument: (data: { data: Uint8Array }) => { promise: Promise<{ getPage: (num: number) => Promise<{ render: (params: unknown) => { promise: Promise<void> }; getViewport: (params: { scale: number; rotation?: number }) => { width: number; height: number } }> }> } } }).pdfjsLib;
+        const loadingTask = pdfjs.getDocument({ data: pdfBytes });
+        const sourcePdf = await loadingTask.promise;
+
+        for (let i = 0; i < totalPages; i++) {
+          const srcPage = await sourcePdf.getPage(i + 1);
+          const rot = pageRotations[i] || 0;
+          const viewport = srcPage.getViewport({ scale: 2, rotation: rot });
+
+          const renderCanvas = document.createElement("canvas");
+          renderCanvas.width = viewport.width;
+          renderCanvas.height = viewport.height;
+          const rCtx = renderCanvas.getContext("2d");
+          if (!rCtx) continue;
+
+          await srcPage.render({ canvasContext: rCtx, viewport }).promise;
+
+          // Draw annotations & drawings on top of renderCanvas
+          const pageAnnotations = annotations.filter((a) => a.pageIndex === i);
+          const pageDrawings = drawings.filter((d) => d.pageIndex === i);
+
+          // Draw freehand drawings
+          pageDrawings.forEach((drawing) => {
+            if (drawing.points.length < 2) return;
+            rCtx.save();
+            rCtx.beginPath();
+            rCtx.strokeStyle = drawing.strokeColor;
+            rCtx.lineWidth = drawing.strokeWidth * (viewport.width / 600);
+            rCtx.lineCap = "round";
+            rCtx.lineJoin = "round";
+            if (drawing.isHighlighter) {
+              rCtx.globalAlpha = 0.45;
+              rCtx.lineWidth = (drawing.strokeWidth + 14) * (viewport.width / 600);
+            }
+            const firstPoint = drawing.points[0];
+            rCtx.moveTo((firstPoint.x / 100) * viewport.width, (firstPoint.y / 100) * viewport.height);
+            for (let j = 1; j < drawing.points.length; j++) {
+              const pt = drawing.points[j];
+              rCtx.lineTo((pt.x / 100) * viewport.width, (pt.y / 100) * viewport.height);
+            }
+            rCtx.stroke();
+            rCtx.restore();
+          });
+
+          // Draw annotations
+          for (const ann of pageAnnotations) {
+            const x = (ann.x / 100) * viewport.width;
+            const y = (ann.y / 100) * viewport.height;
+            const w = ((ann.width || 20) / 100) * viewport.width;
+            const h = ((ann.height || 10) / 100) * viewport.height;
+
+            if (ann.type === "text") {
+              rCtx.save();
+              const scaleFont = (ann.fontSize || 16) * (viewport.width / 600);
+              rCtx.font = `${ann.isBold ? "bold " : ""}${ann.isItalic ? "italic " : ""}${scaleFont}px ${ann.fontFamily || "Arial"}`;
+              rCtx.fillStyle = ann.color || "#000000";
+              rCtx.textBaseline = "top";
+              if (ann.bgColor) {
+                rCtx.fillStyle = ann.bgColor;
+                rCtx.fillRect(x - 4, y - 4, rCtx.measureText(ann.text).width + 8, scaleFont + 8);
+                rCtx.fillStyle = ann.color || "#000000";
+              }
+              rCtx.fillText(ann.text, x, y);
+              rCtx.restore();
+            } else if (ann.type === "redaction") {
+              rCtx.save();
+              rCtx.fillStyle = ann.redactionType === "blackout" ? "#000000" : "#ffffff";
+              rCtx.fillRect(x, y, w, h);
+              rCtx.restore();
+            } else if (ann.type === "stamp") {
+              rCtx.save();
+              rCtx.strokeStyle = ann.borderColor;
+              rCtx.lineWidth = 3;
+              rCtx.strokeRect(x, y, w, h);
+              rCtx.fillStyle = `${ann.borderColor}15`;
+              rCtx.fillRect(x, y, w, h);
+              rCtx.font = `bold ${Math.max(14, w / 6.5)}px Arial, sans-serif`;
+              rCtx.fillStyle = ann.color;
+              rCtx.textAlign = "center";
+              rCtx.textBaseline = "middle";
+              rCtx.fillText(ann.text, x + w / 2, y + (ann.subText ? h / 2 - 5 : h / 2));
+              if (ann.subText) {
+                rCtx.font = `600 ${Math.max(9, w / 15)}px Arial, sans-serif`;
+                rCtx.fillText(ann.subText, x + w / 2, y + h / 2 + 10);
+              }
+              rCtx.restore();
+            } else if (ann.type === "signature" || ann.type === "image") {
+              if (ann.dataUrl) {
+                const img = new Image();
+                await new Promise<void>((resolve) => {
+                  img.onload = () => {
+                    try {
+                      rCtx.drawImage(img, x, y, w, h);
+                    } catch (e) {
+                      console.error(e);
+                    }
+                    resolve();
+                  };
+                  img.onerror = () => resolve();
+                  img.src = ann.dataUrl;
+                });
+              }
+            }
+          }
+
+          const pagePng = renderCanvas.toDataURL("image/png");
+          const embeddedImg = await pdfDoc.embedPng(pagePng);
+          const newPg = pdfDoc.addPage([viewport.width / 2, viewport.height / 2]);
+          newPg.drawImage(embeddedImg, {
+            x: 0,
+            y: 0,
+            width: viewport.width / 2,
+            height: viewport.height / 2,
+          });
+        }
+      } else {
+        // Direct Native Overlay on existing PDF Pages
+        const pages = pdfDoc.getPages();
+
+        for (let i = 0; i < pages.length; i++) {
+          const page = pages[i];
+          const { width: pWidth, height: pHeight } = page.getSize();
+          const targetW = pWidth || 595.28;
+          const targetH = pHeight || 841.89;
+
+          const rot = pageRotations[i] || 0;
+          page.setRotation(degrees(rot));
+
+          const pageAnnotations = annotations.filter((a) => a.pageIndex === i);
+          const pageDrawings = drawings.filter((d) => d.pageIndex === i);
+
+          if (pageAnnotations.length === 0 && pageDrawings.length === 0) continue;
+
+          const overlayCanvas = document.createElement("canvas");
+          const scale = 2;
+          overlayCanvas.width = Math.max(100, Math.round(targetW * scale));
+          overlayCanvas.height = Math.max(100, Math.round(targetH * scale));
+          const ctx = overlayCanvas.getContext("2d");
+          if (!ctx) continue;
+
+          ctx.scale(scale, scale);
+
+          // 1. Draw drawings
+          pageDrawings.forEach((drawing) => {
+            if (drawing.points.length < 2) return;
+            ctx.save();
+            ctx.beginPath();
+            ctx.strokeStyle = drawing.strokeColor;
+            ctx.lineWidth = drawing.strokeWidth;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            if (drawing.isHighlighter) {
+              ctx.globalAlpha = 0.45;
+              ctx.lineWidth = drawing.strokeWidth + 12;
+            }
+
+            const firstPoint = drawing.points[0];
+            ctx.moveTo((firstPoint.x / 100) * targetW, (firstPoint.y / 100) * targetH);
+
+            for (let j = 1; j < drawing.points.length; j++) {
+              const pt = drawing.points[j];
+              ctx.lineTo((pt.x / 100) * targetW, (pt.y / 100) * targetH);
+            }
+            ctx.stroke();
+            ctx.restore();
+          });
+
+          // 2. Draw annotations
+          for (const ann of pageAnnotations) {
+            const x = (ann.x / 100) * targetW;
+            const y = (ann.y / 100) * targetH;
+            const w = ((ann.width || 20) / 100) * targetW;
+            const h = ((ann.height || 10) / 100) * targetH;
+
+            if (ann.type === "text") {
+              ctx.save();
+              ctx.font = `${ann.isBold ? "bold " : ""}${ann.isItalic ? "italic " : ""}${ann.fontSize || 16}px ${ann.fontFamily || "Arial"}`;
+              ctx.fillStyle = ann.color || "#000000";
+              ctx.textBaseline = "top";
+              if (ann.bgColor) {
+                ctx.fillStyle = ann.bgColor;
+                ctx.fillRect(x - 4, y - 4, ctx.measureText(ann.text).width + 8, (ann.fontSize || 16) + 8);
+                ctx.fillStyle = ann.color || "#000000";
+              }
+              ctx.fillText(ann.text, x, y);
+              ctx.restore();
+            } else if (ann.type === "redaction") {
+              ctx.save();
+              ctx.fillStyle = ann.redactionType === "blackout" ? "#000000" : "#ffffff";
+              ctx.fillRect(x, y, w, h);
+              ctx.restore();
+            } else if (ann.type === "stamp") {
+              ctx.save();
+              ctx.strokeStyle = ann.borderColor;
+              ctx.lineWidth = 2.5;
+              ctx.strokeRect(x, y, w, h);
+              ctx.fillStyle = `${ann.borderColor}15`;
+              ctx.fillRect(x, y, w, h);
+
+              ctx.font = `bold ${Math.max(12, Math.min(22, w / 7))}px Arial, sans-serif`;
+              ctx.fillStyle = ann.color;
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              ctx.fillText(ann.text, x + w / 2, y + (ann.subText ? h / 2 - 5 : h / 2));
+
+              if (ann.subText) {
+                ctx.font = `600 ${Math.max(8, w / 16)}px Arial, sans-serif`;
+                ctx.fillText(ann.subText, x + w / 2, y + h / 2 + 9);
+              }
+              ctx.restore();
+            } else if (ann.type === "shape") {
+              ctx.save();
+              ctx.strokeStyle = ann.strokeColor;
+              ctx.lineWidth = ann.strokeWidth;
+              if (ann.shapeType === "rectangle") {
+                ctx.strokeRect(x, y, w, h);
+              } else if (ann.shapeType === "circle") {
+                ctx.beginPath();
+                ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+                ctx.stroke();
+              } else if (ann.shapeType === "checkmark") {
+                ctx.beginPath();
+                ctx.moveTo(x, y + h * 0.5);
+                ctx.lineTo(x + w * 0.35, y + h * 0.85);
+                ctx.lineTo(x + w, y + h * 0.15);
+                ctx.stroke();
+              } else if (ann.shapeType === "cross") {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + w, y + h);
+                ctx.moveTo(x + w, y);
+                ctx.lineTo(x, y + h);
+                ctx.stroke();
+              }
+              ctx.restore();
+            } else if (ann.type === "signature" || ann.type === "image") {
+              if (ann.dataUrl) {
+                const img = new Image();
+                await new Promise<void>((resolve) => {
+                  img.onload = () => {
+                    try {
+                      ctx.drawImage(img, x, y, w, h);
+                    } catch (e) {
+                      console.error("Signature render error", e);
+                    }
+                    resolve();
+                  };
+                  img.onerror = () => resolve();
+                  img.src = ann.dataUrl;
+                });
+              }
+            }
+          }
+
+          const overlayDataUrl = overlayCanvas.toDataURL("image/png");
+          const embeddedPng = await pdfDoc.embedPng(overlayDataUrl);
+
+          page.drawImage(embeddedPng, {
+            x: 0,
+            y: 0,
+            width: targetW,
+            height: targetH,
+          });
+        }
+      }
+
+      const finalPdfBytes = await pdfDoc.save({ useObjectStreams: false });
       const blob = new Blob([finalPdfBytes as BlobPart], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `Edited_${pdfFileName || "document.pdf"}`;
+      link.download = `Edited_${pdfFileName ? pdfFileName.replace(/\.pdf$/i, "") : "Document"}.pdf`;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
       confetti({
@@ -1054,7 +1197,7 @@ export default function PdfEditorStudio() {
       });
     } catch (err) {
       console.error("Failed to export edited PDF:", err);
-      alert("Error saving edited PDF. Please try again.");
+      alert("Error saving edited PDF: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsSavingPdf(false);
     }
