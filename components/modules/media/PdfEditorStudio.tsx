@@ -28,6 +28,7 @@ import {
   MousePointer,
   X,
   Check,
+  Copy,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { PDFDocument, degrees, rgb } from "pdf-lib";
@@ -170,6 +171,15 @@ export default function PdfEditorStudio() {
   // Moving annotation state
   const [isDraggingAnnotation, setIsDraggingAnnotation] = useState<boolean>(false);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Resizing annotation state
+  const [isResizingAnnotation, setIsResizingAnnotation] = useState<boolean>(false);
+  const [resizeStart, setResizeStart] = useState<{
+    x: number;
+    y: number;
+    initialW: number;
+    initialH: number;
+  }>({ x: 0, y: 0, initialW: 28, initialH: 12 });
 
   // Load PDF.js library dynamically from CDN
   const [isPdfJsReady, setIsPdfJsReady] = useState<boolean>(false);
@@ -740,35 +750,137 @@ export default function PdfEditorStudio() {
     setDragOffset({ x: e.clientX, y: e.clientY });
   };
 
-  const handleContainerMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDraggingAnnotation || !selectedAnnotationId) return;
+  // Resize Mouse Down on Corner Handle
+  const handleResizeHandleMouseDown = (
+    e: React.MouseEvent,
+    id: string,
+    currentW: number,
+    currentH: number
+  ) => {
+    e.stopPropagation();
+    setSelectedAnnotationId(id);
+    setIsResizingAnnotation(true);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      initialW: currentW || 28,
+      initialH: currentH || 12,
+    });
+  };
 
-    const deltaX = e.clientX - dragOffset.x;
-    const deltaY = e.clientY - dragOffset.y;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pctX = (deltaX / rect.width) * 100;
-    const pctY = (deltaY / rect.height) * 100;
-
+  // Resize Step (+ / -)
+  const handleResizeStep = (id: string, multiplier: number) => {
+    recordHistory();
     setAnnotations((prev) =>
       prev.map((a) => {
-        if (a.id === selectedAnnotationId) {
-          return {
-            ...a,
-            x: Math.max(0, Math.min(100 - (a.width || 10), a.x + pctX)),
-            y: Math.max(0, Math.min(100 - (a.height || 5), a.y + pctY)),
-          };
+        if (a.id === id) {
+          if (a.type === "text") {
+            const nextSize = Math.max(8, Math.min(72, Math.round(a.fontSize * multiplier)));
+            return { ...a, fontSize: nextSize };
+          }
+          const curW = a.width || 28;
+          const curH = a.height || 12;
+          const newW = Math.max(5, Math.min(90, Number((curW * multiplier).toFixed(1))));
+          const newH = Math.max(3, Math.min(90, Number((curH * multiplier).toFixed(1))));
+          return { ...a, width: newW, height: newH };
         }
         return a;
       })
     );
+  };
 
-    setDragOffset({ x: e.clientX, y: e.clientY });
+  // Preset Size
+  const handlePresetSize = (id: string, size: "sm" | "md" | "lg" | "xl") => {
+    recordHistory();
+    const presets = {
+      sm: { w: 18, h: 8, font: 12 },
+      md: { w: 28, h: 12, font: 16 },
+      lg: { w: 42, h: 18, font: 24 },
+      xl: { w: 58, h: 25, font: 32 },
+    };
+    const target = presets[size];
+
+    setAnnotations((prev) =>
+      prev.map((a) => {
+        if (a.id === id) {
+          if (a.type === "text") {
+            return { ...a, fontSize: target.font };
+          }
+          return { ...a, width: target.w, height: target.h };
+        }
+        return a;
+      })
+    );
+  };
+
+  // Duplicate Annotation
+  const handleDuplicateAnnotation = (id: string) => {
+    const item = annotations.find((a) => a.id === id);
+    if (!item) return;
+    recordHistory();
+    const cloned: Annotation = {
+      ...item,
+      id: Date.now().toString(),
+      x: Math.min(90, item.x + 3),
+      y: Math.min(90, item.y + 3),
+    };
+    setAnnotations((prev) => [...prev, cloned]);
+    setSelectedAnnotationId(cloned.id);
+  };
+
+  const handleContainerMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+
+    if (isResizingAnnotation && selectedAnnotationId) {
+      const deltaX = e.clientX - resizeStart.x;
+      const deltaY = e.clientY - resizeStart.y;
+      const pctW = (deltaX / rect.width) * 100;
+      const pctH = (deltaY / rect.height) * 100;
+
+      setAnnotations((prev) =>
+        prev.map((a) => {
+          if (a.id === selectedAnnotationId) {
+            const newW = Math.max(5, Math.min(95 - a.x, resizeStart.initialW + pctW));
+            const newH = Math.max(3, Math.min(95 - a.y, resizeStart.initialH + pctH));
+            return {
+              ...a,
+              width: Number(newW.toFixed(1)),
+              height: Number(newH.toFixed(1)),
+            };
+          }
+          return a;
+        })
+      );
+      return;
+    }
+
+    if (isDraggingAnnotation && selectedAnnotationId) {
+      const deltaX = e.clientX - dragOffset.x;
+      const deltaY = e.clientY - dragOffset.y;
+      const pctX = (deltaX / rect.width) * 100;
+      const pctY = (deltaY / rect.height) * 100;
+
+      setAnnotations((prev) =>
+        prev.map((a) => {
+          if (a.id === selectedAnnotationId) {
+            return {
+              ...a,
+              x: Math.max(0, Math.min(100 - (a.width || 10), a.x + pctX)),
+              y: Math.max(0, Math.min(100 - (a.height || 5), a.y + pctY)),
+            };
+          }
+          return a;
+        })
+      );
+
+      setDragOffset({ x: e.clientX, y: e.clientY });
+    }
   };
 
   const handleContainerMouseUp = () => {
-    if (isDraggingAnnotation) {
+    if (isDraggingAnnotation || isResizingAnnotation) {
       setIsDraggingAnnotation(false);
+      setIsResizingAnnotation(false);
       recordHistory();
     }
   };
@@ -1414,18 +1526,90 @@ export default function PdfEditorStudio() {
                               : "hover:ring-1 hover:ring-brand-400"
                           }`}
                         >
-                          {/* Control Delete Badge on Selected Object */}
+                          {/* Floating Quick Action & Resizing Toolbar on Selected Object */}
                           {isSelected && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteAnnotation(ann.id);
-                              }}
-                              className="absolute -top-3.5 -right-3.5 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center shadow-md hover:bg-red-700 z-30"
-                              title="Delete Object"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
+                            <>
+                              <div
+                                onMouseDown={(e) => e.stopPropagation()}
+                                className="absolute -top-11 left-0 flex items-center gap-1 bg-slate-900/95 text-white px-2 py-1 rounded-xl shadow-2xl z-40 border border-slate-700/80 backdrop-blur-md select-none whitespace-nowrap"
+                              >
+                                <span className="text-[10px] text-slate-400 font-bold px-1">Size:</span>
+                                <button
+                                  onClick={() => handleResizeStep(ann.id, 0.85)}
+                                  className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200"
+                                  title="Chota karein (Smaller -)"
+                                >
+                                  ➖
+                                </button>
+                                <button
+                                  onClick={() => handleResizeStep(ann.id, 1.15)}
+                                  className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200"
+                                  title="Bada karein (Larger +)"
+                                >
+                                  ➕
+                                </button>
+
+                                <div className="h-3.5 w-px bg-slate-700 mx-0.5" />
+
+                                <button
+                                  onClick={() => handlePresetSize(ann.id, "sm")}
+                                  className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-300"
+                                  title="Small (Chota)"
+                                >
+                                  S
+                                </button>
+                                <button
+                                  onClick={() => handlePresetSize(ann.id, "md")}
+                                  className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-300"
+                                  title="Medium"
+                                >
+                                  M
+                                </button>
+                                <button
+                                  onClick={() => handlePresetSize(ann.id, "lg")}
+                                  className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-300"
+                                  title="Large (Bada)"
+                                >
+                                  L
+                                </button>
+
+                                <div className="h-3.5 w-px bg-slate-700 mx-0.5" />
+
+                                <button
+                                  onClick={() => handleDuplicateAnnotation(ann.id)}
+                                  className="p-1 rounded hover:bg-slate-800 text-slate-300 hover:text-white"
+                                  title="Duplicate (Copy)"
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteAnnotation(ann.id)}
+                                  className="p-1 rounded hover:bg-red-900/60 text-red-400 hover:text-red-200"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                              {/* Bottom-Right Corner Drag Resize Handle */}
+                              <div
+                                onMouseDown={(e) =>
+                                  handleResizeHandleMouseDown(
+                                    e,
+                                    ann.id,
+                                    ann.width || 28,
+                                    ann.height || 12
+                                  )
+                                }
+                                className="absolute -bottom-2 -right-2 w-4 h-4 rounded-full bg-brand-600 border-2 border-white shadow-md cursor-se-resize z-30 hover:scale-125 transition-transform"
+                                title="Drag to resize (Chota/Bada karein)"
+                              />
+
+                              {/* Corner Dots */}
+                              <div className="absolute -top-1.5 -left-1.5 w-2.5 h-2.5 rounded-full bg-brand-500 border border-white pointer-events-none" />
+                              <div className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 rounded-full bg-brand-500 border border-white pointer-events-none" />
+                              <div className="absolute -bottom-1.5 -left-1.5 w-2.5 h-2.5 rounded-full bg-brand-500 border border-white pointer-events-none" />
+                            </>
                           )}
 
                           {/* TEXT ANNOTATION */}
