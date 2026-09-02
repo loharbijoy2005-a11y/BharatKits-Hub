@@ -17,8 +17,8 @@
 
 ## 🛠️ Complete Feature Suite
 
-### 1. ✍️ Acrobat PDF Editor & Digital Signer (`pdf-editor`)
-- **Interactive Multi-Page PDF Editor**: Open any PDF, view page thumbnails, reorder, rotate 90°, and delete pages.
+### 1. ✍️ PDF Editor & Digital Signer Studio (`pdf-editor`)
+- **Upload & Edit Any PDF**: Drag-and-drop or select any PDF document, view page thumbnails, reorder, rotate 90°, and delete pages.
 - **Digital Signatures (E-Sign)**: Draw with smooth pen, type cursive calligraphic handwriting, or upload signature scan with automatic transparent background filter.
 - **Text & Date Annotations**: Click anywhere on the document to type text with font styling, sizes, colors, and background badges.
 - **Pen & Highlighter Tools**: Freehand pen for markup and translucent highlighters for important lines.

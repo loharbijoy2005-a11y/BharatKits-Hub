@@ -312,9 +312,9 @@ const tools: ToolItem[] = [
   },
   {
     id: "pdf-editor",
-    title: "Acrobat PDF Editor & Digital Signer",
+    title: "PDF Editor & Digital Signer Studio",
     description:
-      "Edit any PDF, add digital signatures (draw/type/upload), text annotations, highlighters, whiteouts, and official stamps locally.",
+      "Upload and edit any PDF, add digital signatures (draw/type/upload), text annotations, highlighters, whiteouts, and official stamps locally.",
     icon: PenTool,
     category: "cyber-cafe",
     color: "from-indigo-600 to-violet-600",
@@ -324,12 +324,14 @@ const tools: ToolItem[] = [
       "sign pdf",
       "pdf signature",
       "pdf par sign karna",
-      "adobe acrobat",
+      "upload pdf edit",
+      "pdf text edit",
       "redact pdf",
       "highlight pdf",
       "pdf stamp",
       "pdf annotation",
       "e-sign pdf",
+      "digital sign",
     ],
   },
 ];
