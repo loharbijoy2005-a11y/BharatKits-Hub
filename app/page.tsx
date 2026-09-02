@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Header } from "@/components/shared/Header";
 import GovtDirectory from "@/components/modules/directory/GovtDirectory";
 import GovtImageResizer from "@/components/modules/media/GovtImageResizer";
@@ -10,6 +10,13 @@ import GstSplitter from "@/components/modules/calculators/GstSplitter";
 import AgeChrono from "@/components/modules/calculators/AgeChrono";
 import EmiCalculator from "@/components/modules/calculators/EmiCalculator";
 import CashMemoGenerator from "@/components/modules/calculators/CashMemoGenerator";
+import GovtSavingsCalculator from "@/components/modules/calculators/GovtSavingsCalculator";
+import ImagePdfBuilder from "@/components/modules/media/ImagePdfBuilder";
+import AadhaarMasker from "@/components/modules/media/AadhaarMasker";
+import HindiFontConverter from "@/components/modules/productivity/HindiFontConverter";
+import AffidavitGenerator from "@/components/modules/productivity/AffidavitGenerator";
+import AadhaarQrScanner from "@/components/modules/productivity/AadhaarQrScanner";
+import HtmlPdfStudio from "@/components/modules/productivity/HtmlPdfStudio";
 
 import {
   Landmark,
@@ -25,13 +32,19 @@ import {
   ShieldCheck,
   Star,
   Receipt,
+  PiggyBank,
+  Languages,
+  FileSignature,
+  ScanLine,
+  ShieldAlert,
+  FileCode2,
 } from "lucide-react";
 
 interface ToolItem {
   id: string;
   title: string;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   category: "directory" | "cyber-cafe" | "calculators";
   color: string;
   tags: string[];
@@ -166,20 +179,148 @@ const tools: ToolItem[] = [
     color: "from-teal-500 to-emerald-500",
     tags: ["cash memo", "shop bill", "invoice maker", "shop receipt", "store bill"],
   },
+  {
+    id: "govt-savings",
+    title: "Govt Savings Calculator",
+    description:
+      "Estimate returns for Sukanya Samriddhi Yojana (SSY), PPF, National Pension System (NPS), and Recurring Deposits (RD).",
+    icon: PiggyBank,
+    category: "calculators",
+    color: "from-emerald-500 to-indigo-500",
+    tags: [
+      "ssy",
+      "sukanya samriddhi",
+      "ppf",
+      "provident fund",
+      "nps",
+      "national pension",
+      "rd",
+      "recurring deposit",
+      "savings calculator",
+      "government schemes",
+      "post office savings",
+    ],
+  },
+  {
+    id: "document-scanner",
+    title: "Document Scanner & PDF Builder",
+    description:
+      "Stitch photos into a single PDF with B&W photocopy cleaner filters, cropping, and 90° rotations.",
+    icon: ScanLine,
+    category: "cyber-cafe",
+    color: "from-blue-500 to-cyan-500",
+    tags: [
+      "document scanner",
+      "photo to pdf",
+      "pdf compiler",
+      "scanner clean filters",
+      "black and white scan",
+      "photocopy",
+      "image stitch pdf",
+    ],
+  },
+  {
+    id: "aadhaar-masker",
+    title: "Aadhaar Card Secure Masker",
+    description:
+      "Upload your Aadhaar scan and securely mask the first 8 digits locally in browser before sharing.",
+    icon: ShieldAlert,
+    category: "cyber-cafe",
+    color: "from-red-500 to-rose-500",
+    tags: [
+      "mask aadhaar",
+      "hide aadhaar number",
+      "aadhaar privacy",
+      "redact aadhaar",
+      "secure card masker",
+      "citizen privacy",
+    ],
+  },
+  {
+    id: "hindi-font-converter",
+    title: "Hindi Font Converter & Typing",
+    description:
+      "Phonetic Hinglish-to-Hindi transliteration editor and standard Hindi Unicode to Kruti Dev 010 font converter.",
+    icon: Languages,
+    category: "cyber-cafe",
+    color: "from-violet-500 to-fuchsia-500",
+    tags: [
+      "hinglish to hindi",
+      "unicode to kruti dev",
+      "kruti dev 010",
+      "hindi typing converter",
+      "regional typing editor",
+      "devlys to unicode",
+    ],
+  },
+  {
+    id: "affidavit-generator",
+    title: "Affidavit & Legal Draft Builder",
+    description:
+      "Generate printable Rent Agreements, Gap Certificates, and self-declarations with stamp paper templates.",
+    icon: FileSignature,
+    category: "cyber-cafe",
+    color: "from-amber-500 to-yellow-600",
+    tags: [
+      "rent agreement draft",
+      "gap certificate affidavit",
+      "address self declaration",
+      "income declaration",
+      "legal draft generator",
+      "stamp paper pdf",
+    ],
+  },
+  {
+    id: "aadhaar-qr-scanner",
+    title: "Aadhaar QR Scanner & Parser",
+    description:
+      "Scan Aadhaar QR via camera/file to decode Name, DOB, and Address with quick copy-paste badges.",
+    icon: QrCode,
+    category: "cyber-cafe",
+    color: "from-teal-500 to-emerald-600",
+    tags: [
+      "aadhaar qr scanner",
+      "decode aadhaar xml",
+      "barcode parser",
+      "demographic details reader",
+      "cyber cafe helper",
+      "copy name address",
+    ],
+  },
+  {
+    id: "html-to-pdf",
+    title: "HTML to PDF Studio & Converter",
+    description:
+      "Paste raw HTML/CSS code or upload HTML files to instantly compile and download high-resolution PDFs with live sheet preview & templates.",
+    icon: FileCode2,
+    category: "cyber-cafe",
+    color: "from-blue-600 to-indigo-600",
+    tags: [
+      "html to pdf",
+      "html converter",
+      "html se pdf",
+      "html dalunga pdf bana dega",
+      "code to pdf",
+      "convert html to pdf",
+      "web to pdf",
+      "invoice html to pdf",
+      "html print",
+      "html pdf maker",
+    ],
+  },
 ];
 
 export default function Page() {
   const [activeView, setActiveView] = useState<string>("dashboard");
   const [searchVal, setSearchVal] = useState<string>("");
   const [activeCat, setActiveCat] = useState<string>("all");
-  const [favorites, setFavorites] = useState<string[]>([]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("bharatkits_favorites");
-    if (saved) {
-      setFavorites(JSON.parse(saved));
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("bharatkits_favorites");
+      return saved ? JSON.parse(saved) : [];
     }
-  }, []);
+    return [];
+  });
 
   const toggleFavorite = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -282,7 +423,7 @@ export default function Page() {
                   No matching utility tools found
                 </h4>
                 <p className="text-xs text-slate-400 mt-1">
-                  Try typing Hinglish keywords like "challan", "rashan", or "pan aadhar".
+                  Try typing Hinglish keywords like &apos;challan&apos;, &apos;rashan&apos;, or &apos;pan aadhar&apos;.
                 </p>
               </div>
             ) : (
@@ -375,6 +516,13 @@ export default function Page() {
               {activeView === "age-date" && <AgeChrono />}
               {activeView === "emi-calculator" && <EmiCalculator />}
               {activeView === "cash-memo" && <CashMemoGenerator />}
+              {activeView === "govt-savings" && <GovtSavingsCalculator />}
+              {activeView === "document-scanner" && <ImagePdfBuilder />}
+              {activeView === "aadhaar-masker" && <AadhaarMasker />}
+              {activeView === "hindi-font-converter" && <HindiFontConverter />}
+              {activeView === "affidavit-generator" && <AffidavitGenerator />}
+              {activeView === "aadhaar-qr-scanner" && <AadhaarQrScanner />}
+              {activeView === "html-to-pdf" && <HtmlPdfStudio />}
             </div>
           </div>
         )}

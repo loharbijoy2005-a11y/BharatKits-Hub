@@ -1,63 +1,115 @@
 # 🏛️ BharatKits Hub
 
-**BharatKits Hub** is a client-first, high-performance web utility platform designed for Indian citizens and local cyber cafes. All processing is executed 100% client-side (in-browser) using the Canvas API, standard browser APIs, and libraries like `pdf-lib` and `qrcode.react`, guaranteeing complete data privacy.
+> **Encrypted Local-First Utility Hub for Indian Citizens & Cyber Cafes**
+
+[![Live Website](https://img.shields.io/badge/Live%20Demo-bharatkits--hub.vercel.app-2563eb?style=for-the-badge&logo=vercel)](https://bharatkits-hub.vercel.app)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/loharbijoy2005-a11y/BharatKits-Hub)
+
+🌐 **Live Website URL**: **[https://bharatkits-hub.vercel.app](https://bharatkits-hub.vercel.app)**
+
+---
+
+## 🌟 Overview
+
+**BharatKits Hub** is a client-first, high-performance web utility platform designed for Indian citizens, students, small businesses, and local cyber cafes. All processing is executed **100% client-side (in-browser)** with **zero server logs**, ensuring complete citizen data privacy and instant processing speed.
+
+---
+
+## 🛠️ Complete Feature Suite
+
+### 1. 📄 HTML to PDF Studio & Converter (`html-to-pdf`)
+- **Direct HTML/CSS Code Editor** with live side-by-side paper sheet preview (A4, Letter, Legal, A5, ID Card).
+- **Preset Cyber Cafe Templates**: GST Tax Invoice, Training Certificate, Monthly Salary Slip, Official Letterhead/Notice, ID Card/Badge, and Blank Canvas.
+- **Page Settings**: Portrait/Landscape, custom margins, zoom fit scaling (60%-140%), diagonal security watermark (`CONFIDENTIAL`, `ORIGINAL`, `DRAFT`), and exact print color graphics.
+- **Dual Export**: 1-Click Instant PDF Download (`.pdf`) and High-Resolution Vector Print dialog.
+- **File Support**: Upload raw `.html`, `.htm`, or `.txt` files directly.
+
+### 2. 🪪 ID Front-Back PDF Combiner (`image-pdf`)
+- Combine front and back scans of Aadhaar, PAN, or Voter ID cards onto a single print-ready A4 PDF.
+
+### 3. 🖼️ Govt Form Image Resizer (`resizer-compressor`)
+- Rescale photo and signature scans to exact government portal upload sizes (under 20KB/50KB) for SSC, UPSC, and state exams.
+
+### 4. 📝 Biodata & Resume Builder (`biodata-generator`)
+- Generate clean CV resumes or marriage biodata forms downloadable client-side as vector PDFs.
+
+### 5. 💳 UPI Payment QR Studio (`upi-qr`)
+- Generate custom scan-to-pay QR codes with UPI ID, payee name, and fixed amounts.
+
+### 6. 🧾 GST Cash Memo Generator (`cash-memo`)
+- Generate itemized shop cash memos with SGST/CGST and automatic Indian Rupee words conversion.
+
+### 7. ⚖️ Affidavit & Legal Draft Builder (`affidavit-generator`)
+- Generate printable Rent Agreements, Gap Year Certificates, Address Declarations, and Income Declarations with stamp paper spacing.
+
+### 8. 🛡️ Aadhaar Card Secure Masker (`aadhaar-masker`)
+- Upload Aadhaar scan and securely mask the first 8 digits locally in browser before sharing.
+
+### 9. 🔍 Aadhaar QR Scanner & Parser (`aadhaar-qr-scanner`)
+- Scan Aadhaar QR via camera or image file to decode Name, DOB, Gender, and Address with 1-click copy badges.
+
+### 10. 🔤 Hindi Font Converter & Typing (`hindi-font-converter`)
+- Phonetic Hinglish-to-Hindi transliteration editor and standard Hindi Unicode to Kruti Dev 010 font converter.
+
+### 11. 💰 Financial & Govt Savings Calculators
+- **GST & Bill Splitter** (`gst-split`): Precise CGST/SGST/IGST tax calculator and multi-person bill splitting.
+- **Loan EMI Calculator** (`emi-calculator`): Monthly amortization schedules.
+- **Govt Savings Calculator** (`govt-savings`): Sukanya Samriddhi Yojana (SSY), PPF, NPS, and Post Office RD return estimator.
+- **Age & Chrono Engine** (`age-date`): Chronological age calculation, milestone countdowns, and zodiac signs.
+
+### 12. 🏛️ Govt Portal Directory (`govt-directory`)
+- Direct filtered links for UIDAI (Aadhaar), Voter ID, DigiLocker, Parivahan (DL/RC), e-Challan, Udyam MSME, Ration Card, and State Land Records (Bhulekh, Banglarbhumi, etc.).
 
 ---
 
 ## 🚀 How to Deploy on Vercel (Live URL)
 
-Deploying a Next.js App on Vercel is completely **free** and takes less than 2 minutes. There are two simple methods:
-
-### Method 1: Connecting your GitHub (Recommended & Easiest)
-1. Go to [vercel.com](https://vercel.com) and sign up/login using your **GitHub account**.
-2. Click the **Add New...** button in the dashboard, then select **Project**.
-3. You will see a list of your repositories. Search for `BharatKits-Hub` and click **Import**.
-4. In the configuration settings, leave everything as default (Vercel automatically detects Next.js configurations).
-5. Click **Deploy**.
-6. Once completed, Vercel will give you a live production domain (e.g. `bharatkits-hub.vercel.app`).
-> 💡 Every time you run `git push`, Vercel will automatically re-build and update your live site!
-
-### Method 2: Deploying via Vercel CLI (Directly from Terminal)
-If you want to deploy directly from your local system terminal:
-1. Install Vercel CLI globally:
-   ```bash
-   npm install -g vercel
+### Method 1: Connecting your GitHub (Recommended)
+1. Go to [vercel.com](https://vercel.com) and log in with your **GitHub account**.
+2. Click **Add New...** > **Project**.
+3. Import **`BharatKits-Hub`** from your repository list.
+4. Keep default settings and click **Deploy**.
+5. Your live production URL will be ready at:
    ```
-2. Log in to your Vercel account:
-   ```bash
-   vercel login
+   https://bharatkits-hub.vercel.app
    ```
-3. Run the initial deployment setup:
-   ```bash
-   vercel
-   ```
-   *(Choose defaults and select "Yes" to link the project).*
-4. Deploy the project to live production:
-   ```bash
-   vercel --prod
-   ```
+> 💡 Any push to `main` branch triggers automatic production re-deployments!
 
----
-
-## 🛠️ Features Included
-
-1. **Govt Directory**: Interactive bookmarks for UIDAI (Aadhaar), ECI (Voter ID), DigiLocker, Parivahan (DL, RC), Income Tax, GST, and state Bhulekh land lookups.
-2. **Form Photo Resizer**: Presets for passport photos (3.5x4.5cm) and signatures (4.5x1.5cm) with canvas scanner enhancement filters (Grayscale, Black & White, High Contrast).
-3. **ID PDF Combiner**: Auto-align front and back cards onto a printable A4 sheet.
-4. **Marriage Biodata & Resume Builder**: Custom profile PDF compilation.
-5. **UPI QR Code Studio**: Custom VPA pay codes with scan deep links.
-6. **Financial Calculators**: Loan EMI amortization tables and GST split logs.
+### Method 2: Deploying via Vercel CLI
+```bash
+npm install -g vercel
+vercel login
+vercel --prod
+```
 
 ---
 
 ## ⚙️ Running Locally
 
-1. Install dependencies:
+1. Clone repository:
+   ```bash
+   git clone https://github.com/loharbijoy2005-a11y/BharatKits-Hub.git
+   cd BharatKits-Hub
+   ```
+2. Install dependencies:
    ```bash
    npm install
    ```
-2. Run development server:
+3. Run development server:
    ```bash
    npm run dev
    ```
-3. Open `http://localhost:3000` to preview.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 🔒 Privacy & Security
+
+- **Zero-Server Retention Architecture**: No citizen data, scans, Aadhaar numbers, or HTML files are ever uploaded or stored on any remote server.
+- Everything runs 100% locally in your web browser.
+
+---
+
+## 📜 License & Credits
+
+Made with ❤️ for **Digital India** 🇮🇳. Open-source under the MIT License.

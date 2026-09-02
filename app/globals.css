@@ -88,3 +88,33 @@ body {
 .animation-delay-4000 {
   animation-delay: 5s;
 }
+
+/* Print Stylesheet Overrides */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .printable-document,
+  .printable-document * {
+    visibility: visible;
+  }
+  
+  .printable-document {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+}
