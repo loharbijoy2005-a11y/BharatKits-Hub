@@ -17,7 +17,16 @@
 
 ## 🛠️ Complete Feature Suite
 
-### 1. 📄 HTML to PDF Studio & Converter (`html-to-pdf`)
+### 1. ✍️ Acrobat PDF Editor & Digital Signer (`pdf-editor`)
+- **Interactive Multi-Page PDF Editor**: Open any PDF, view page thumbnails, reorder, rotate 90°, and delete pages.
+- **Digital Signatures (E-Sign)**: Draw with smooth pen, type cursive calligraphic handwriting, or upload signature scan with automatic transparent background filter.
+- **Text & Date Annotations**: Click anywhere on the document to type text with font styling, sizes, colors, and background badges.
+- **Pen & Highlighter Tools**: Freehand pen for markup and translucent highlighters for important lines.
+- **Whiteout & Blackout Redaction**: Cover typos or securely redact confidential numbers and details.
+- **Official Stamp Badges**: 1-Click insert `SELF-ATTESTED`, `APPROVED`, `VERIFIED`, `CONFIDENTIAL`, `ORIGINAL`, `PAID`, `RECEIVED` stamps.
+- **Permanent Client-Side Export**: Saves all edits permanently into a new downloadable PDF with zero server logs.
+
+### 2. 📄 HTML to PDF Studio & Converter (`html-to-pdf`)
 - **Direct HTML/CSS Code Editor** with live side-by-side paper sheet preview (A4, Letter, Legal, A5, ID Card).
 - **Preset Cyber Cafe Templates**: GST Tax Invoice, Training Certificate, Monthly Salary Slip, Official Letterhead/Notice, ID Card/Badge, and Blank Canvas.
 - **Page Settings**: Portrait/Landscape, custom margins, zoom fit scaling (60%-140%), diagonal security watermark (`CONFIDENTIAL`, `ORIGINAL`, `DRAFT`), and exact print color graphics.

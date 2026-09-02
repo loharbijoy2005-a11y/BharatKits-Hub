@@ -17,6 +17,7 @@ import HindiFontConverter from "@/components/modules/productivity/HindiFontConve
 import AffidavitGenerator from "@/components/modules/productivity/AffidavitGenerator";
 import AadhaarQrScanner from "@/components/modules/productivity/AadhaarQrScanner";
 import HtmlPdfStudio from "@/components/modules/productivity/HtmlPdfStudio";
+import PdfEditorStudio from "@/components/modules/media/PdfEditorStudio";
 
 import {
   Landmark,
@@ -38,6 +39,7 @@ import {
   ScanLine,
   ShieldAlert,
   FileCode2,
+  PenTool,
 } from "lucide-react";
 
 interface ToolItem {
@@ -308,6 +310,28 @@ const tools: ToolItem[] = [
       "html pdf maker",
     ],
   },
+  {
+    id: "pdf-editor",
+    title: "Acrobat PDF Editor & Digital Signer",
+    description:
+      "Edit any PDF, add digital signatures (draw/type/upload), text annotations, highlighters, whiteouts, and official stamps locally.",
+    icon: PenTool,
+    category: "cyber-cafe",
+    color: "from-indigo-600 to-violet-600",
+    tags: [
+      "pdf editor",
+      "edit pdf",
+      "sign pdf",
+      "pdf signature",
+      "pdf par sign karna",
+      "adobe acrobat",
+      "redact pdf",
+      "highlight pdf",
+      "pdf stamp",
+      "pdf annotation",
+      "e-sign pdf",
+    ],
+  },
 ];
 
 export default function Page() {
@@ -523,6 +547,7 @@ export default function Page() {
               {activeView === "affidavit-generator" && <AffidavitGenerator />}
               {activeView === "aadhaar-qr-scanner" && <AadhaarQrScanner />}
               {activeView === "html-to-pdf" && <HtmlPdfStudio />}
+              {activeView === "pdf-editor" && <PdfEditorStudio />}
             </div>
           </div>
         )}
