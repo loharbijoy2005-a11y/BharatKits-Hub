@@ -20,6 +20,7 @@ import {
   ZoomIn,
   ZoomOut,
   FileCheck2,
+  FileSignature,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import jsPDF from "jspdf";
@@ -39,6 +40,55 @@ interface TemplatePreset {
 }
 
 const TEMPLATE_PRESETS: TemplatePreset[] = [
+  {
+    id: "court-memo",
+    name: "Memo of Appearance (Court)",
+    category: "Legal & Court",
+    icon: FileSignature,
+    description: "Memo of Appearance for Consumer Commission & Court filings (Section 35 CPA).",
+    defaultOrientation: "portrait",
+    defaultPageSize: "a4",
+    html: `<div class="court-memo">
+  <h3>MEMO OF APPEARANCE (IN PERSON)</h3>
+  <div class="content">
+    <p><b>BEFORE THE HON'BLE DISTRICT CONSUMER COMMISSION, BANKURA</b></p>
+    <p>In the matter of: <b>Bijoy Lohar Vs. Speel Finance Co. Pvt. Ltd.</b></p>
+    <br>
+    <p>I, <b>Bijoy Lohar</b>, Complainant in person, respectfully submit that I am representing and arguing my case personally under Section 35 of the Consumer Protection Act, 2019 without engaging an advocate.</p>
+    <p>Therefore, the requirement of filing a Vakalatnama is not applicable in this matter.</p>
+  </div>
+
+  <div class="sign-area">
+    <p>___________________________<br>
+    <b>BIJOY LOHAR</b><br>
+    Complainant in Person<br>
+    Date: 02/09/2026 | Place: Bankura</p>
+  </div>
+</div>`,
+    css: `body {
+  font-family: Arial, sans-serif;
+  margin: 45px;
+  line-height: 1.8;
+  color: #111827;
+}
+h3 {
+  text-align: center;
+  text-decoration: underline;
+  margin-bottom: 24px;
+}
+.content {
+  margin-top: 30px;
+  font-size: 15px;
+}
+.content p {
+  margin-bottom: 12px;
+}
+.sign-area {
+  margin-top: 70px;
+  text-align: right;
+  line-height: 1.6;
+}`,
+  },
   {
     id: "gst-invoice",
     name: "GST Tax Invoice",
@@ -1302,6 +1352,52 @@ export default function HtmlPdfStudio() {
           user-select: none;
         ">${watermark}</div>`
       : "";
+
+    // Check if user provided a complete standalone HTML document
+    const isFullDocument = /<!DOCTYPE|<html|<head|<body/i.test(htmlCode);
+    if (isFullDocument) {
+      let compiled = htmlCode;
+      const injectedStyles = `
+  <style>
+    @page {
+      size: ${pageSize === "id-card" ? "85.6mm 125mm" : pageSize} ${orientation};
+      margin: ${currentMargin};
+    }
+    *, *::before, *::after {
+      -webkit-print-color-adjust: ${includeBackgrounds ? "exact" : "economy"} !important;
+      print-color-adjust: ${includeBackgrounds ? "exact" : "economy"} !important;
+    }
+    body {
+      zoom: ${zoomScale}%;
+    }
+    ${cssCode}
+  </style>`;
+
+      if (compiled.includes("</head>")) {
+        compiled = compiled.replace("</head>", `${injectedStyles}\n</head>`);
+      } else if (compiled.includes("<body")) {
+        compiled = compiled.replace("<body", `${injectedStyles}\n<body`);
+      } else {
+        compiled = `${injectedStyles}\n${compiled}`;
+      }
+
+      if (watermarkHtml) {
+        if (compiled.includes("<body")) {
+          compiled = compiled.replace(/<body([^>]*)>/i, `<body$1>\n${watermarkHtml}`);
+        } else {
+          compiled = `${watermarkHtml}\n${compiled}`;
+        }
+      }
+
+      // Ensure id="pdf-root" is present on body for canvas download
+      if (!compiled.includes('id="pdf-root"')) {
+        if (compiled.includes("<body")) {
+          compiled = compiled.replace(/<body([^>]*)>/i, `<body$1 id="pdf-root">`);
+        }
+      }
+
+      return compiled;
+    }
 
     return `<!DOCTYPE html>
 <html lang="en">
