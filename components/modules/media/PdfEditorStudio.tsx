@@ -291,8 +291,8 @@ export default function PdfEditorStudio() {
     setIsPdfLoading(true);
     try {
       const buffer = await file.arrayBuffer();
-      const bytes = new Uint8Array(buffer);
-      const pdfDoc = await PDFDocument.load(bytes);
+      const bytes = new Uint8Array(buffer.slice(0));
+      const pdfDoc = await PDFDocument.load(bytes.slice(0), { ignoreEncryption: true });
       const count = pdfDoc.getPageCount();
 
       const rotations: number[] = [];
@@ -304,7 +304,7 @@ export default function PdfEditorStudio() {
         dims.push({ width: page.getWidth(), height: page.getHeight() });
       }
 
-      setPdfBytes(bytes);
+      setPdfBytes(new Uint8Array(buffer.slice(0)));
       setPdfFileName(file.name);
       setPageCount(count);
       setCurrentPageIndex(0);
@@ -338,7 +338,8 @@ export default function PdfEditorStudio() {
       const pdfjs = (window as unknown as { pdfjsLib: { getDocument: (data: { data: Uint8Array }) => { promise: Promise<{ getPage: (num: number) => Promise<{ render: (params: unknown) => { promise: Promise<void> }; getViewport: (params: { scale: number; rotation?: number }) => { width: number; height: number } }> }> } } }).pdfjsLib;
       if (!pdfjs) return;
 
-      const loadingTask = pdfjs.getDocument({ data: pdfBytes });
+      // Slice bytes so PDF.js Web Worker transfer does not detach main pdfBytes
+      const loadingTask = pdfjs.getDocument({ data: pdfBytes.slice(0) });
       const pdf = await loadingTask.promise;
       const page = await pdf.getPage(currentPageIndex + 1);
 
@@ -582,11 +583,11 @@ export default function PdfEditorStudio() {
     recordHistory();
     try {
       if (!pdfBytes) return;
-      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const pdfDoc = await PDFDocument.load(pdfBytes.slice(0), { ignoreEncryption: true });
       pdfDoc.removePage(currentPageIndex);
 
-      const newBytes = await pdfDoc.save();
-      setPdfBytes(newBytes);
+      const newBytes = await pdfDoc.save({ useObjectStreams: false });
+      setPdfBytes(new Uint8Array(newBytes));
       setPageCount((c) => c - 1);
 
       setAnnotations((prev) =>
@@ -900,9 +901,10 @@ export default function PdfEditorStudio() {
     setIsSavingPdf(true);
 
     try {
+      const currentBytes = pdfBytes.slice(0);
       let pdfDoc: PDFDocument;
       try {
-        pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+        pdfDoc = await PDFDocument.load(currentBytes, { ignoreEncryption: true });
       } catch (loadErr) {
         console.warn("Direct PDFDocument.load failed, creating clean document container:", loadErr);
         pdfDoc = await PDFDocument.create();
@@ -913,7 +915,7 @@ export default function PdfEditorStudio() {
       // If document was freshly created or pages need rebuilding
       if (pdfDoc.getPageCount() === 0 && (window as unknown as { pdfjsLib?: unknown }).pdfjsLib) {
         const pdfjs = (window as unknown as { pdfjsLib: { getDocument: (data: { data: Uint8Array }) => { promise: Promise<{ getPage: (num: number) => Promise<{ render: (params: unknown) => { promise: Promise<void> }; getViewport: (params: { scale: number; rotation?: number }) => { width: number; height: number } }> }> } } }).pdfjsLib;
-        const loadingTask = pdfjs.getDocument({ data: pdfBytes });
+        const loadingTask = pdfjs.getDocument({ data: pdfBytes.slice(0) });
         const sourcePdf = await loadingTask.promise;
 
         for (let i = 0; i < totalPages; i++) {
