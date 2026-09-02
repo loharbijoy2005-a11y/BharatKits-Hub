@@ -51,18 +51,18 @@ const TEMPLATE_PRESETS: TemplatePreset[] = [
     html: `<div class="court-memo">
   <h3>MEMO OF APPEARANCE (IN PERSON)</h3>
   <div class="content">
-    <p><b>BEFORE THE HON'BLE DISTRICT CONSUMER COMMISSION, BANKURA</b></p>
-    <p>In the matter of: <b>Bijoy Lohar Vs. Speel Finance Co. Pvt. Ltd.</b></p>
+    <p><b>BEFORE THE HON'BLE DISTRICT CONSUMER DISPUTES REDRESSAL COMMISSION / COURT</b></p>
+    <p>In the matter of: <b>[Complainant Name] Vs. [Opposite Party / Company Name]</b></p>
     <br>
-    <p>I, <b>Bijoy Lohar</b>, Complainant in person, respectfully submit that I am representing and arguing my case personally under Section 35 of the Consumer Protection Act, 2019 without engaging an advocate.</p>
+    <p>I, <b>[Complainant Name]</b>, Complainant in person, respectfully submit that I am representing and arguing my case personally under Section 35 of the Consumer Protection Act, 2019 without engaging an advocate.</p>
     <p>Therefore, the requirement of filing a Vakalatnama is not applicable in this matter.</p>
   </div>
 
   <div class="sign-area">
     <p>___________________________<br>
-    <b>BIJOY LOHAR</b><br>
+    <b>[COMPLAINANT NAME]</b><br>
     Complainant in Person<br>
-    Date: 02/09/2026 | Place: Bankura</p>
+    Date: DD/MM/YYYY | Place: [City / District]</p>
   </div>
 </div>`,
     css: `body {
@@ -1536,24 +1536,72 @@ export default function HtmlPdfStudio() {
     }
   };
 
-  // Direct 1-Click PDF Download via html2canvas & jsPDF
+  // Direct 1-Click Full-Page PDF Download via html2canvas & jsPDF
   const handleDirectDownloadPdf = async () => {
     setIsGeneratingPdf(true);
     try {
-      if (!iframeRef.current) return;
-      const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
-      const targetElement = iframeDoc?.getElementById("pdf-root") || iframeDoc?.body;
+      const fullHtml = getCompiledDocumentHtml();
 
-      if (!targetElement) throw new Error("Could not find document element to render");
+      // Render in dedicated offscreen frame with exact document width and full scroll height
+      const renderFrame = document.createElement("iframe");
+      renderFrame.style.position = "fixed";
+      renderFrame.style.left = "-9999px";
+      renderFrame.style.top = "0";
+      renderFrame.style.width = orientation === "landscape" ? "1123px" : "794px";
+      renderFrame.style.height = "1200px";
+      renderFrame.style.border = "0";
+      renderFrame.style.opacity = "0";
+      renderFrame.style.pointerEvents = "none";
+      document.body.appendChild(renderFrame);
 
-      // Calculate canvas dimensions
-      const canvas = await (html2canvas as unknown as (el: HTMLElement, opts?: unknown) => Promise<HTMLCanvasElement>)(targetElement as HTMLElement, {
-        scale: 2.5, // High DPI clarity
+      const frameDoc = renderFrame.contentDocument || renderFrame.contentWindow?.document;
+      if (!frameDoc) throw new Error("Could not access render frame");
+
+      frameDoc.open();
+      frameDoc.write(fullHtml);
+      frameDoc.close();
+
+      // Allow DOM, styles, and fonts to render
+      await new Promise((resolve) => setTimeout(resolve, 350));
+
+      const contentElement = frameDoc.body;
+      const contentHeight = Math.max(
+        contentElement.scrollHeight,
+        contentElement.offsetHeight,
+        frameDoc.documentElement.scrollHeight,
+        frameDoc.documentElement.offsetHeight,
+        800
+      );
+      const contentWidth = Math.max(
+        contentElement.scrollWidth,
+        contentElement.offsetWidth,
+        frameDoc.documentElement.scrollWidth,
+        frameDoc.documentElement.offsetWidth,
+        orientation === "landscape" ? 1123 : 794
+      );
+
+      renderFrame.style.height = `${contentHeight + 50}px`;
+
+      const canvas = await (html2canvas as unknown as (el: HTMLElement, opts?: unknown) => Promise<HTMLCanvasElement>)(contentElement, {
+        scale: 2, // 2x sharpness
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
         logging: false,
+        width: contentWidth,
+        height: contentHeight,
+        windowWidth: contentWidth,
+        windowHeight: contentHeight,
+        x: 0,
+        y: 0,
+        scrollX: 0,
+        scrollY: 0,
       });
+
+      // Cleanup offscreen frame
+      if (document.body.contains(renderFrame)) {
+        document.body.removeChild(renderFrame);
+      }
 
       const imgData = canvas.toDataURL("image/png");
 
@@ -1574,13 +1622,13 @@ export default function HtmlPdfStudio() {
       let heightLeft = imgHeight;
       let position = 0;
 
-      // Add first page
+      // First page
       pdf.addImage(imgData, "PNG", 0, position, pdfWidthMm, imgHeight);
       heightLeft -= pdfHeightMm;
 
-      // Add more pages if content exceeds one sheet
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
+      // Additional pages if document is long
+      while (heightLeft > 2) {
+        position -= pdfHeightMm;
         pdf.addPage();
         pdf.addImage(imgData, "PNG", 0, position, pdfWidthMm, imgHeight);
         heightLeft -= pdfHeightMm;
@@ -1595,7 +1643,6 @@ export default function HtmlPdfStudio() {
       });
     } catch (err) {
       console.error("PDF generation failed:", err);
-      // Fallback to vector print if canvas fails
       handleVectorPrint();
     } finally {
       setIsGeneratingPdf(false);
