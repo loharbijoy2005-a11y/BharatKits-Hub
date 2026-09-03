@@ -19,17 +19,13 @@ for i, item in enumerate(data):
     if isinstance(item['state'], list):
         item['state'] = ', '.join(item['state'])
     
-    # Sector normalization
-    if cat == 'teaching':
-        item['sector'] = 'Teaching & Education'
-    elif cat == 'government':
-        item['sector'] = item.get('sector') or item.get('gov_sector') or 'Central / State Govt'
-    else:
-        item['sector'] = item.get('sector') or 'IT & Software'
+    # Authoritative Sector normalization
+    sector = item.get('sector') or item.get('gov_sector') or ('Private & Corporate' if cat == 'private' else 'Central SSC & UPSC')
+    item['sector'] = sector
         
     if cat in ('government', 'teaching'):
         item['department_or_board'] = item.get('department_or_board') or item.get('department_or_company') or 'Govt / Board'
-        item['gov_sector'] = item.get('sector') or 'Government'
+        item['gov_sector'] = sector
         item['notification_pdf_url'] = item.get('notification_pdf_url') or item.get('official_pdf') or None
         item['official_pdf_fallback'] = item.get('official_pdf_fallback') or item.get('apply_url')
         item['has_direct_pdf'] = bool(item.get('has_direct_pdf', False))
@@ -140,10 +136,39 @@ export interface JobFilterState {{
 
 export const INITIAL_JOBS_DATA: Job[] = {json.dumps(data, indent=2, ensure_ascii=False)};
 
+export const ALL_SECTORS_LIST = [
+  "All Sectors",
+  "Teaching & Education",
+  "Panchayat & Postal",
+  "Railway",
+  "Police & Defence",
+  "Central SSC & UPSC",
+  "State PSC & Subordinate",
+  "Banking & Finance",
+  "PSU & Engineering",
+  "Medical & Health",
+  "Private & Corporate",
+] as const;
+
+export const SECTOR_ICONS_CONFIG = {{
+  "All Sectors": "Layers",
+  "Teaching & Education": "GraduationCap",
+  "Panchayat & Postal": "Mail",
+  "Railway": "Train",
+  "Police & Defence": "ShieldCheck",
+  "Central SSC & UPSC": "Landmark",
+  "State PSC & Subordinate": "Building",
+  "Banking & Finance": "CreditCard",
+  "PSU & Engineering": "Cpu",
+  "Medical & Health": "Stethoscope",
+  "Private & Corporate": "Briefcase",
+}};
+
 export const GOV_BOARDS_LIST = [
   "All Boards",
+  "India Post & Panchayat",
   "Central Teaching (CTET / KVS / NVS)",
-  "State Teaching & TET Commissions",
+  "Medical (AIIMS / NHM)",
   "Staff Selection Commission (SSC)",
   "Union Public Service Commission (UPSC)",
   "Railway Recruitment Board (RRB)",
@@ -151,17 +176,6 @@ export const GOV_BOARDS_LIST = [
   "Defence / Armed Forces",
   "State PSCs (WBPSC, UPPSC, BPSC, JPSC, MPSC)",
   "Police Recruitment Boards",
-];
-
-export const ALL_SECTORS_LIST = [
-  "All Sectors",
-  "Teaching & Education",
-  "Central Govt",
-  "State Govt",
-  "Police & Defence",
-  "Banking/Railway",
-  "IT & Software",
-  "Core Private",
 ];
 
 export const INDIAN_STATES_LIST = [
@@ -191,12 +205,13 @@ export const INDIAN_STATES_LIST = [
 
 export const QUALIFICATIONS_LIST = [
   "All Qualifications",
+  "10th Pass / Matric",
+  "12th Pass / Intermediate",
   "B.Ed / D.El.Ed / CTET Qualified",
-  "10th Pass",
-  "12th Pass",
-  "Diploma",
+  "Diploma in Engineering",
   "Graduate / Bachelor's Degree",
   "B.E / B.Tech / BCA",
+  "B.Sc Nursing / GNM / MBBS",
   "Post Graduate / Master's Degree",
 ];
 
@@ -212,4 +227,4 @@ export const EXP_LEVELS_LIST = [
 with open('lib/jobs-data.ts', 'w', encoding='utf-8') as f:
     f.write(ts_content)
 
-print(f"Successfully formatted and synced {len(data)} jobs to lib/jobs-data.ts with Teaching and State support!")
+print(f"Successfully synced {len(data)} jobs to lib/jobs-data.ts with complete 10-sector taxonomy!")

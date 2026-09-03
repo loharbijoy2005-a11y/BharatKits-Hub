@@ -50,15 +50,10 @@ export async function GET(request: NextRequest) {
         if (res.ok) {
           const dbJobs = await res.json();
           if (Array.isArray(dbJobs) && dbJobs.length > 0) {
-            // Map DB jobs to frontend model
             allJobs = dbJobs.map((j: any, idx: number): Job => {
               const isGovt = j.category === "government" || j.category === "teaching";
-              const isTeaching =
-                j.category === "teaching" ||
-                (j.gov_sector || "").toLowerCase().includes("teaching") ||
-                (j.department_or_board || "").toLowerCase().includes("tet") ||
-                (j.department_or_board || "").toLowerCase().includes("kvs") ||
-                (j.title || "").toLowerCase().includes("teacher");
+              const detectedSector = j.sector || j.gov_sector || (isGovt ? "Central SSC & UPSC" : "Private & Corporate");
+              const isTeaching = detectedSector === "Teaching & Education";
 
               if (isGovt || isTeaching) {
                 return {
@@ -66,11 +61,11 @@ export async function GET(request: NextRequest) {
                   job_hash: j.job_hash || `hash-${idx + 1}`,
                   category: isTeaching ? "teaching" : "government",
                   title: j.title || "Government Opening",
-                  sector: j.sector || j.gov_sector || (isTeaching ? "Teaching & Education" : "Government"),
+                  sector: detectedSector,
                   state: j.state || j.state_or_location || "All India",
                   state_or_location: j.state || j.state_or_location || "All India",
                   department_or_board: j.department_or_board || j.department_or_company || "Govt Board",
-                  gov_sector: j.sector || j.gov_sector || (isTeaching ? "Teaching & Education" : "Government"),
+                  gov_sector: detectedSector,
                   qualification: j.qualification || "Graduate",
                   last_date: j.last_date || j.last_date_to_apply || "Open until filled",
                   last_date_to_apply: j.last_date_to_apply || j.last_date || "2026-09-30",
@@ -94,7 +89,7 @@ export async function GET(request: NextRequest) {
                   job_hash: j.job_hash || `hash-${idx + 1}`,
                   category: "private",
                   title: j.title || "Private Opening",
-                  sector: j.sector || "IT & Software",
+                  sector: "Private & Corporate",
                   state: j.state || j.work_location || "All India",
                   work_location: j.work_location || j.state || "Bengaluru / Remote",
                   company_name: j.company_name || j.department_or_company || "Company",
@@ -121,15 +116,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 2. Perform in-memory multi-parameter search & filtering
+    // 2. Multi-Parameter Filtering
     let filtered = allJobs;
 
-    // Filter by Category (Sarkari vs Teaching vs Private)
+    // Filter by Category
     if (category !== "all") {
       filtered = filtered.filter((j) => j.category === category);
     }
 
-    // Filter by Sector
+    // Filter by Authoritative Sector
     if (sector !== "All Sectors") {
       filtered = filtered.filter((j) => (j.sector || "").toLowerCase() === sector.toLowerCase());
     }
@@ -176,6 +171,7 @@ export async function GET(request: NextRequest) {
       success: true,
       total: filtered.length,
       category,
+      sector,
       jobs: filtered,
     });
   } catch (error) {

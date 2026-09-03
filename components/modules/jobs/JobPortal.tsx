@@ -21,8 +21,6 @@ import {
   Search,
   RefreshCw,
   Flame,
-  ShieldCheck,
-  BookOpen,
 } from "lucide-react";
 
 export default function JobPortal() {
@@ -101,7 +99,7 @@ export default function JobPortal() {
   };
 
   const handleShare = (job: Job) => {
-    const text = `🔥 New Job Opening: ${job.title}\n📍 State: ${job.state || "All India"}\n🔗 Apply & View Details: ${window.location.origin}/jobs`;
+    const text = `🔥 New Job Opening: ${job.title}\n📍 State: ${job.state || "All India"}\n📌 Sector: ${job.sector}\n🔗 Apply & View Details: ${window.location.origin}/jobs`;
     const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(waUrl, "_blank");
   };
@@ -146,7 +144,7 @@ export default function JobPortal() {
     if (filter.searchQuery.trim()) {
       const q = filter.searchQuery.toLowerCase().trim();
       list = list.filter((j) => {
-        const titleMatch = j.title.toLowerCase().includes(q);
+        const titleMatch = (j.title || "").toLowerCase().includes(q);
         const descMatch = (j.description || "").toLowerCase().includes(q);
         const stateMatch = (j.state || "").toLowerCase().includes(q);
         const secMatch = (j.sector || "").toLowerCase().includes(q);
@@ -223,13 +221,12 @@ export default function JobPortal() {
 
   // Statistics
   const stats = useMemo(() => {
-    const govtCount = jobs.filter((j) => j.category === "government").length;
-    const teachingCount = jobs.filter((j) => j.category === "teaching").length;
+    const govtCount = jobs.filter((j) => j.category === "government" || j.category === "teaching").length;
     const privCount = jobs.filter((j) => j.category === "private").length;
     const totalVacancies = jobs
       .filter((j) => j.category === "government" || j.category === "teaching")
       .reduce((acc, curr) => acc + ((curr as GovtJob).vacancies_count || 0), 0);
-    return { govtCount, teachingCount, privCount, totalVacancies };
+    return { govtCount, privCount, totalVacancies };
   }, [jobs]);
 
   return (
@@ -251,27 +248,20 @@ export default function JobPortal() {
               100% Centralized All India Job Aggregator
             </div>
             <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-              India&apos;s Centralized Job &amp; Teaching Portal
+              All India Centralized Job &amp; Career Portal
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Real-time aggregation across Central commissions (SSC, UPSC, Railway, Banking), State Governments, Teaching &amp; TET Boards (KVS, CTET, BPSC TRE, WB TET), and Corporate ATS feeds.
+              Real-time aggregation across Teaching, Postal &amp; Panchayat, Railway, Defence &amp; Police, Central SSC/UPSC, State PSCs, Banking, PSU Engineering, Healthcare, and Corporate ATS feeds.
             </p>
           </div>
 
           {/* Quick Counter Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 shrink-0">
             <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
               <div className="text-lg sm:text-2xl font-black text-amber-400">
                 {stats.govtCount}
               </div>
-              <div className="text-[10px] uppercase font-bold text-slate-300">Sarkari / State</div>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
-              <div className="text-lg sm:text-2xl font-black text-rose-400">
-                {stats.teachingCount}
-              </div>
-              <div className="text-[10px] uppercase font-bold text-slate-300">Teaching / TET</div>
+              <div className="text-[10px] uppercase font-bold text-slate-300">Sarkari &amp; Public</div>
             </div>
 
             <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
@@ -285,7 +275,7 @@ export default function JobPortal() {
               <div className="text-lg sm:text-2xl font-black text-emerald-400">
                 {stats.totalVacancies.toLocaleString()}+
               </div>
-              <div className="text-[10px] uppercase font-bold text-slate-300">Total Posts</div>
+              <div className="text-[10px] uppercase font-bold text-slate-300">Active Posts</div>
             </div>
           </div>
         </div>
@@ -324,13 +314,12 @@ export default function JobPortal() {
         </div>
       </div>
 
-      {/* Multi-Parameter Filters */}
+      {/* Interactive Sector Pills & Multi-Parameter Filters */}
       <JobFilter
         filter={filter}
         onChange={handleFilterChange}
         totalCount={jobs.length}
         govtCount={stats.govtCount}
-        teachingCount={stats.teachingCount}
         privCount={stats.privCount}
         onReset={handleResetFilters}
       />
@@ -374,7 +363,7 @@ export default function JobPortal() {
               No matching job notifications found
             </h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Try clearing some filters or searching for broader terms like &quot;Teacher&quot;, &quot;Officer&quot;, or &quot;All India&quot;.
+              Try clicking &quot;All Sectors&quot; or clearing some filters to see broader job openings.
             </p>
           </div>
           <button

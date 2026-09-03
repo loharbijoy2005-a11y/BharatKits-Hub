@@ -1,6 +1,8 @@
 -- ============================================================================
 -- ALL INDIA CENTRALIZED JOB PORTAL - PRODUCTION SUPABASE POSTGRESQL SCHEMA
--- 100% Aggregation: Teaching/Education, State Subordinate, Central & Corporate
+-- Complete Classification: Teaching & Education, Panchayat & Postal, Railway,
+-- Police & Defence, Central SSC & UPSC, State PSC & Subordinate, Banking & Finance,
+-- PSU & Engineering, Medical & Health, Private & Corporate
 -- ============================================================================
 
 -- 1. Enable UUID Extension
@@ -11,7 +13,20 @@ CREATE TABLE IF NOT EXISTS public.jobs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
     category TEXT NOT NULL CHECK (category IN ('government', 'private', 'teaching')),
-    sector TEXT DEFAULT 'General',                       -- Teaching & Education, Central Govt, State Govt, Police & Defence, Banking/Railway, IT & Software, Core Private
+    sector TEXT NOT NULL DEFAULT 'Central SSC & UPSC' CHECK (
+        sector IN (
+            'Teaching & Education',
+            'Panchayat & Postal',
+            'Railway',
+            'Police & Defence',
+            'Central SSC & UPSC',
+            'State PSC & Subordinate',
+            'Banking & Finance',
+            'PSU & Engineering',
+            'Medical & Health',
+            'Private & Corporate'
+        )
+    ),
     state TEXT DEFAULT 'All India',                     -- West Bengal, Jharkhand, Uttar Pradesh, Bihar, Delhi NCR, Maharashtra, etc.
     department_or_company TEXT NOT NULL,                -- CTET, KVS, NVS, BPSC, WB SSC, SSC, UPSC, Google, Swiggy, etc.
     qualification TEXT DEFAULT 'Not Specified',         -- B.Ed, D.El.Ed, CTET Qualified, 10th, 12th, Graduate, B.Tech, Master's
