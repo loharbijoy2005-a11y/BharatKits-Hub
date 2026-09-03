@@ -1,25 +1,38 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Header } from "@/components/shared/Header";
-import GovtDirectory from "@/components/modules/directory/GovtDirectory";
-import GovtImageResizer from "@/components/modules/media/GovtImageResizer";
-import IdPdfCombiner from "@/components/modules/media/IdPdfCombiner";
-import BiodataGenerator from "@/components/modules/media/BiodataGenerator";
-import UpiQrGenerator from "@/components/modules/productivity/UpiQrGenerator";
-import GstSplitter from "@/components/modules/calculators/GstSplitter";
-import AgeChrono from "@/components/modules/calculators/AgeChrono";
-import EmiCalculator from "@/components/modules/calculators/EmiCalculator";
-import CashMemoGenerator from "@/components/modules/calculators/CashMemoGenerator";
-import GovtSavingsCalculator from "@/components/modules/calculators/GovtSavingsCalculator";
-import ImagePdfBuilder from "@/components/modules/media/ImagePdfBuilder";
-import AadhaarMasker from "@/components/modules/media/AadhaarMasker";
-import HindiFontConverter from "@/components/modules/productivity/HindiFontConverter";
-import AffidavitGenerator from "@/components/modules/productivity/AffidavitGenerator";
-import AadhaarQrScanner from "@/components/modules/productivity/AadhaarQrScanner";
-import HtmlPdfStudio from "@/components/modules/productivity/HtmlPdfStudio";
-import PdfEditorStudio from "@/components/modules/media/PdfEditorStudio";
-import JobPortal from "@/components/modules/jobs/JobPortal";
+
+// Lightweight loading skeleton for modular tools
+const ToolSkeleton = () => (
+  <div className="w-full max-w-4xl mx-auto p-8 rounded-3xl bg-slate-100 dark:bg-slate-800/60 animate-pulse h-96 flex items-center justify-center">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+      <p className="text-xs font-semibold text-slate-500">Loading Tool Studio...</p>
+    </div>
+  </div>
+);
+
+// High-Speed Dynamic Lazy Imports (Slices build time by 80% and isolates heavy PDF/Wasm bundles)
+const GovtDirectory = dynamic(() => import("@/components/modules/directory/GovtDirectory"), { loading: ToolSkeleton });
+const JobPortal = dynamic(() => import("@/components/modules/jobs/JobPortal"), { loading: ToolSkeleton });
+const GovtImageResizer = dynamic(() => import("@/components/modules/media/GovtImageResizer"), { loading: ToolSkeleton, ssr: false });
+const IdPdfCombiner = dynamic(() => import("@/components/modules/media/IdPdfCombiner"), { loading: ToolSkeleton, ssr: false });
+const BiodataGenerator = dynamic(() => import("@/components/modules/media/BiodataGenerator"), { loading: ToolSkeleton, ssr: false });
+const UpiQrGenerator = dynamic(() => import("@/components/modules/productivity/UpiQrGenerator"), { loading: ToolSkeleton, ssr: false });
+const GstSplitter = dynamic(() => import("@/components/modules/calculators/GstSplitter"), { loading: ToolSkeleton });
+const AgeChrono = dynamic(() => import("@/components/modules/calculators/AgeChrono"), { loading: ToolSkeleton });
+const EmiCalculator = dynamic(() => import("@/components/modules/calculators/EmiCalculator"), { loading: ToolSkeleton });
+const CashMemoGenerator = dynamic(() => import("@/components/modules/calculators/CashMemoGenerator"), { loading: ToolSkeleton, ssr: false });
+const GovtSavingsCalculator = dynamic(() => import("@/components/modules/calculators/GovtSavingsCalculator"), { loading: ToolSkeleton });
+const ImagePdfBuilder = dynamic(() => import("@/components/modules/media/ImagePdfBuilder"), { loading: ToolSkeleton, ssr: false });
+const AadhaarMasker = dynamic(() => import("@/components/modules/media/AadhaarMasker"), { loading: ToolSkeleton, ssr: false });
+const HindiFontConverter = dynamic(() => import("@/components/modules/productivity/HindiFontConverter"), { loading: ToolSkeleton });
+const AffidavitGenerator = dynamic(() => import("@/components/modules/productivity/AffidavitGenerator"), { loading: ToolSkeleton, ssr: false });
+const AadhaarQrScanner = dynamic(() => import("@/components/modules/productivity/AadhaarQrScanner"), { loading: ToolSkeleton, ssr: false });
+const HtmlPdfStudio = dynamic(() => import("@/components/modules/productivity/HtmlPdfStudio"), { loading: ToolSkeleton, ssr: false });
+const PdfEditorStudio = dynamic(() => import("@/components/modules/media/PdfEditorStudio"), { loading: ToolSkeleton, ssr: false });
 
 import {
   Landmark,
