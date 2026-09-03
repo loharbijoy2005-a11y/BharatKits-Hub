@@ -269,6 +269,29 @@ export default function JobPortal() {
         </div>
       )}
 
+      {/* COMING SOON & UNDER ENHANCEMENT NOTICE BANNER */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 border-2 border-amber-500/40 backdrop-blur-xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3 text-center sm:text-left">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/30 flex items-center justify-center shrink-0 border border-amber-400/40">
+            <span className="text-xl">🚧</span>
+          </div>
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-xs font-black text-amber-400 uppercase tracking-widest">
+              <span>● ALL INDIA JOBS PORTAL</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[11px] shadow-sm">COMING SOON / UNDER UPGRADATION</span>
+            </div>
+            <p className="text-xs sm:text-sm font-semibold text-slate-200 mt-0.5">
+              All India Job Feed & Date Synchronization System is currently undergoing major live scraping & date alignment upgrades.
+            </p>
+          </div>
+        </div>
+        <div className="shrink-0 text-center sm:text-right">
+          <span className="inline-block px-4 py-2 rounded-2xl bg-amber-500 font-extrabold text-xs text-slate-950 shadow-lg tracking-wide uppercase">
+            ⚡ Upgrading Real-Time Dates
+          </span>
+        </div>
+      </div>
+
       {/* Hero Banner with Live Metric Counters */}
       <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white border border-indigo-500/20 shadow-2xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
