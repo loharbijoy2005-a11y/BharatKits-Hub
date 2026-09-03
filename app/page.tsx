@@ -583,15 +583,167 @@ export default function Page() {
         )}
       </main>
 
-      {/* Global Footer */}
-      <footer className="mt-auto border-t border-slate-200/50 dark:border-slate-800/20 glass shadow-sm py-6 transition-all duration-300 text-center text-xs text-slate-400 dark:text-slate-600 font-bold select-none">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            <span>Zero-Server Retention Architecture. All processes and calculations are verified locally on this terminal.</span>
+      {/* Global Footer — Premium */}
+      <footer className="mt-auto relative overflow-hidden">
+        {/* Tricolor Top Bar */}
+        <div className="h-1 w-full flex">
+          <div className="flex-1 bg-[#FF9933]" />
+          <div className="flex-1 bg-white dark:bg-slate-300" />
+          <div className="flex-1 bg-[#138808]" />
+        </div>
+
+        <div className="bg-slate-950 text-slate-300 relative">
+          {/* Subtle glow blobs */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute -top-32 left-1/3 w-72 h-72 rounded-full bg-orange-900/15 blur-3xl" />
+            <div className="absolute -bottom-16 right-1/4 w-64 h-64 rounded-full bg-emerald-900/10 blur-3xl" />
           </div>
-          <div>
-            <span>&copy; 2026 BharatKits Portal. Made for Digital India.</span>
+
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* ── MAIN GRID ── */}
+            <div className="py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 border-b border-slate-800/70">
+
+              {/* Brand Column */}
+              <div className="space-y-5">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                      <ShieldCheck className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-black text-white">BharatKits Hub</div>
+                      <div className="text-[10px] text-orange-400 font-bold uppercase tracking-widest">Digital India Utility Hub</div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Free, open-source, all-in-one utility platform for Indian citizens, students, small businesses &amp; cyber cafes. Zero server logs. 100% client-side processing.
+                  </p>
+                </div>
+
+                {/* Digital India Badge */}
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[#FF9933]/10 via-white/5 to-[#138808]/10 border border-slate-800">
+                  <span className="text-xl">🇮🇳</span>
+                  <div>
+                    <div className="text-xs font-black text-white">Made for Digital India</div>
+                    <div className="text-[10px] text-slate-500">Jai Hind 🙏</div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-semibold">
+                    <ShieldCheck className="w-3 h-3 text-emerald-400" /> 100% Private
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-semibold">
+                    ⚡ Zero Cost
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-semibold">
+                    🔓 Open Source
+                  </span>
+                </div>
+              </div>
+
+              {/* Cyber Cafe Tools */}
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Cyber Cafe Tools</h4>
+                <ul className="space-y-2 text-xs text-slate-400">
+                  {[
+                    "PDF Editor & Digital Signer",
+                    "HTML to PDF Studio",
+                    "ID Front-Back PDF Combiner",
+                    "Govt Form Image Resizer",
+                    "Biodata & Resume Builder",
+                    "Affidavit & Legal Draft",
+                    "Aadhaar Secure Masker",
+                    "Hindi Font Converter",
+                  ].map((t) => (
+                    <li key={t} className="flex items-center gap-1.5 hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveView("dashboard")}>
+                      <span className="text-slate-700">›</span> {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Calculators & Portals */}
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Calculators & Portals</h4>
+                <ul className="space-y-2 text-xs text-slate-400">
+                  {[
+                    "GST & Bill Splitter",
+                    "Loan EMI Calculator",
+                    "Govt Savings (PPF/SSY/NPS)",
+                    "Age & Chrono Engine",
+                    "GST Cash Memo Generator",
+                    "UPI Payment QR Studio",
+                    "Aadhaar QR Scanner",
+                    "Govt Portal Directory",
+                  ].map((t) => (
+                    <li key={t} className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors cursor-pointer" onClick={() => setActiveView("dashboard")}>
+                      <span className="text-slate-700">›</span> {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Job Portal & Legal */}
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Job Portal</h4>
+                  <ul className="space-y-2 text-xs text-slate-400">
+                    {[
+                      "All India Sarkari Jobs",
+                      "Private & Tech Careers",
+                      "Teaching & Education",
+                      "Railway & Defence",
+                      "Banking & PSU",
+                      "State PSC & SSC/UPSC",
+                    ].map((t) => (
+                      <li key={t} className="flex items-center gap-1.5 hover:text-indigo-400 transition-colors cursor-pointer" onClick={() => setActiveView("job-portal")}>
+                        <span className="text-slate-700">›</span> {t}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Legal</h4>
+                  <ul className="space-y-1.5 text-xs text-slate-500">
+                    <li>Privacy Policy</li>
+                    <li>Terms of Service</li>
+                    <li>Content Takedown</li>
+                    <li>
+                      <a href="https://github.com/loharbijoy2005-a11y/BharatKits-Hub" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors">
+                        GitHub Repository ↗
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* ── DISCLAIMER ── */}
+            <div className="py-4 border-b border-slate-800/50">
+              <p className="text-[11px] text-slate-600 text-center leading-relaxed max-w-4xl mx-auto">
+                <span className="font-bold text-amber-700">⚠️ Disclaimer:</span> BharatKits Hub is an independent open-source platform. All tools run 100% locally in your browser — no citizen data, Aadhaar scans, or documents are ever uploaded to any server.
+              </p>
+            </div>
+
+            {/* ── COPYRIGHT BAR ── */}
+            <div className="py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <div className="text-[13px] font-black text-white">© 2026 Bijoy Lohar. All Rights Reserved.</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">
+                  Designed &amp; Maintained by{" "}
+                  <a href="https://github.com/loharbijoy2005-a11y" target="_blank" rel="noopener noreferrer" className="text-orange-400 font-bold hover:text-orange-300 transition-colors">
+                    Bijoy Lohar ↗
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                Zero-server retention · All data stays on your device
+                <span className="text-lg">🇮🇳</span>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
