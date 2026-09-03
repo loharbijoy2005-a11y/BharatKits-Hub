@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   ShieldCheck,
   Scale,
@@ -177,40 +178,48 @@ export function JobPortalFooter() {
               {/* Legal Links */}
               <div className="space-y-3">
                 <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">
-                  Legal & Compliance
+                  Legal &amp; Compliance
                 </h4>
                 <ul className="space-y-2">
                   <li>
-                    <button
-                      onClick={() => openLegal("disclaimer")}
+                    <Link
+                      href="/disclaimer"
                       className="flex items-center gap-2 text-xs text-slate-400 hover:text-indigo-400 transition-colors"
                     >
                       <Scale className="w-3.5 h-3.5" /> Legal Disclaimer
-                    </button>
+                    </Link>
                   </li>
                   <li>
-                    <button
-                      onClick={() => openLegal("privacy")}
+                    <Link
+                      href="/privacy"
                       className="flex items-center gap-2 text-xs text-slate-400 hover:text-indigo-400 transition-colors"
                     >
                       <ShieldCheck className="w-3.5 h-3.5" /> Privacy Policy
-                    </button>
+                    </Link>
                   </li>
                   <li>
-                    <button
-                      onClick={() => openLegal("terms")}
+                    <Link
+                      href="/terms"
                       className="flex items-center gap-2 text-xs text-slate-400 hover:text-indigo-400 transition-colors"
                     >
                       <FileText className="w-3.5 h-3.5" /> Terms of Service
-                    </button>
+                    </Link>
                   </li>
                   <li>
-                    <button
-                      onClick={() => setTakedownOpen(true)}
+                    <Link
+                      href="/takedown"
                       className="flex items-center gap-2 text-xs text-amber-500 hover:text-amber-300 font-bold transition-colors"
                     >
                       🛡️ Content Removal Request
-                    </button>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/about"
+                      className="flex items-center gap-2 text-xs text-slate-400 hover:text-orange-400 transition-colors"
+                    >
+                      <Globe className="w-3.5 h-3.5" /> About BharatKits
+                    </Link>
                   </li>
                 </ul>
               </div>

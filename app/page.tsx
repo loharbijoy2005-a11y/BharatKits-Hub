@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import { Header } from "@/components/shared/Header";
 import GovtDirectory from "@/components/modules/directory/GovtDirectory";
 import GovtImageResizer from "@/components/modules/media/GovtImageResizer";
@@ -705,13 +706,35 @@ export default function Page() {
                 </div>
 
                 <div className="space-y-3">
-                  <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Legal</h4>
-                  <ul className="space-y-1.5 text-xs text-slate-500">
-                    <li>Privacy Policy</li>
-                    <li>Terms of Service</li>
-                    <li>Content Takedown</li>
+                  <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Legal &amp; Compliance</h4>
+                  <ul className="space-y-2 text-xs text-slate-400">
                     <li>
-                      <a href="https://github.com/loharbijoy2005-a11y/BharatKits-Hub" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors">
+                      <Link href="/privacy" className="hover:text-indigo-400 transition-colors">
+                        Privacy Policy
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/terms" className="hover:text-indigo-400 transition-colors">
+                        Terms of Service
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/disclaimer" className="hover:text-amber-400 transition-colors">
+                        Legal Disclaimer
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/takedown" className="hover:text-amber-400 font-bold transition-colors text-amber-500">
+                        🛡️ Content Takedown
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/about" className="hover:text-orange-400 transition-colors">
+                        About BharatKits
+                      </Link>
+                    </li>
+                    <li>
+                      <a href="https://github.com/loharbijoy2005-a11y/BharatKits-Hub" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors inline-flex items-center gap-1">
                         GitHub Repository ↗
                       </a>
                     </li>
