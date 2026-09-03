@@ -15,6 +15,8 @@ const pdfParse = require("pdf-parse");
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => null);
@@ -32,61 +34,60 @@ export async function POST(request: NextRequest) {
     try {
       targetUrl = new URL(pdfUrl.trim());
       if (!["http:", "https:"].includes(targetUrl.protocol)) {
-        throw new Error("Invalid protocol");
+        return NextResponse.json(
+          { success: false, error: "Invalid URL protocol. Only HTTP and HTTPS PDF links are supported." },
+          { status: 400 }
+        );
       }
     } catch {
       return NextResponse.json(
-        { success: false, error: "Provided pdfUrl must be a valid HTTP/HTTPS URL." },
+        { success: false, error: "Invalid PDF URL format provided." },
         { status: 400 }
       );
     }
 
-    // 2. Access Gemini API Key strictly via process.env.GEMINI_API_KEY
+    // 2. Access Gemini API Key
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    if (!apiKey || apiKey === "your_gemini_api_key_here") {
       return NextResponse.json(
-        { success: false, error: "GEMINI_API_KEY environment variable is not configured on the server." },
+        {
+          success: false,
+          error: "GEMINI_API_KEY environment variable is not configured. Please add your key in Vercel Environment Variables.",
+        },
         { status: 500 }
       );
     }
 
-    // 3. Download the PDF file securely using Node's native fetch
-    let pdfResponse: Response;
+    // 3. Download PDF File
+    let pdfBuffer: Buffer;
     try {
-      pdfResponse = await fetch(targetUrl.toString(), {
+      const pdfResp = await fetch(targetUrl.toString(), {
         headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-          "Accept": "application/pdf,application/octet-stream,*/*",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         },
       });
-      if (!pdfResponse.ok) {
+
+      if (!pdfResp.ok) {
         return NextResponse.json(
-          { success: false, error: `Failed to download PDF from target URL (HTTP ${pdfResponse.status}).` },
+          { success: false, error: `Failed to download PDF notification file (HTTP Status ${pdfResp.status}).` },
           { status: 400 }
         );
       }
-    } catch (fetchErr: any) {
+
+      const arrayBuf = await pdfResp.arrayBuffer();
+      pdfBuffer = Buffer.from(arrayBuf);
+    } catch (downloadErr: any) {
       return NextResponse.json(
-        { success: false, error: `Network error fetching PDF: ${fetchErr?.message || "Connection failed"}` },
+        { success: false, error: `Failed to download PDF file: ${downloadErr?.message || "Network error"}` },
         { status: 400 }
       );
     }
 
-    const pdfArrayBuffer = await pdfResponse.arrayBuffer();
-    const pdfBuffer = Buffer.from(pdfArrayBuffer);
-
-    if (!pdfBuffer || pdfBuffer.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Downloaded PDF file content is empty (0 bytes)." },
-        { status: 400 }
-      );
-    }
-
-    // 4. Extract text from PDF using pdf-parse (first 3 pages / max 4,000 characters)
+    // 4. Extract Text from PDF using pdf-parse
     let extractedText = "";
     try {
-      const pdfData = await pdfParse(pdfBuffer, { max: 3 });
-      extractedText = (pdfData.text || "").replace(/\s+/g, " ").trim().slice(0, 4000);
+      const parsedData = await pdfParse(pdfBuffer);
+      extractedText = (parsedData?.text || "").trim();
     } catch (parseErr: any) {
       return NextResponse.json(
         { success: false, error: `Failed to parse PDF document text: ${parseErr?.message || "Corrupt or unreadable PDF"}` },
@@ -101,13 +102,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Initialize Official @google/genai SDK
+    // 5. Initialize Official @google/genai SDK with model fallbacks
     const ai = new GoogleGenAI({ apiKey });
 
     const prompt = `Extract authentic job recruitment details from the official notification text below.
 Text sample:
 """
-${extractedText}
+${extractedText.substring(0, 15000)}
 """
 
 Instructions:
@@ -118,36 +119,63 @@ Instructions:
 - eligibility: Brief summary of required qualification or age limit.`;
 
     let responseText = "";
-    try {
-      const aiResponse = await ai.models.generateContent({
-        model: "gemini-3.6-flash",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              jobTitle: { type: Type.STRING },
-              organization: { type: Type.STRING },
-              totalVacancies: { type: Type.STRING },
-              lastDate: { type: Type.STRING, description: "Strictly YYYY-MM-DD format" },
-              eligibility: { type: Type.STRING },
+    let lastError: any = null;
+    let rateLimited = false;
+
+    for (const modelName of FALLBACK_MODELS) {
+      try {
+        const aiResponse = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                jobTitle: { type: Type.STRING },
+                organization: { type: Type.STRING },
+                totalVacancies: { type: Type.STRING },
+                lastDate: { type: Type.STRING, description: "Strictly YYYY-MM-DD format" },
+                eligibility: { type: Type.STRING },
+              },
+              required: ["jobTitle", "organization", "totalVacancies", "lastDate", "eligibility"],
             },
-            required: ["jobTitle", "organization", "totalVacancies", "lastDate", "eligibility"],
           },
-        },
-      });
-      responseText = aiResponse.text || "";
-    } catch (aiErr: any) {
+        });
+        responseText = aiResponse.text || "";
+        if (responseText) {
+          lastError = null;
+          break;
+        }
+      } catch (aiErr: any) {
+        lastError = aiErr;
+        const errStr = String(aiErr?.message || aiErr);
+        if (errStr.includes("429") || errStr.includes("RESOURCE_EXHAUSTED") || errStr.includes("quota")) {
+          rateLimited = true;
+        }
+      }
+    }
+
+    if (lastError && !responseText) {
+      if (rateLimited) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Gemini API Free Quota Limit Reached (15 requests/min). Please wait 30 seconds and try again, or check your API Key at Google AI Studio (aistudio.google.com).",
+          },
+          { status: 429 }
+        );
+      }
+
       return NextResponse.json(
-        { success: false, error: `Gemini API extraction failed: ${aiErr?.message || "API call failed"}` },
+        { success: false, error: `Gemini API extraction failed: ${lastError?.message || "API error"}` },
         { status: 500 }
       );
     }
 
     if (!responseText) {
       return NextResponse.json(
-        { success: false, error: "Gemini API returned an empty response." },
+        { success: false, error: "Gemini API returned empty response." },
         { status: 500 }
       );
     }
@@ -164,7 +192,7 @@ Instructions:
       parsedResult = JSON.parse(responseText);
     } catch {
       return NextResponse.json(
-        { success: false, error: "Failed to parse structured JSON response from Gemini API." },
+        { success: false, error: "Could not parse JSON output from Gemini response." },
         { status: 500 }
       );
     }
@@ -173,12 +201,11 @@ Instructions:
 
     if (!jobTitle || !organization) {
       return NextResponse.json(
-        { success: false, error: "Unable to extract key recruitment details from this document." },
+        { success: false, error: "Gemini could not locate authentic job title or organization in PDF text." },
         { status: 400 }
       );
     }
 
-    // 6. Dynamically calculate daysLeft
     let daysLeft: number | null = null;
     if (lastDate && /^\d{4}-\d{2}-\d{2}$/.test(lastDate.trim())) {
       const targetTime = new Date(lastDate.trim()).getTime();
@@ -187,18 +214,18 @@ Instructions:
       }
     }
 
-    // 7. Return authentic extracted data (Strictly ZERO mock fallback)
     return NextResponse.json(
       {
         success: true,
         data: {
           jobTitle: jobTitle.trim(),
           organization: organization.trim(),
-          totalVacancies: (totalVacancies || "Not specified").trim(),
+          totalVacancies: (totalVacancies || "Unspecified").trim(),
           lastDate: (lastDate || "").trim() || null,
           daysLeft,
-          eligibility: (eligibility || "Refer official notification").trim(),
-          applyUrl: applyUrl || pdfUrl,
+          eligibility: (eligibility || "Refer official PDF").trim(),
+          pdfUrl: targetUrl.toString(),
+          applyUrl: applyUrl || targetUrl.toString(),
           category,
         },
       },

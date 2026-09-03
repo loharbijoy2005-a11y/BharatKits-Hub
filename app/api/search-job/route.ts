@@ -4,6 +4,8 @@ import { GoogleGenAI } from "@google/genai";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => null);
@@ -18,9 +20,12 @@ export async function POST(request: NextRequest) {
     const category = body.category || "government";
 
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    if (!apiKey || apiKey === "your_gemini_api_key_here") {
       return NextResponse.json(
-        { success: false, error: "GEMINI_API_KEY environment variable is not configured on the server." },
+        {
+          success: false,
+          error: "GEMINI_API_KEY environment variable is not configured. Please add your Gemini API Key in Vercel Environment Variables.",
+        },
         { status: 500 }
       );
     }
@@ -43,26 +48,55 @@ Return a strictly valid JSON object (wrapped in \`\`\`json ... \`\`\` or raw JSO
 
     let responseText = "";
     let groundingChunks: any[] = [];
+    let lastError: any = null;
+    let rateLimited = false;
 
-    try {
-      const aiResponse = await ai.models.generateContent({
-        model: "gemini-3.6-flash",
-        contents: prompt,
-        config: {
-          tools: [{ googleSearch: {} }],
-        },
-      });
+    // Try primary model and fallbacks
+    for (const modelName of FALLBACK_MODELS) {
+      try {
+        const aiResponse = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+          config: {
+            tools: [{ googleSearch: {} }],
+          },
+        });
 
-      responseText = aiResponse.text || "";
-      
-      // Extract search grounding metadata if available
-      const candidate = aiResponse.candidates?.[0];
-      if (candidate?.groundingMetadata?.groundingChunks) {
-        groundingChunks = candidate.groundingMetadata.groundingChunks;
+        responseText = aiResponse.text || "";
+        const candidate = aiResponse.candidates?.[0];
+        if (candidate?.groundingMetadata?.groundingChunks) {
+          groundingChunks = candidate.groundingMetadata.groundingChunks;
+        }
+
+        if (responseText) {
+          lastError = null;
+          break; // Success!
+        }
+      } catch (aiErr: any) {
+        lastError = aiErr;
+        const errStr = String(aiErr?.message || aiErr);
+        if (errStr.includes("429") || errStr.includes("RESOURCE_EXHAUSTED") || errStr.includes("quota")) {
+          rateLimited = true;
+        }
       }
-    } catch (aiErr: any) {
+    }
+
+    if (lastError && !responseText) {
+      if (rateLimited) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Gemini API Free Quota Limit Reached (15 requests/min). Please wait 30 seconds and try again, or check your API Key at Google AI Studio (aistudio.google.com).",
+          },
+          { status: 429 }
+        );
+      }
+
       return NextResponse.json(
-        { success: false, error: `Gemini Search Grounding API call failed: ${aiErr?.message || "API error"}` },
+        {
+          success: false,
+          error: `Gemini API call failed: ${lastError?.message || "All fallback models busy"}`,
+        },
         { status: 500 }
       );
     }
