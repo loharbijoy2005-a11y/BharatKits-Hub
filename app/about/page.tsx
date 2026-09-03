@@ -84,14 +84,18 @@ export default function AboutPage() {
             Meet the Creator &amp; Maintainer
           </h2>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center text-white font-black text-2xl shadow-lg">
-              BL
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-amber-500/50 shadow-xl shadow-amber-500/10 shrink-0 bg-slate-100 dark:bg-slate-800">
+              <img
+                src="https://github.com/loharbijoy2005-a11y.png"
+                alt="Bijoy Lohar - Creator of BharatKits Hub"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="space-y-1">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              <h3 className="text-xl font-black text-slate-900 dark:text-white">
                 Bijoy Lohar
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">
                 Founder, Software Engineer &amp; Open-Source Contributor
               </p>
               <div className="pt-1 flex items-center gap-3">
