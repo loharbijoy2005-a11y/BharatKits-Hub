@@ -106,14 +106,6 @@ export function JobDetailModal({
         <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
           {/* Header Title */}
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 mb-2.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Verified Official Source:</span>
-              <span className="font-mono underline">
-                {job.official_source_domain || (job.apply_url ? new URL(job.apply_url).hostname.replace(/^www\./, "") : "gov.in")}
-              </span>
-            </div>
-
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
               {job.title}
             </h2>
@@ -212,14 +204,6 @@ export function JobDetailModal({
               </div>
             </div>
           )}
-
-          {/* Date Verification Advisory Notice */}
-          <div className="p-3 rounded-2xl bg-amber-50/90 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 flex items-center gap-2 text-xs text-amber-900 dark:text-amber-200">
-            <span className="text-base">📌</span>
-            <span className="font-medium">
-              <strong>Note:</strong> Last date updates/extension ke liye apply karne se pehle official website par bhi date zaroor check & verify kar lein.
-            </span>
-          </div>
 
           {/* Description Section */}
           <div className="space-y-2">

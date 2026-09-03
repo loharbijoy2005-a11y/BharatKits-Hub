@@ -1,5 +1,4 @@
 import json
-import os
 
 with open('backend/all_scraped_jobs.json', 'r', encoding='utf-8') as f:
     data = json.load(f)
@@ -13,12 +12,7 @@ for i, item in enumerate(data):
     item['description'] = item.get('description', '') or f"Job opening for {item['title']}."
     item['apply_url'] = item.get('apply_url', '')
     item['posted_date'] = item.get('posted_date', '2026-09-03')
-    item['is_active'] = bool(item.get('is_active', True))
-    
-    # Official Source Domain
-    item['official_source_domain'] = item.get('official_source_domain') or (
-        item['apply_url'].split('//')[-1].split('/')[0].replace('www.', '') if item.get('apply_url') else 'gov.in'
-    )
+    item['is_active'] = True
     
     # State normalization
     item['state'] = item.get('state') or item.get('state_or_location') or item.get('work_location') or 'All India'
@@ -36,7 +30,7 @@ for i, item in enumerate(data):
         item['official_pdf_fallback'] = item.get('official_pdf_fallback') or item.get('apply_url')
         item['has_direct_pdf'] = bool(item.get('has_direct_pdf', False))
         item['vacancies_count'] = int(item.get('vacancies_count') or 0)
-        item['last_date_to_apply'] = item.get('last_date_to_apply') or item.get('last_date') or '2026-10-30'
+        item['last_date_to_apply'] = item.get('last_date') or item.get('last_date_to_apply') or '2026-09-30'
         item['qualification'] = item.get('qualification') or '10th / 12th / Graduate / B.Ed'
         item['age_limit'] = item.get('age_limit') or '18 - 40 Years'
         item['salary_range'] = item.get('salary') or item.get('salary_range') or 'As per Govt Norms'
@@ -75,9 +69,9 @@ for i, item in enumerate(data):
 with open('backend/all_scraped_jobs.json', 'w', encoding='utf-8') as f:
     json.dump(data, f, indent=2, ensure_ascii=False)
 
-header_part = """export type JobCategory = "government" | "private" | "teaching";
+ts_content = f"""export type JobCategory = "government" | "private" | "teaching";
 
-export interface BaseJob {
+export interface BaseJob {{
   id: string;
   job_hash: string;
   category: JobCategory;
@@ -89,7 +83,6 @@ export interface BaseJob {
   apply_url: string;
   posted_date: string;
   is_active: boolean;
-  official_source_domain?: string;
   department_or_company?: string;
   qualification?: string;
   salary?: string;
@@ -97,9 +90,9 @@ export interface BaseJob {
   has_direct_pdf?: boolean;
   official_pdf_fallback?: string;
   [key: string]: any;
-}
+}}
 
-export interface GovtJob extends BaseJob {
+export interface GovtJob extends BaseJob {{
   category: "government" | "teaching";
   department_or_board: string;
   gov_sector: string;
@@ -113,9 +106,9 @@ export interface GovtJob extends BaseJob {
   exam_date?: string;
   fee_details?: string;
   state_or_location: string;
-}
+}}
 
-export interface PrivateJob extends BaseJob {
+export interface PrivateJob extends BaseJob {{
   category: "private";
   company_name: string;
   company_logo_url?: string;
@@ -125,11 +118,11 @@ export interface PrivateJob extends BaseJob {
   salary_range: string;
   skills_tags: string[];
   source_portal: string;
-}
+}}
 
 export type Job = GovtJob | PrivateJob;
 
-export interface JobFilterState {
+export interface JobFilterState {{
   category: "all" | "government" | "teaching" | "private";
   searchQuery: string;
   govBoard: string;
@@ -139,9 +132,9 @@ export interface JobFilterState {
   experience: string;
   employmentType: string;
   onlyActive: boolean;
-}
+}}
 
-export const INITIAL_JOBS_DATA: Job[] = """ + json.dumps(data, indent=2, ensure_ascii=False) + """;
+export const INITIAL_JOBS_DATA: Job[] = {json.dumps(data, indent=2, ensure_ascii=False)};
 
 export const ALL_SECTORS_LIST = [
   "All Sectors",
@@ -157,7 +150,7 @@ export const ALL_SECTORS_LIST = [
   "Private & Corporate",
 ] as const;
 
-export const SECTOR_ICONS_CONFIG = {
+export const SECTOR_ICONS_CONFIG = {{
   "All Sectors": "Layers",
   "Teaching & Education": "GraduationCap",
   "Panchayat & Postal": "Mail",
@@ -169,7 +162,7 @@ export const SECTOR_ICONS_CONFIG = {
   "PSU & Engineering": "Cpu",
   "Medical & Health": "Stethoscope",
   "Private & Corporate": "Briefcase",
-};
+}};
 
 export const GOV_BOARDS_LIST = [
   "All Boards",
@@ -229,139 +222,9 @@ export const EXP_LEVELS_LIST = [
   "Senior (5+ yrs)",
   "Internship",
 ];
-
-export interface DeadlineInfo {
-  raw: string;
-  parsedDateISO: string | null;
-  isClosed: boolean;
-  diffDays: number | null;
-  daysRemaining: number | null;
-  displayText: string;
-  badgeVariant: "urgent" | "warning" | "normal" | "closed" | "rolling";
-}
-
-export function normalizeDateToISO(raw: string | undefined | null): string | null {
-  if (!raw) return null;
-  const clean = raw.trim();
-  const lower = clean.toLowerCase();
-
-  if (["open", "ongoing", "walk", "immediate", "rolling", "till", "notified", "filled"].some((kw) => lower.includes(kw))) {
-    return null;
-  }
-
-  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(clean)) return clean;
-
-  const dmy = clean.match(/^(\\d{1,2})[/-](\\d{1,2})[/-](\\d{4})$/);
-  if (dmy) {
-    const [, d, m, y] = dmy;
-    return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-  }
-
-  const monthMap: Record<string, string> = {
-    jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
-    jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12",
-  };
-  const dMonY = clean.match(/^(\\d{1,2})\\s+([A-Za-z]+)\\s+(\\d{4})$/);
-  if (dMonY) {
-    const [, d, mon, y] = dMonY;
-    const mo = monthMap[mon.toLowerCase().slice(0, 3)];
-    if (mo) {
-      return `${y}-${mo}-${d.padStart(2, "0")}`;
-    }
-  }
-
-  return null;
-}
-
-export function getJobDeadlineInfo(job: Job): DeadlineInfo {
-  const raw =
-    (job as any).last_date_to_apply ||
-    (job as any).last_date ||
-    "Refer to Notification";
-
-  const parsedISO = (job as any).last_date_parsed || normalizeDateToISO(raw);
-
-  if (!parsedISO) {
-    return {
-      raw,
-      parsedDateISO: null,
-      isClosed: Boolean((job as any).is_closed),
-      diffDays: null,
-      daysRemaining: null,
-      displayText: raw || "Refer to Notification",
-      badgeVariant: "rolling",
-    };
-  }
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const deadline = new Date(parsedISO);
-  deadline.setHours(0, 0, 0, 0);
-
-  const diffMs = deadline.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0 || (job as any).is_closed) {
-    return {
-      raw,
-      parsedDateISO: parsedISO,
-      isClosed: true,
-      diffDays,
-      daysRemaining: diffDays,
-      displayText: `Closed on ${parsedISO}`,
-      badgeVariant: "closed",
-    };
-  }
-
-  if (diffDays === 0) {
-    return {
-      raw,
-      parsedDateISO: parsedISO,
-      isClosed: false,
-      diffDays: 0,
-      daysRemaining: 0,
-      displayText: "Last Day Today!",
-      badgeVariant: "urgent",
-    };
-  }
-
-  if (diffDays <= 3) {
-    return {
-      raw,
-      parsedDateISO: parsedISO,
-      isClosed: false,
-      diffDays,
-      daysRemaining: diffDays,
-      displayText: `${diffDays} Day${diffDays > 1 ? "s" : ""} Left`,
-      badgeVariant: "urgent",
-    };
-  }
-
-  if (diffDays <= 7) {
-    return {
-      raw,
-      parsedDateISO: parsedISO,
-      isClosed: false,
-      diffDays,
-      daysRemaining: diffDays,
-      displayText: `${diffDays} Days Left`,
-      badgeVariant: "warning",
-    };
-  }
-
-  return {
-    raw,
-    parsedDateISO: parsedISO,
-    isClosed: false,
-    diffDays,
-    daysRemaining: diffDays,
-    displayText: `${parsedISO} (${diffDays}d left)`,
-    badgeVariant: "normal",
-  };
-}
 """
 
 with open('lib/jobs-data.ts', 'w', encoding='utf-8') as f:
-    f.write(header_part)
+    f.write(ts_content)
 
 print(f"Successfully synced {len(data)} jobs to lib/jobs-data.ts with complete 10-sector taxonomy!")

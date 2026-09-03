@@ -14,20 +14,25 @@ export async function GET(request: NextRequest) {
     const qualification = searchParams.get("qualification") || "All Qualifications";
     const query = (searchParams.get("search") || "").toLowerCase().trim();
 
-    // 1. Fetch live jobs strictly from environment variables with production fallback
+    // 1. Fetch live jobs strictly from environment variables
     const supabaseUrl =
       process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      process.env.SUPABASE_URL ||
-      "https://iydiafdwysbirlpcchlf.supabase.co";
+      process.env.SUPABASE_URL;
 
     const supabaseKey =
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_KEY ||
-      "sb_publishable_VFUfCc4-II0X6ql1o7iZHg_0LWxCdXA";
+      process.env.SUPABASE_KEY;
 
-    let allJobs: Job[] = [];
+    let allJobs: Job[] = INITIAL_JOBS_DATA.map((j) => {
+      const deadlineInfo = getJobDeadlineInfo(j);
+      return {
+        ...j,
+        last_date_parsed: j.last_date_parsed || deadlineInfo.parsedDateISO,
+        is_closed: j.is_closed !== undefined ? j.is_closed : deadlineInfo.isClosed,
+      };
+    });
 
     if (supabaseUrl && supabaseKey) {
       try {
@@ -35,7 +40,7 @@ export async function GET(request: NextRequest) {
         url.searchParams.set("select", "*");
         url.searchParams.set("is_active", "eq.true");
         url.searchParams.set("order", "posted_date.desc,created_at.desc");
-        url.searchParams.set("limit", "500");
+        url.searchParams.set("limit", "250");
 
         if (category !== "all" && category !== "teaching") {
           url.searchParams.set("category", `eq.${category}`);
@@ -62,10 +67,6 @@ export async function GET(request: NextRequest) {
               const deadlineInfo = getJobDeadlineInfo({ ...j, last_date_parsed: parsedDateISO });
               const isClosed = j.is_closed !== undefined ? Boolean(j.is_closed) : deadlineInfo.isClosed;
 
-              const officialDomain = j.official_source_domain || (
-                j.apply_url ? j.apply_url.split("//")[1]?.split("/")[0]?.replace(/^www\./, "") : (isGovt ? "gov.in" : "careers.com")
-              );
-
               if (isGovt || isTeaching) {
                 return {
                   id: j.id || `db-job-${idx + 1}`,
@@ -79,13 +80,12 @@ export async function GET(request: NextRequest) {
                   gov_sector: detectedSector,
                   qualification: j.qualification || "Graduate",
                   last_date: j.last_date || j.last_date_to_apply || "Open until filled",
-                  last_date_to_apply: parsedDateISO || j.last_date_to_apply || j.last_date || "2026-10-30",
+                  last_date_to_apply: parsedDateISO || j.last_date_to_apply || j.last_date || "2026-09-30",
                   last_date_parsed: parsedDateISO,
                   is_closed: isClosed,
                   salary: j.salary || j.salary_range || "As per Norms",
                   salary_range: j.salary_range || j.salary || "As per Norms",
                   apply_url: j.apply_url || "https://ssc.gov.in/",
-                  official_source_domain: officialDomain,
                   official_pdf: j.official_pdf || j.notification_pdf_url || j.apply_url,
                   notification_pdf_url: j.notification_pdf_url || j.official_pdf || null,
                   official_pdf_fallback: j.official_pdf_fallback || j.apply_url,
@@ -114,8 +114,7 @@ export async function GET(request: NextRequest) {
                   is_closed: isClosed,
                   salary: j.salary || j.salary_range || "Competitive",
                   salary_range: j.salary_range || j.salary || "Competitive",
-                  apply_url: j.apply_url || "https://razorpay.com/jobs/",
-                  official_source_domain: officialDomain,
+                  apply_url: j.apply_url || "https://careers.google.com/",
                   description: j.description || "",
                   posted_date: j.posted_date || "2026-09-03",
                   is_active: j.is_active ?? true,
@@ -127,24 +126,10 @@ export async function GET(request: NextRequest) {
               }
             });
           }
-        } else {
-          const errText = await res.text();
-          console.warn("Supabase fetch returned non-ok status:", res.status, errText);
         }
       } catch (err) {
-        console.warn("Supabase live query failed, checking offline seed:", err);
+        console.warn("Supabase fetch fallback to bundled seed data:", err);
       }
-    }
-
-    if (allJobs.length === 0) {
-      allJobs = INITIAL_JOBS_DATA.map((j) => {
-        const deadlineInfo = getJobDeadlineInfo(j);
-        return {
-          ...j,
-          last_date_parsed: j.last_date_parsed || deadlineInfo.parsedDateISO,
-          is_closed: j.is_closed !== undefined ? j.is_closed : deadlineInfo.isClosed,
-        };
-      });
     }
 
     // 2. Multi-Parameter Filtering

@@ -17,7 +17,6 @@ import {
   BookOpen,
   Lock,
   CheckCircle,
-  ShieldCheck,
 } from "lucide-react";
 
 interface JobCardProps {
@@ -163,7 +162,7 @@ export function JobCard({
         </div>
 
         {/* Job Title & Organization */}
-        <div className="mb-3">
+        <div className="mb-4">
           <h3
             onClick={() => onOpenDetails(job)}
             className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors cursor-pointer line-clamp-2 leading-snug"
@@ -171,30 +170,19 @@ export function JobCard({
             {job.title}
           </h3>
 
-          <div className="mt-1.5 flex items-center justify-between gap-2 flex-wrap">
-            <div className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
-              {isGovt ? (
-                <span>🏛️ {govtJob?.department_or_board}</span>
-              ) : (
-                <span className="flex items-center gap-1.5">
-                  <img
-                    src={privJob?.company_logo_url}
-                    alt={privJob?.company_name}
-                    className="w-4 h-4 rounded-full object-cover"
-                  />
-                  {privJob?.company_name}
-                </span>
-              )}
-            </div>
-
-            {/* Verified Official Source Badge */}
-            <div className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200/80 dark:border-emerald-800/60 shrink-0">
-              <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-              <span>Verified Official Source:</span>
-              <span className="font-mono text-slate-800 dark:text-slate-200">
-                {job.official_source_domain || (job.apply_url ? new URL(job.apply_url).hostname.replace(/^www\./, "") : "gov.in")}
+          <div className="mt-1.5 flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
+            {isGovt ? (
+              <span>🏛️ {govtJob?.department_or_board}</span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <img
+                  src={privJob?.company_logo_url}
+                  alt={privJob?.company_name}
+                  className="w-4 h-4 rounded-full object-cover"
+                />
+                {privJob?.company_name}
               </span>
-            </div>
+            )}
           </div>
         </div>
 
@@ -266,7 +254,7 @@ export function JobCard({
         )}
 
         {/* Posted & Deadline Status Row */}
-        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2 pb-1 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-4 pb-1 border-b border-slate-100 dark:border-slate-800">
           <span className="flex items-center gap-1 truncate max-w-[55%]">
             <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <span className="truncate">
@@ -282,14 +270,6 @@ export function JobCard({
               {deadlineStatus.text}
             </span>
           )}
-        </div>
-
-        {/* Official Date Verification Advisory Note */}
-        <div className="mb-4 px-2.5 py-1.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 flex items-center gap-1.5 text-[11px] text-amber-800 dark:text-amber-300">
-          <span className="shrink-0 text-amber-600 dark:text-amber-400">📌</span>
-          <span className="leading-tight font-medium">
-            <strong>Note:</strong> Application date ek baar official website par bhi zaroor verify kar lein.
-          </span>
         </div>
       </div>
 
