@@ -25,14 +25,7 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.SUPABASE_KEY;
 
-    let allJobs: Job[] = INITIAL_JOBS_DATA.map((j) => {
-      const deadlineInfo = getJobDeadlineInfo(j);
-      return {
-        ...j,
-        last_date_parsed: j.last_date_parsed || deadlineInfo.parsedDateISO,
-        is_closed: j.is_closed !== undefined ? j.is_closed : deadlineInfo.isClosed,
-      };
-    });
+    let allJobs: Job[] = [];
 
     if (supabaseUrl && supabaseKey) {
       try {
@@ -40,7 +33,7 @@ export async function GET(request: NextRequest) {
         url.searchParams.set("select", "*");
         url.searchParams.set("is_active", "eq.true");
         url.searchParams.set("order", "posted_date.desc,created_at.desc");
-        url.searchParams.set("limit", "250");
+        url.searchParams.set("limit", "500");
 
         if (category !== "all" && category !== "teaching") {
           url.searchParams.set("category", `eq.${category}`);
@@ -134,8 +127,19 @@ export async function GET(request: NextRequest) {
           }
         }
       } catch (err) {
-        console.warn("Supabase fetch fallback to bundled seed data:", err);
+        console.warn("Supabase live query failed, checking offline seed:", err);
       }
+    }
+
+    if (allJobs.length === 0) {
+      allJobs = INITIAL_JOBS_DATA.map((j) => {
+        const deadlineInfo = getJobDeadlineInfo(j);
+        return {
+          ...j,
+          last_date_parsed: j.last_date_parsed || deadlineInfo.parsedDateISO,
+          is_closed: j.is_closed !== undefined ? j.is_closed : deadlineInfo.isClosed,
+        };
+      });
     }
 
     // 2. Multi-Parameter Filtering
