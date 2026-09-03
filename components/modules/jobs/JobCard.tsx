@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Job, GovtJob, PrivateJob } from "@/lib/jobs-data";
+import { Job, GovtJob, PrivateJob, getJobDeadlineInfo } from "@/lib/jobs-data";
 import {
   Landmark,
   Building2,
@@ -15,6 +15,8 @@ import {
   Share2,
   Bookmark,
   BookOpen,
+  Lock,
+  CheckCircle,
 } from "lucide-react";
 
 interface JobCardProps {
@@ -37,50 +39,53 @@ export function JobCard({
   const govtJob = isGovt ? (job as GovtJob) : null;
   const privJob = !isGovt ? (job as PrivateJob) : null;
 
-  // Calculate days remaining for Government / Teaching Job
-  const getDeadlineStatus = (lastDateStr?: string) => {
-    if (!lastDateStr) return null;
-    try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const deadline = new Date(lastDateStr);
-      deadline.setHours(0, 0, 0, 0);
+  // Accurate deadline status calculation
+  const deadlineInfo = getJobDeadlineInfo(job);
+  const isClosed = deadlineInfo.isClosed;
 
-      const diffTime = deadline.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const getDeadlineStatus = () => {
+    if (isClosed) {
+      return {
+        text: "🚫 Application Closed",
+        color:
+          "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-200 dark:border-rose-900/60",
+      };
+    }
 
-      if (diffDays < 0) {
-        return {
-          text: "Expired",
-          color:
-            "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border-rose-200 dark:border-rose-900/50",
-        };
-      } else if (diffDays === 0) {
-        return { text: "⚡ Last Day Today!", color: "bg-red-500 text-white animate-pulse" };
-      } else if (diffDays <= 4) {
-        return {
-          text: `🔥 ${diffDays} Days Left`,
-          color:
-            "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border-amber-300 dark:border-amber-800",
-        };
-      } else {
-        return {
-          text: `⏳ ${diffDays} Days Left`,
-          color:
-            "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
-        };
-      }
-    } catch {
-      return null;
+    if (deadlineInfo.diffDays === null) {
+      return {
+        text: "🟢 Open Applications",
+        color:
+          "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60",
+      };
+    }
+
+    const diffDays = deadlineInfo.diffDays;
+    if (diffDays === 0) {
+      return { text: "⚡ Last Day Today!", color: "bg-red-500 text-white animate-pulse border-red-600" };
+    } else if (diffDays <= 4) {
+      return {
+        text: `🔥 ${diffDays} Day${diffDays === 1 ? "" : "s"} Left`,
+        color:
+          "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border-amber-300 dark:border-amber-800",
+      };
+    } else {
+      return {
+        text: `⏳ ${diffDays} Days Left`,
+        color:
+          "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
+      };
     }
   };
 
-  const deadlineStatus = govtJob ? getDeadlineStatus(govtJob.last_date_to_apply) : null;
+  const deadlineStatus = getDeadlineStatus();
 
   return (
     <div
       className={`group relative flex flex-col justify-between rounded-2xl p-5 sm:p-6 transition-all duration-300 bg-white dark:bg-slate-900 border ${
-        isTeaching
+        isClosed
+          ? "opacity-85 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 hover:shadow-md"
+          : isTeaching
           ? "border-rose-200/60 dark:border-rose-900/30 hover:border-rose-400/80 hover:shadow-xl hover:shadow-rose-500/10"
           : isGovt
           ? "border-amber-200/60 dark:border-amber-900/30 hover:border-amber-400/80 hover:shadow-xl hover:shadow-amber-500/10"
@@ -118,6 +123,19 @@ export function JobCard({
               <MapPin className="w-3 h-3 text-rose-500" />
               {job.state || (isGovt ? govtJob?.state_or_location : privJob?.work_location)}
             </span>
+
+            {/* Application Status Badge */}
+            {isClosed ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+                <Lock className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                Closed
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800">
+                <CheckCircle className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                Active
+              </span>
+            )}
           </div>
 
           {/* Action Bookmark & Share Icons */}
@@ -235,22 +253,24 @@ export function JobCard({
           </div>
         )}
 
-        {/* Government Posted & Deadline Status */}
-        {isGovt && govtJob && (
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-4 pb-1 border-b border-slate-100 dark:border-slate-800">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" />
-              Posted: {govtJob.posted_date}
+        {/* Posted & Deadline Status Row */}
+        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-4 pb-1 border-b border-slate-100 dark:border-slate-800">
+          <span className="flex items-center gap-1 truncate max-w-[55%]">
+            <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className="truncate">
+              {isGovt && govtJob?.last_date
+                ? `Last Date: ${govtJob.last_date}`
+                : `Posted: ${job.posted_date || "Today"}`}
             </span>
-            {deadlineStatus && (
-              <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[11px] border ${deadlineStatus.color}`}
-              >
-                {deadlineStatus.text}
-              </span>
-            )}
-          </div>
-        )}
+          </span>
+          {deadlineStatus && (
+            <span
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] shrink-0 border ${deadlineStatus.color}`}
+            >
+              {deadlineStatus.text}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Action Buttons Row */}
@@ -297,17 +317,20 @@ export function JobCard({
           target="_blank"
           rel="noopener noreferrer"
           className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl text-xs font-bold text-white transition-all shadow-md ${
-            isTeaching
+            isClosed
+              ? "bg-slate-600 hover:bg-slate-700 shadow-slate-500/20"
+              : isTeaching
               ? "bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 shadow-rose-500/20"
               : isGovt
               ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-orange-500/20"
               : "bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 shadow-indigo-500/20"
           }`}
         >
-          Apply Online
+          {isClosed ? "View Listing" : "Apply Online"}
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
       </div>
     </div>
   );
 }
+

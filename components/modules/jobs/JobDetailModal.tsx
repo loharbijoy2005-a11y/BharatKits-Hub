@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Job, GovtJob, PrivateJob } from "@/lib/jobs-data";
+import { Job, GovtJob, PrivateJob, getJobDeadlineInfo } from "@/lib/jobs-data";
 import {
   X,
   ExternalLink,
@@ -18,6 +18,7 @@ import {
   CreditCard,
   ShieldCheck,
   Bookmark,
+  Lock,
 } from "lucide-react";
 
 interface JobDetailModalProps {
@@ -42,6 +43,9 @@ export function JobDetailModal({
   const govtJob = isGovt ? (job as GovtJob) : null;
   const privJob = !isGovt ? (job as PrivateJob) : null;
 
+  const deadlineInfo = getJobDeadlineInfo(job);
+  const isClosed = deadlineInfo.isClosed;
+
   const handleShareWhatsApp = () => {
     const text = `📢 *Job Alert:* ${job.title}\n🏢 *Org/Company:* ${
       isGovt ? govtJob?.department_or_board : privJob?.company_name
@@ -65,7 +69,7 @@ export function JobDetailModal({
       >
         {/* Modal Top Bar */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {isGovt ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                 <Landmark className="w-3.5 h-3.5" />
@@ -77,7 +81,17 @@ export function JobDetailModal({
                 Private Career Post
               </span>
             )}
-            <span className="text-xs text-slate-500">Posted on {job.posted_date}</span>
+            {isClosed ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+                <Lock className="w-3 h-3" />
+                Application Closed
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                Active
+              </span>
+            )}
+            <span className="text-xs text-slate-500">Posted: {job.posted_date || "Recent"}</span>
           </div>
 
           <button
@@ -128,7 +142,8 @@ export function JobDetailModal({
                 <div>
                   <div className="text-[11px] uppercase font-bold text-slate-400">Last Date to Apply</div>
                   <div className="text-sm font-bold text-rose-600 dark:text-rose-400">
-                    {govtJob.last_date_to_apply}
+                    {govtJob.last_date_to_apply || govtJob.last_date || "Open until filled"}
+                    {isClosed && " (Expired)"}
                   </div>
                 </div>
               </div>

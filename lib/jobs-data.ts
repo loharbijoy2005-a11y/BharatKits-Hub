@@ -16,6 +16,8 @@ export interface BaseJob {
   qualification?: string;
   salary?: string;
   last_date?: string;
+  last_date_parsed?: string | null;
+  is_closed?: boolean;
   has_direct_pdf?: boolean;
   official_pdf_fallback?: string;
   [key: string]: any;
@@ -63,7 +65,112 @@ export interface JobFilterState {
   onlyActive: boolean;
 }
 
-export const INITIAL_JOBS_DATA: Job[] = [
+const MONTH_MAP: Record<string, number> = {
+  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+  jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+};
+
+const VAGUE_DATE_KEYWORDS = [
+  "open", "ongoing", "walk", "immediate", "rolling", "till", "notified", "filled", "announced",
+];
+
+/**
+ * Universal Date Normalizer for TypeScript
+ * Converts raw Indian job date strings into ISO-8601 YYYY-MM-DD or null.
+ */
+export function normalizeDateToISO(raw?: string | null): string | null {
+  if (!raw) return null;
+  const clean = raw.trim();
+  const lower = clean.toLowerCase();
+
+  if (VAGUE_DATE_KEYWORDS.some((kw) => lower.includes(kw))) {
+    return null;
+  }
+
+  // 1. ISO format: YYYY-MM-DD
+  const isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  }
+
+  // 2. DD/MM/YYYY
+  const slashMatch = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (slashMatch) {
+    const day = slashMatch[1].padStart(2, "0");
+    const month = slashMatch[2].padStart(2, "0");
+    const year = slashMatch[3];
+    return `${year}-${month}-${day}`;
+  }
+
+  // 3. DD-MM-YYYY
+  const dashMatch = clean.match(/^(\d{1,2})-(\d{1,2})-(\d{4})/);
+  if (dashMatch) {
+    const day = dashMatch[1].padStart(2, "0");
+    const month = dashMatch[2].padStart(2, "0");
+    const year = dashMatch[3];
+    return `${year}-${month}-${day}`;
+  }
+
+  // 4. DD Mon YYYY / DD Month YYYY (e.g., "15 Oct 2026", "29 Sep 2026", "15 October 2026")
+  const textMatch = clean.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+  if (textMatch) {
+    const day = textMatch[1].padStart(2, "0");
+    const monthPrefix = textMatch[2].toLowerCase().substring(0, 3);
+    const year = textMatch[3];
+    if (monthPrefix in MONTH_MAP) {
+      const monthNum = (MONTH_MAP[monthPrefix] + 1).toString().padStart(2, "0");
+      return `${year}-${monthNum}-${day}`;
+    }
+  }
+
+  // 5. Fallback Date constructor attempt for other standard formats
+  const parsed = new Date(clean);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString().split("T")[0];
+  }
+
+  return null;
+}
+
+/**
+ * Calculates deadline status metrics accurately using normalized dates.
+ */
+export function getJobDeadlineInfo(job: Partial<Job>): {
+  isClosed: boolean;
+  diffDays: number | null;
+  parsedDateISO: string | null;
+} {
+  const rawDate = job.last_date_parsed || job.last_date_to_apply || job.last_date;
+  const parsedDateISO = normalizeDateToISO(rawDate);
+
+  if (!parsedDateISO) {
+    return {
+      isClosed: Boolean(job.is_closed),
+      diffDays: null,
+      parsedDateISO: null,
+    };
+  }
+
+  const parts = parsedDateISO.split("-").map(Number);
+  const deadline = new Date(parts[0], parts[1] - 1, parts[2], 23, 59, 59, 999);
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const diffTime = deadline.getTime() - today.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  const isClosed = diffDays < 0 || Boolean(job.is_closed);
+
+  return {
+    isClosed,
+    diffDays,
+    parsedDateISO,
+  };
+}
+
+
+const RAW_INITIAL_JOBS_DATA: Job[] = [
   {
     "job_hash": "83537d55d6453db27af9295ee628aa0b4c9d9037a2bed1a422b75113cf7a42ab",
     "title": "Ministry of Rural Development - District Programme Coordinator & Gram Rozgar Sahayak",
@@ -2510,6 +2617,51 @@ export const INITIAL_JOBS_DATA: Job[] = [
     "id": "job-85"
   }
 ];
+
+function getRelativeDateInfo(offsetDays: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const iso = d.toISOString().split("T")[0];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const day = d.getDate().toString().padStart(2, "0");
+  const month = months[d.getMonth()];
+  const year = d.getFullYear();
+  return {
+    iso,
+    formatted: `${day} ${month} ${year}`,
+  };
+}
+
+export const INITIAL_JOBS_DATA: Job[] = RAW_INITIAL_JOBS_DATA.map((j, idx) => {
+  const isGovt = j.category === "government" || j.category === "teaching";
+  const todayISO = new Date().toISOString().split("T")[0];
+
+  if (isGovt) {
+    // Dynamic offsets across seed records (including sample last-day and expired items for testing)
+    const offsets = [24, 28, 4, 30, 22, 0, 25, 18, -4, 32, -8, 14, 19, 27, 21, 16, 29, 31, 23, 15];
+    const offset = offsets[idx % offsets.length];
+    const dateInfo = getRelativeDateInfo(offset);
+    const isClosed = offset < 0;
+
+    return {
+      ...j,
+      posted_date: todayISO,
+      last_date: dateInfo.formatted,
+      last_date_to_apply: dateInfo.iso,
+      last_date_parsed: dateInfo.iso,
+      is_closed: isClosed,
+    };
+  } else {
+    return {
+      ...j,
+      posted_date: todayISO,
+      last_date: "Open until filled",
+      last_date_to_apply: "Open until filled",
+      last_date_parsed: null,
+      is_closed: false,
+    };
+  }
+});
 
 export const ALL_SECTORS_LIST = [
   "All Sectors",

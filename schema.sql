@@ -125,3 +125,41 @@ CREATE POLICY "Public can submit takedown requests"
     FOR INSERT
     TO anon, authenticated, service_role
     WITH CHECK (true);
+
+-- ============================================================================
+-- 7. Date Parsing Columns (added for universal date normalizer support)
+-- ============================================================================
+
+-- Parsed ISO-8601 deadline (NULL for rolling / walk-in / private jobs)
+ALTER TABLE public.jobs
+    ADD COLUMN IF NOT EXISTS last_date_parsed date,
+    ADD COLUMN IF NOT EXISTS is_closed boolean DEFAULT false;
+
+-- Indexes for efficient deadline-based sorting and status filtering
+CREATE INDEX IF NOT EXISTS idx_jobs_last_date_parsed ON public.jobs (last_date_parsed ASC NULLS LAST);
+CREATE INDEX IF NOT EXISTS idx_jobs_is_closed        ON public.jobs (is_closed);
+
+-- ============================================================================
+-- 8. Auto-close Function (call from Supabase CRON or pg_cron)
+-- ============================================================================
+
+-- Marks any job whose deadline has already passed as is_closed = true.
+-- Run daily via: SELECT update_job_status();
+-- Supabase cron (pg_cron extension required):
+--   SELECT cron.schedule('daily-job-close', '0 0 * * *', $$SELECT update_job_status()$$);
+CREATE OR REPLACE FUNCTION update_job_status() RETURNS void AS $$
+BEGIN
+    UPDATE public.jobs
+    SET    is_closed = true
+    WHERE  last_date_parsed IS NOT NULL
+      AND  last_date_parsed < CURRENT_DATE
+      AND  is_closed = false;
+
+    -- Re-open if date was corrected (upsert scenario)
+    UPDATE public.jobs
+    SET    is_closed = false
+    WHERE  last_date_parsed IS NOT NULL
+      AND  last_date_parsed >= CURRENT_DATE
+      AND  is_closed = true;
+END;
+$$ LANGUAGE plpgsql;

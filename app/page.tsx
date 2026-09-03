@@ -728,20 +728,25 @@ export default function Page() {
             </div>
 
             {/* ── COPYRIGHT BAR ── */}
-            <div className="py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <div className="text-[13px] font-black text-white">© 2026 Bijoy Lohar. All Rights Reserved.</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">
-                  Designed &amp; Maintained by{" "}
+            <div className="py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="text-center md:text-left space-y-1">
+                <div className="text-[14px] font-black text-white">© 2026 Bijoy Lohar. All Rights Reserved.</div>
+                <div className="text-xs text-slate-400">
+                  Designed &amp; Developed by{" "}
                   <a href="https://github.com/loharbijoy2005-a11y" target="_blank" rel="noopener noreferrer" className="text-orange-400 font-bold hover:text-orange-300 transition-colors">
                     Bijoy Lohar ↗
                   </a>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-[11px] text-slate-500">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                Zero-server retention · All data stays on your device
-                <span className="text-lg">🇮🇳</span>
+              <div className="flex flex-col sm:flex-row items-center gap-3 text-center md:text-right">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-400">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Zero-Server Retention Architecture · Encrypted Processing</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400">Made for Digital India</span>
+                  <span className="text-xl" title="Jai Hind 🇮🇳">🇮🇳</span>
+                </div>
               </div>
             </div>
           </div>

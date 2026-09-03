@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { INITIAL_JOBS_DATA, Job } from "@/lib/jobs-data";
+import { INITIAL_JOBS_DATA, Job, normalizeDateToISO, getJobDeadlineInfo } from "@/lib/jobs-data";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -25,7 +25,14 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.SUPABASE_KEY;
 
-    let allJobs: Job[] = INITIAL_JOBS_DATA;
+    let allJobs: Job[] = INITIAL_JOBS_DATA.map((j) => {
+      const deadlineInfo = getJobDeadlineInfo(j);
+      return {
+        ...j,
+        last_date_parsed: j.last_date_parsed || deadlineInfo.parsedDateISO,
+        is_closed: j.is_closed !== undefined ? j.is_closed : deadlineInfo.isClosed,
+      };
+    });
 
     if (supabaseUrl && supabaseKey) {
       try {
@@ -55,6 +62,11 @@ export async function GET(request: NextRequest) {
               const detectedSector = j.sector || j.gov_sector || (isGovt ? "Central SSC & UPSC" : "Private & Corporate");
               const isTeaching = detectedSector === "Teaching & Education";
 
+              const rawDate = j.last_date_parsed || j.last_date_to_apply || j.last_date;
+              const parsedDateISO = normalizeDateToISO(rawDate);
+              const deadlineInfo = getJobDeadlineInfo({ ...j, last_date_parsed: parsedDateISO });
+              const isClosed = j.is_closed !== undefined ? Boolean(j.is_closed) : deadlineInfo.isClosed;
+
               if (isGovt || isTeaching) {
                 return {
                   id: j.id || `db-job-${idx + 1}`,
@@ -68,7 +80,9 @@ export async function GET(request: NextRequest) {
                   gov_sector: detectedSector,
                   qualification: j.qualification || "Graduate",
                   last_date: j.last_date || j.last_date_to_apply || "Open until filled",
-                  last_date_to_apply: j.last_date_to_apply || j.last_date || "2026-09-30",
+                  last_date_to_apply: parsedDateISO || j.last_date_to_apply || j.last_date || "2026-09-30",
+                  last_date_parsed: parsedDateISO,
+                  is_closed: isClosed,
                   salary: j.salary || j.salary_range || "As per Norms",
                   salary_range: j.salary_range || j.salary || "As per Norms",
                   apply_url: j.apply_url || "https://ssc.gov.in/",
@@ -96,6 +110,8 @@ export async function GET(request: NextRequest) {
                   company_logo_url: j.company_logo_url || fLogo(j.company_name || "Co"),
                   qualification: j.qualification || "Graduate",
                   last_date: j.last_date || "Open until filled",
+                  last_date_parsed: parsedDateISO,
+                  is_closed: isClosed,
                   salary: j.salary || j.salary_range || "Competitive",
                   salary_range: j.salary_range || j.salary || "Competitive",
                   apply_url: j.apply_url || "https://careers.google.com/",
@@ -167,13 +183,49 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({
-      success: true,
-      total: filtered.length,
-      category,
-      sector,
-      jobs: filtered,
+    // 3. Status & Deadline-based Priority Sorting Engine:
+    // Active jobs first (ordered soonest deadline -> open/rolling), closed jobs sink to bottom
+    filtered.sort((a, b) => {
+      const aClosed = Boolean(a.is_closed);
+      const bClosed = Boolean(b.is_closed);
+
+      // Closed jobs sink to the bottom
+      if (!aClosed && bClosed) return -1;
+      if (aClosed && !bClosed) return 1;
+
+      // Both active: sort by deadline ascending (soonest deadline first)
+      if (!aClosed && !bClosed) {
+        if (a.last_date_parsed && b.last_date_parsed) {
+          return a.last_date_parsed.localeCompare(b.last_date_parsed);
+        }
+        if (a.last_date_parsed && !b.last_date_parsed) return -1;
+        if (!a.last_date_parsed && b.last_date_parsed) return 1;
+        return (b.posted_date || "").localeCompare(a.posted_date || "");
+      }
+
+      // Both closed: sort by most recently expired first
+      if (a.last_date_parsed && b.last_date_parsed) {
+        return b.last_date_parsed.localeCompare(a.last_date_parsed);
+      }
+      return 0;
     });
+
+    return NextResponse.json(
+      {
+        success: true,
+        total: filtered.length,
+        category,
+        sector,
+        jobs: filtered,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+        },
+      }
+    );
   } catch (error) {
     console.error("API /api/jobs error:", error);
     return NextResponse.json(

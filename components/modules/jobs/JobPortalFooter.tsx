@@ -229,32 +229,35 @@ export function JobPortalFooter() {
           </div>
 
           {/* ── BOTTOM COPYRIGHT BAR ── */}
-          <div className="py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-            {/* Copyright */}
-            <div className="text-center sm:text-left">
-              <div className="text-[13px] font-black text-white tracking-tight">
-                © 2026 Bijoy Lohar. All Rights Reserved.
+          <div className="py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Copyright & Author */}
+            <div className="text-center md:text-left space-y-1">
+              <div className="text-[14px] font-black text-white tracking-tight flex items-center justify-center md:justify-start gap-2">
+                <span>© 2026 Bijoy Lohar. All Rights Reserved.</span>
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">
-                Designed &amp; Maintained by{" "}
+              <div className="text-xs text-slate-400">
+                Designed &amp; Developed by{" "}
                 <a
                   href="https://github.com/loharbijoy2005-a11y"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-amber-400 font-bold hover:text-amber-300 transition-colors inline-flex items-center gap-1"
                 >
-                  Bijoy Lohar <ArrowUpRight className="w-3 h-3" />
+                  Bijoy Lohar <ArrowUpRight className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
 
-            {/* Right Side: Made with love */}
-            <div className="flex items-center gap-3">
-              <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                Made with <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 mx-0.5 animate-pulse" /> for the Youth of India
-              </span>
-              <div className="h-4 w-px bg-slate-800" />
-              <span className="text-xl" title="Made for Digital India">🇮🇳</span>
+            {/* Privacy & Architecture Badge */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 text-center md:text-right">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Zero-Server Retention Architecture · Encrypted Processing</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400">Made for Digital India</span>
+                <span className="text-xl" title="Jai Hind 🇮🇳">🇮🇳</span>
+              </div>
             </div>
           </div>
         </div>

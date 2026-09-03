@@ -6,6 +6,7 @@ import {
   PrivateJob,
   JobFilterState,
   INITIAL_JOBS_DATA,
+  getJobDeadlineInfo,
 } from "@/lib/jobs-data";
 import { JobCard } from "./JobCard";
 import { JobFilter } from "./JobFilter";
@@ -216,7 +217,36 @@ export default function JobPortal() {
       });
     }
 
-    return list;
+    // Sort: Active jobs first (closest deadline to furthest/open), closed jobs sink to bottom
+    const sorted = [...list].sort((a, b) => {
+      const aInfo = getJobDeadlineInfo(a);
+      const bInfo = getJobDeadlineInfo(b);
+
+      const aClosed = aInfo.isClosed;
+      const bClosed = bInfo.isClosed;
+
+      // Closed jobs automatically sink to the bottom
+      if (!aClosed && bClosed) return -1;
+      if (aClosed && !bClosed) return 1;
+
+      // Both active: sort by deadline ascending (soonest deadline first)
+      if (!aClosed && !bClosed) {
+        if (aInfo.parsedDateISO && bInfo.parsedDateISO) {
+          return aInfo.parsedDateISO.localeCompare(bInfo.parsedDateISO);
+        }
+        if (aInfo.parsedDateISO && !bInfo.parsedDateISO) return -1;
+        if (!aInfo.parsedDateISO && bInfo.parsedDateISO) return 1;
+        return (b.posted_date || "").localeCompare(a.posted_date || "");
+      }
+
+      // Both closed: sort by most recently expired first
+      if (aInfo.parsedDateISO && bInfo.parsedDateISO) {
+        return bInfo.parsedDateISO.localeCompare(aInfo.parsedDateISO);
+      }
+      return (b.posted_date || "").localeCompare(a.posted_date || "");
+    });
+
+    return sorted;
   }, [jobs, filter, viewMode, bookmarkedIds]);
 
   // Statistics

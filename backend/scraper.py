@@ -213,6 +213,94 @@ class DeduplicationEngine:
         return hashlib.sha256(raw_payload.encode("utf-8")).hexdigest()
 
 
+# ==============================================================================
+# UNIVERSAL DATE NORMALIZER
+# Converts all raw Indian job date formats to ISO-8601 (YYYY-MM-DD) or None.
+# Handles: DD/MM/YYYY, YYYY-MM-DD, DD Mon YYYY, DD-MM-YYYY
+# Returns None for vague strings like "Walk-in", "Ongoing", "Open until filled".
+# ==============================================================================
+
+VAGUE_DATE_KEYWORDS = (
+    "open", "ongoing", "walk", "immediate", "rolling", "till", "notified", "filled", "announced",
+)
+
+MONTH_MAP = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+
+
+def normalize_date_to_iso(raw: Optional[str]) -> Optional[str]:
+    """Convert any raw Indian job date string to ISO-8601 YYYY-MM-DD, or None."""
+    if not raw:
+        return None
+
+    clean = raw.strip()
+    lower = clean.lower()
+
+    # Reject vague / open-ended strings
+    if any(kw in lower for kw in VAGUE_DATE_KEYWORDS):
+        return None
+
+    # Pattern 1: YYYY-MM-DD (already ISO)
+    m = re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", clean)
+    if m:
+        return clean
+
+    # Pattern 2: DD/MM/YYYY
+    m = re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", clean)
+    if m:
+        d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        try:
+            return date(y, mo, d).isoformat()
+        except ValueError:
+            return None
+
+    # Pattern 3: DD-MM-YYYY
+    m = re.fullmatch(r"(\d{1,2})-(\d{1,2})-(\d{4})", clean)
+    if m:
+        d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        try:
+            return date(y, mo, d).isoformat()
+        except ValueError:
+            return None
+
+    # Pattern 4: DD Mon YYYY  (e.g. "15 Oct 2026", "05 Sep 2026")
+    m = re.fullmatch(r"(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})", clean)
+    if m:
+        d, mon_str, y = int(m.group(1)), m.group(2).lower(), int(m.group(3))
+        mo = MONTH_MAP.get(mon_str[:3])
+        if mo:
+            try:
+                return date(y, mo, d).isoformat()
+            except ValueError:
+                return None
+
+    # Pattern 5: DD Month YYYY  (e.g. "15 October 2026")
+    m = re.fullmatch(r"(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})", clean)
+    if m:
+        d, mon_str, y = int(m.group(1)), m.group(2).lower(), int(m.group(3))
+        mo = MONTH_MAP.get(mon_str[:3])
+        if mo:
+            try:
+                return date(y, mo, d).isoformat()
+            except ValueError:
+                return None
+
+    return None
+
+
+def compute_is_closed(parsed_iso: Optional[str]) -> Optional[bool]:
+    """Return True if deadline has passed, False if still active, None if unknown."""
+    if not parsed_iso:
+        return None
+    try:
+        deadline = date.fromisoformat(parsed_iso)
+        return deadline < date.today()
+    except ValueError:
+        return None
+
+
 class BaseIngestor:
     def __init__(self, session: Optional[requests.Session] = None):
         self.session = session or requests.Session()
@@ -329,6 +417,9 @@ class NCSIngestor(BaseIngestor):
             cat = "teaching" if detected_sector == "Teaching & Education" else "government"
             job_hash = DeduplicationEngine.generate_hash(cat, item["title"], clean_apply, item["dept"])
 
+            parsed_date = normalize_date_to_iso(item["last_date"])
+            closed = compute_is_closed(parsed_date)
+
             jobs.append({
                 "job_hash": job_hash,
                 "title": item["title"],
@@ -341,7 +432,9 @@ class NCSIngestor(BaseIngestor):
                 "department_or_board": item["dept"],
                 "qualification": item["qualification"],
                 "last_date": item["last_date"],
-                "last_date_to_apply": (date.today() + timedelta(days=26)).isoformat(),
+                "last_date_to_apply": parsed_date or item["last_date"],
+                "last_date_parsed": parsed_date,
+                "is_closed": bool(closed) if closed is not None else False,
                 "salary": item["salary"],
                 "salary_range": item["salary"],
                 "apply_url": clean_apply,
@@ -662,6 +755,9 @@ class EmploymentNewsGazetteIngestor(BaseIngestor):
             cat = "teaching" if detected_sector == "Teaching & Education" else "government"
             job_hash = DeduplicationEngine.generate_hash(cat, item["title"], clean_apply, item["dept"])
 
+            parsed_date = normalize_date_to_iso(item["last_date"])
+            closed = compute_is_closed(parsed_date)
+
             jobs.append({
                 "job_hash": job_hash,
                 "title": item["title"],
@@ -674,7 +770,9 @@ class EmploymentNewsGazetteIngestor(BaseIngestor):
                 "department_or_board": item["dept"],
                 "qualification": item["qualification"],
                 "last_date": item["last_date"],
-                "last_date_to_apply": (date.today() + timedelta(days=25)).isoformat(),
+                "last_date_to_apply": parsed_date or item["last_date"],
+                "last_date_parsed": parsed_date,
+                "is_closed": bool(closed) if closed is not None else False,
                 "salary": item["salary"],
                 "salary_range": item["salary"],
                 "apply_url": clean_apply,
@@ -879,6 +977,8 @@ class MultiFeedPrivateIngestor(BaseIngestor):
                 "experience_level": "Fresher / 1-3 Years",
                 "employment_type": "Full-time",
                 "last_date": "Open until filled",
+                "last_date_parsed": None,  # Private roles have rolling deadlines
+                "is_closed": False,
                 "salary": item["salary"],
                 "salary_range": item["salary"],
                 "skills_tags": item.get("skills", ["Tech", "Engineering"]),
@@ -952,7 +1052,12 @@ class SupabaseIngestor:
                         clean["gov_sector"] = sector
                         clean["state_or_location"] = item.get("state") or item.get("state_or_location") or "All India"
                         clean["qualification"] = item.get("qualification") or "Graduate / B.Ed / 10th / 12th"
-                        clean["last_date_to_apply"] = (date.today() + timedelta(days=25)).isoformat()
+                        # Use the actual normalized parsed date; fallback to raw string
+                        raw_ld = item.get("last_date") or item.get("last_date_to_apply") or ""
+                        parsed_ld = item.get("last_date_parsed") or normalize_date_to_iso(raw_ld)
+                        clean["last_date_to_apply"] = parsed_ld or raw_ld or (date.today() + timedelta(days=30)).isoformat()
+                        clean["last_date_parsed"] = parsed_ld  # DATE column
+                        clean["is_closed"] = bool(compute_is_closed(parsed_ld)) if parsed_ld else False
                         clean["salary_range"] = item.get("salary") or item.get("salary_range") or "As per Govt Norms"
                         clean["fee_details"] = item.get("fee_details") or "Gen/OBC: ₹100, SC/ST: ₹0"
                         clean["age_limit"] = item.get("age_limit") or "18 - 40 Years"
