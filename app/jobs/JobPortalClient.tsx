@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Header } from "@/components/shared/Header";
 import JobPortal from "@/components/modules/jobs/JobPortal";
+import { JobPortalFooter } from "@/components/modules/jobs/JobPortalFooter";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Landmark, Heart } from "lucide-react";
 import Link from "next/link";
@@ -43,18 +44,8 @@ export default function JobPortalClient() {
         <JobPortal />
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200/80 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md mt-12 py-8 text-center text-xs text-slate-500 space-y-2">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-300">
-            <Landmark className="w-4 h-4 text-amber-500" />
-            BharatKits All India Job Portal • Zero Running Cost Engine
-          </div>
-          <div className="flex items-center gap-1">
-            Built with <Heart className="w-3.5 h-3.5 text-rose-500 fill-current" /> for Indian Aspirants & Job Seekers
-          </div>
-        </div>
-      </footer>
+      {/* Compliance & Global Legal Footer */}
+      <JobPortalFooter />
     </div>
   );
 }
