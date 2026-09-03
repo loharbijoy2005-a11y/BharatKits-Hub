@@ -205,6 +205,14 @@ export function JobDetailModal({
             </div>
           )}
 
+          {/* Date Verification Advisory Notice */}
+          <div className="p-3 rounded-2xl bg-amber-50/90 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 flex items-center gap-2 text-xs text-amber-900 dark:text-amber-200">
+            <span className="text-base">📌</span>
+            <span className="font-medium">
+              <strong>Note:</strong> Last date updates/extension ke liye apply karne se pehle official website par bhi date zaroor check & verify kar lein.
+            </span>
+          </div>
+
           {/* Description Section */}
           <div className="space-y-2">
             <h4 className="text-xs uppercase tracking-wider font-extrabold text-slate-400">

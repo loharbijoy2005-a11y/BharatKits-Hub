@@ -271,6 +271,14 @@ export function JobCard({
             </span>
           )}
         </div>
+
+        {/* Official Date Verification Advisory Note */}
+        <div className="mb-4 px-2.5 py-1.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 flex items-center gap-1.5 text-[11px] text-amber-800 dark:text-amber-300">
+          <span className="shrink-0 text-amber-600 dark:text-amber-400">📌</span>
+          <span className="leading-tight font-medium">
+            <strong>Note:</strong> Application date ek baar official website par bhi zaroor verify kar lein.
+          </span>
+        </div>
       </div>
 
       {/* Action Buttons Row */}
