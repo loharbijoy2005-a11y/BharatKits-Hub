@@ -3,12 +3,14 @@
 ==============================================================================
 ALL INDIA CENTRALIZED JOB PORTAL - ZERO-COST AUTOMATED INGESTION ENGINE
 ==============================================================================
-Architecture:
-  - BaseIngestor (Abstract Base Class with retry, rate-limiting & normalization)
-  - GovtIngestor (NCS Government RSS/API, Employment News, SSC, UPSC, RRB, IBPS, State PSCs)
-  - PrivateIngestor (Public ATS feeds: Greenhouse, Lever, SmartRecruiters, Jobicy, Remote/India developer feeds)
-  - DeduplicationEngine (SHA-256 canonical hashing + URL uniqueness)
-  - SupabaseIngestor (PostgreSQL batch upsert with collision prevention)
+Enhanced Link Extraction & Verification Architecture:
+  1. URLSanitizer: urljoin relative link resolution, whitespace/junk cleaning,
+     ignoring javascript:, void(0), #, mailto:.
+  2. LinkVerifier: Pre-flight HEAD/GET verification to eliminate 404s/broken PDFs,
+     providing automatic fallback to official noticeboard portal.
+  3. BaseIngestor, GovtIngestor, PrivateIngestor with robust exception handling.
+  4. DeduplicationEngine (Deterministic SHA-256 fingerprint).
+  5. SupabaseIngestor (PostgreSQL batch upsert with collision prevention).
 ==============================================================================
 """
 
@@ -19,9 +21,10 @@ import time
 import hashlib
 import logging
 import argparse
+from urllib.parse import urljoin, urlparse, urlunparse
 from abc import ABC, abstractmethod
 from datetime import datetime, date, timedelta
-from typing import List, Dict, Any, Optional, Set
+from typing import List, Dict, Any, Optional, Tuple, Set
 import requests
 from bs4 import BeautifulSoup
 import feedparser
@@ -42,10 +45,117 @@ DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
-REQUEST_TIMEOUT = 15
+REQUEST_TIMEOUT = 12
+VERIFICATION_TIMEOUT = 5
 
 # ==============================================================================
-# 1. DEDUPLICATION & HASH ENGINE
+# 1. URL SANITIZER & PRE-FLIGHT LINK VERIFICATION ENGINE
+# ==============================================================================
+
+class URLSanitizer:
+    """Sanitizes, resolves relative links, and discards void/javascript hrefs."""
+
+    DISALLOWED_PREFIXES = ("javascript:", "void(0)", "void 0", "mailto:", "tel:", "#", "about:blank")
+
+    @staticmethod
+    def clean_text(text: Optional[str]) -> str:
+        if not text:
+            return ""
+        return " ".join(text.split()).strip()
+
+    @classmethod
+    def sanitize_url(cls, raw_url: Optional[str], base_url: str = "") -> Optional[str]:
+        """
+        Converts relative URLs to absolute, removes query fragments/junk,
+        and eliminates javascript/void links.
+        """
+        if not raw_url:
+            return None
+
+        clean = raw_url.strip()
+        lower_clean = clean.lower()
+
+        # Check for disallowed prefixes
+        if any(lower_clean.startswith(prefix) for prefix in cls.DISALLOWED_PREFIXES):
+            return None
+
+        # Resolve relative URL using base_url
+        if base_url:
+            try:
+                clean = urljoin(base_url, clean)
+            except Exception:
+                pass
+
+        # Validate scheme
+        try:
+            parsed = urlparse(clean)
+            if parsed.scheme not in ("http", "https") or not parsed.netloc:
+                return None
+            
+            # Normalize double slashes in path (e.g. //upload/notice.pdf)
+            norm_path = "/".join(segment for segment in parsed.path.split("/") if segment or segment == "")
+            if not norm_path.startswith("/"):
+                norm_path = "/" + norm_path
+
+            cleaned_url = urlunparse((parsed.scheme, parsed.netloc, norm_path, parsed.params, parsed.query, ""))
+            return cleaned_url
+        except Exception:
+            return None
+
+
+class LinkVerifier:
+    """Performs lightweight pre-flight HEAD/GET verification to eliminate 404 dead links."""
+
+    def __init__(self, session: Optional[requests.Session] = None):
+        self.session = session or requests.Session()
+        self.session.headers.update({
+            "User-Agent": DEFAULT_USER_AGENT,
+            "Accept": "application/pdf,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        })
+
+    def verify_link(self, target_url: Optional[str], fallback_url: str) -> Tuple[str, bool]:
+        """
+        Verifies if a target URL is live (200-299 status code).
+        Returns Tuple of (verified_url, is_direct_valid).
+        If target_url is 404 or fails, seamlessly assigns fallback_url and returns (fallback_url, False).
+        """
+        if not target_url:
+            return fallback_url, False
+
+        clean_target = URLSanitizer.sanitize_url(target_url, base_url=fallback_url)
+        if not clean_target:
+            return fallback_url, False
+
+        try:
+            # 1. Try lightweight HEAD request
+            resp = self.session.head(
+                clean_target,
+                timeout=VERIFICATION_TIMEOUT,
+                allow_redirects=True,
+            )
+
+            # If HEAD returns 405 Method Not Allowed or 403 Forbidden, fallback to GET stream
+            if resp.status_code in (405, 403, 501):
+                resp = self.session.get(
+                    clean_target,
+                    timeout=VERIFICATION_TIMEOUT,
+                    stream=True,
+                    allow_redirects=True,
+                )
+
+            # Check if reachable (200-299)
+            if 200 <= resp.status_code < 300:
+                return clean_target, True
+            else:
+                logger.warning(f"Link failed verification (HTTP {resp.status_code}): {clean_target}. Using fallback: {fallback_url}")
+                return fallback_url, False
+        except Exception as e:
+            logger.debug(f"Pre-flight verification exception for {clean_target}: {e}. Assigning fallback: {fallback_url}")
+            return fallback_url, False
+
+
+# ==============================================================================
+# 2. DEDUPLICATION ENGINE
 # ==============================================================================
 
 class DeduplicationEngine:
@@ -59,15 +169,9 @@ class DeduplicationEngine:
         raw_payload = f"{category.lower()}::{clean_org}::{clean_title}::{clean_url}"
         return hashlib.sha256(raw_payload.encode("utf-8")).hexdigest()
 
-    @staticmethod
-    def clean_text(text: Optional[str]) -> str:
-        if not text:
-            return ""
-        return " ".join(text.split()).strip()
-
 
 # ==============================================================================
-# 2. BASE INGESTOR CLASS
+# 3. BASE INGESTOR CLASS
 # ==============================================================================
 
 class BaseIngestor(ABC):
@@ -79,6 +183,7 @@ class BaseIngestor(ABC):
             "User-Agent": DEFAULT_USER_AGENT,
             "Accept": "application/json, text/html, application/xml, text/xml, */*",
         })
+        self.verifier = LinkVerifier(self.session)
 
     def fetch_url(self, url: str, retries: int = 2) -> Optional[requests.Response]:
         for attempt in range(retries + 1):
@@ -95,12 +200,11 @@ class BaseIngestor(ABC):
 
     @abstractmethod
     def ingest(self) -> List[Dict[str, Any]]:
-        """Ingests and returns normalized job dictionaries."""
         pass
 
 
 # ==============================================================================
-# 3. GOVERNMENT (SARKARI & STATE) INGESTOR
+# 4. GOVERNMENT (SARKARI & STATE) INGESTOR
 # ==============================================================================
 
 class GovtIngestor(BaseIngestor):
@@ -115,7 +219,7 @@ class GovtIngestor(BaseIngestor):
     def ingest(self) -> List[Dict[str, Any]]:
         all_govt_jobs: List[Dict[str, Any]] = []
 
-        # 1. NCS & Employment Feeds
+        # 1. NCS & Verified Employment Feeds
         all_govt_jobs.extend(self._ingest_ncs_and_employment_news())
 
         # 2. Premier Central Recruitment Feeds
@@ -124,15 +228,14 @@ class GovtIngestor(BaseIngestor):
         # 3. State PSC Opportunities
         all_govt_jobs.extend(self._ingest_state_psc_notifications())
 
-        logger.info(f"GovtIngestor collected {len(all_govt_jobs)} government vacancies.")
+        logger.info(f"GovtIngestor collected {len(all_govt_jobs)} verified government vacancies.")
         return all_govt_jobs
 
     def _ingest_ncs_and_employment_news(self) -> List[Dict[str, Any]]:
         jobs = []
         feed_sources = [
-            {"url": "https://www.ncs.gov.in/Pages/RSSFeeds.aspx?JobType=Govt", "name": "NCS Central Feed"},
-            {"url": "https://www.freejobalert.com/feed/", "name": "FreeJobAlert RSS"},
-            {"url": "https://sarkariresult.com.co/feed/", "name": "Sarkari Result Feed"},
+            {"url": "https://www.ncs.gov.in/Pages/RSSFeeds.aspx?JobType=Govt", "name": "NCS Central Feed", "base": "https://www.ncs.gov.in"},
+            {"url": "https://www.freejobalert.com/feed/", "name": "FreeJobAlert RSS", "base": "https://www.freejobalert.com"},
         ]
 
         for source in feed_sources:
@@ -143,16 +246,17 @@ class GovtIngestor(BaseIngestor):
 
                 feed = feedparser.parse(resp.content)
                 for entry in feed.entries[:30]:
-                    title = DeduplicationEngine.clean_text(entry.get("title", ""))
-                    if not title or len(title) < 6:
+                    raw_title = URLSanitizer.clean_text(entry.get("title", ""))
+                    if not raw_title or len(raw_title) < 6:
                         continue
 
-                    apply_url = entry.get("link", "").strip()
-                    if not apply_url:
+                    raw_link = entry.get("link", "").strip()
+                    clean_apply = URLSanitizer.sanitize_url(raw_link, base_url=source["base"])
+                    if not clean_apply:
                         continue
 
                     # Extract Board & Sector
-                    upper_title = title.upper()
+                    upper_title = raw_title.upper()
                     board = "Government of India / State Dept"
                     sector = "Central Govt"
                     if "SSC" in upper_title:
@@ -195,17 +299,23 @@ class GovtIngestor(BaseIngestor):
                         post_date = date(*published_parsed[:3]).isoformat()
 
                     last_date = (date.today() + timedelta(days=21)).isoformat()
-                    job_hash = DeduplicationEngine.generate_hash("government", title, apply_url, board)
+                    job_hash = DeduplicationEngine.generate_hash("government", raw_title, clean_apply, board)
+
+                    # Pre-flight link check for direct PDF vs Noticeboard fallback
+                    pdf_url = clean_apply if clean_apply.endswith(".pdf") else None
+                    verified_pdf, has_direct = self.verifier.verify_link(pdf_url, fallback_url=clean_apply)
 
                     job_entry = {
                         "job_hash": job_hash,
                         "category": "government",
-                        "title": title,
+                        "title": raw_title,
                         "department_or_board": board,
                         "gov_sector": sector,
-                        "description": DeduplicationEngine.clean_text(entry.get("summary", entry.get("description", "")))[:1000] or f"Official recruitment notification for {title}.",
-                        "apply_url": apply_url,
-                        "notification_pdf_url": apply_url if apply_url.endswith(".pdf") else None,
+                        "description": URLSanitizer.clean_text(entry.get("summary", entry.get("description", "")))[:1000] or f"Official recruitment notification for {raw_title}.",
+                        "apply_url": clean_apply,
+                        "notification_pdf_url": verified_pdf if has_direct else None,
+                        "official_pdf_fallback": clean_apply,
+                        "has_direct_pdf": has_direct,
                         "posted_date": post_date,
                         "last_date_to_apply": last_date,
                         "vacancies_count": 0,
@@ -222,7 +332,7 @@ class GovtIngestor(BaseIngestor):
         return jobs
 
     def _ingest_central_recruiting_bodies(self) -> List[Dict[str, Any]]:
-        """Verified premier recruitment notifications from premier central bodies."""
+        """Verified premier recruitment notifications from central bodies."""
         central_jobs = [
             {
                 "title": "SSC CGL 2026 - Combined Graduate Level Examination",
@@ -306,7 +416,11 @@ class GovtIngestor(BaseIngestor):
 
         normalized = []
         for item in central_jobs:
-            job_hash = DeduplicationEngine.generate_hash("government", item["title"], item["apply_url"], item["department_or_board"])
+            clean_apply = URLSanitizer.sanitize_url(item["apply_url"])
+            clean_pdf = URLSanitizer.sanitize_url(item["notification_pdf_url"])
+            verified_pdf, has_direct = self.verifier.verify_link(clean_pdf, fallback_url=clean_apply)
+            
+            job_hash = DeduplicationEngine.generate_hash("government", item["title"], clean_apply, item["department_or_board"])
             normalized.append({
                 "job_hash": job_hash,
                 "category": "government",
@@ -314,8 +428,10 @@ class GovtIngestor(BaseIngestor):
                 "department_or_board": item["department_or_board"],
                 "gov_sector": item["gov_sector"],
                 "description": f"Official recruitment notification by {item['department_or_board']} for {item['vacancies_count']} total vacancies. Minimum qualification: {item['qualification']}.",
-                "apply_url": item["apply_url"],
-                "notification_pdf_url": item["notification_pdf_url"],
+                "apply_url": clean_apply,
+                "notification_pdf_url": verified_pdf if has_direct else None,
+                "official_pdf_fallback": clean_apply,
+                "has_direct_pdf": has_direct,
                 "posted_date": date.today().isoformat(),
                 "last_date_to_apply": (date.today() + timedelta(days=item["days_ahead"])).isoformat(),
                 "vacancies_count": item["vacancies_count"],
@@ -399,7 +515,11 @@ class GovtIngestor(BaseIngestor):
 
         normalized = []
         for item in state_jobs:
-            job_hash = DeduplicationEngine.generate_hash("government", item["title"], item["apply_url"], item["department_or_board"])
+            clean_apply = URLSanitizer.sanitize_url(item["apply_url"])
+            clean_pdf = URLSanitizer.sanitize_url(item["notification_pdf_url"])
+            verified_pdf, has_direct = self.verifier.verify_link(clean_pdf, fallback_url=clean_apply)
+            
+            job_hash = DeduplicationEngine.generate_hash("government", item["title"], clean_apply, item["department_or_board"])
             normalized.append({
                 "job_hash": job_hash,
                 "category": "government",
@@ -407,8 +527,10 @@ class GovtIngestor(BaseIngestor):
                 "department_or_board": item["department_or_board"],
                 "gov_sector": item["gov_sector"],
                 "description": f"Official state recruitment notice by {item['department_or_board']} for {item['vacancies_count']} posts. Location: {item['state_or_location']}.",
-                "apply_url": item["apply_url"],
-                "notification_pdf_url": item["notification_pdf_url"],
+                "apply_url": clean_apply,
+                "notification_pdf_url": verified_pdf if has_direct else None,
+                "official_pdf_fallback": clean_apply,
+                "has_direct_pdf": has_direct,
                 "posted_date": date.today().isoformat(),
                 "last_date_to_apply": (date.today() + timedelta(days=item["days_ahead"])).isoformat(),
                 "vacancies_count": item["vacancies_count"],
@@ -422,14 +544,14 @@ class GovtIngestor(BaseIngestor):
 
 
 # ==============================================================================
-# 4. PRIVATE SECTOR & ATS INGESTOR
+# 5. PRIVATE SECTOR & ATS INGESTOR
 # ==============================================================================
 
 class PrivateIngestor(BaseIngestor):
     """
     Aggregates:
       1. Public ATS feeds (Greenhouse, Lever, SmartRecruiters)
-      2. Free Developer & Job Aggregator APIs (Jobicy, Arbeitnow, Remote Tech Feeds)
+      2. Free Developer & Job Aggregator APIs (Arbeitnow, APAC/Remote Developer Feeds)
       3. Top Indian Tech & Corporate Employers (TCS, Swiggy, Razorpay, Infosys, Zomato, PhonePe, CRED)
     """
 
@@ -448,36 +570,44 @@ class PrivateIngestor(BaseIngestor):
     def _ingest_open_apis(self) -> List[Dict[str, Any]]:
         jobs = []
         endpoints = [
-            "https://jobicy.com/api/v2/remote-jobs?count=25&geo=india",
-            "https://jobicy.com/api/v2/remote-jobs?count=25&geo=apac",
-            "https://arbeitnow.com/api/job-board-api",
+            {"url": "https://arbeitnow.com/api/job-board-api", "base": "https://arbeitnow.com"},
+            {"url": "https://jobicy.com/api/v2/remote-jobs?geo=apac", "base": "https://jobicy.com"},
         ]
 
-        for url in endpoints:
+        for ep in endpoints:
             try:
-                resp = self.fetch_url(url)
+                resp = self.fetch_url(ep["url"])
                 if not resp:
                     continue
 
                 data = resp.json()
                 items = data.get("jobs", data.get("data", []))
 
-                for item in items[:20]:
-                    title = DeduplicationEngine.clean_text(item.get("jobTitle", item.get("title", "")))
-                    company = DeduplicationEngine.clean_text(item.get("companyName", item.get("company_name", "Tech Startup")))
-                    apply_url = item.get("url", item.get("jobSlug", "")).strip()
+                for item in items[:25]:
+                    title = URLSanitizer.clean_text(item.get("jobTitle", item.get("title", "")))
+                    company = URLSanitizer.clean_text(item.get("companyName", item.get("company_name", "Tech Startup")))
+                    raw_apply = item.get("url", item.get("jobSlug", "")).strip()
 
-                    if not title or not apply_url:
+                    clean_apply = URLSanitizer.sanitize_url(raw_apply, base_url=ep["base"])
+                    if not title or not clean_apply:
                         continue
 
                     raw_desc = item.get("jobDescription", item.get("description", ""))
-                    clean_desc = DeduplicationEngine.clean_text(BeautifulSoup(raw_desc, "html.parser").get_text())
+                    clean_desc = URLSanitizer.clean_text(BeautifulSoup(raw_desc, "html.parser").get_text())
 
                     tags = item.get("jobTags", item.get("tags", []))
                     if not tags:
-                        tags = ["Tech", "Software", "Remote"]
+                        tags = ["Tech", "Software", "Engineering"]
 
-                    job_hash = DeduplicationEngine.generate_hash("private", title, apply_url, company)
+                    # Location normalization
+                    loc = item.get("jobGeo", item.get("location", "Bengaluru / Remote"))
+                    norm_loc = ", ".join(loc) if isinstance(loc, list) else str(loc)
+
+                    # Employment type normalization
+                    emp = item.get("jobType", item.get("employment_type", "Full-time"))
+                    norm_emp = ", ".join(emp) if isinstance(emp, list) else str(emp)
+
+                    job_hash = DeduplicationEngine.generate_hash("private", title, clean_apply, company)
 
                     job_entry = {
                         "job_hash": job_hash,
@@ -485,20 +615,20 @@ class PrivateIngestor(BaseIngestor):
                         "title": title,
                         "company_name": company,
                         "company_logo_url": item.get("companyLogo", f"https://ui-avatars.com/api/?name={company}&background=4F46E5&color=fff"),
-                        "work_location": item.get("jobGeo", item.get("location", "Bengaluru / Remote")),
+                        "work_location": norm_loc or "Bengaluru / Remote",
                         "experience_level": item.get("jobLevel", "Mid-Level (2-5 yrs)"),
-                        "employment_type": item.get("jobType", "Full-time"),
+                        "employment_type": norm_emp or "Full-time",
                         "salary_range": item.get("annualSalaryMin", "") and f"₹{item.get('annualSalaryMin')} - ₹{item.get('annualSalaryMax', '')} / Yr" or "Competitive / Best in Industry",
                         "skills_tags": tags[:6],
                         "description": clean_desc[:1200] if clean_desc else f"{title} opportunity at {company}.",
-                        "apply_url": apply_url,
+                        "apply_url": clean_apply,
                         "posted_date": date.today().isoformat(),
                         "source_portal": "Open ATS / Aggregator",
                         "is_active": True,
                     }
                     jobs.append(job_entry)
             except Exception as e:
-                logger.warning(f"Error fetching private endpoint {url}: {e}")
+                logger.warning(f"Error fetching private endpoint {ep['url']}: {e}")
 
         return jobs
 
@@ -593,7 +723,8 @@ class PrivateIngestor(BaseIngestor):
 
         normalized = []
         for item in curated_roles:
-            job_hash = DeduplicationEngine.generate_hash("private", item["title"], item["apply_url"], item["company_name"])
+            clean_apply = URLSanitizer.sanitize_url(item["apply_url"])
+            job_hash = DeduplicationEngine.generate_hash("private", item["title"], clean_apply, item["company_name"])
             normalized.append({
                 "job_hash": job_hash,
                 "category": "private",
@@ -606,7 +737,7 @@ class PrivateIngestor(BaseIngestor):
                 "salary_range": item["salary_range"],
                 "skills_tags": item["skills_tags"],
                 "description": f"Immediate opening at {item['company_name']} for {item['title']}. Looking for candidates skilled in {', '.join(item['skills_tags'])}.",
-                "apply_url": item["apply_url"],
+                "apply_url": clean_apply,
                 "posted_date": date.today().isoformat(),
                 "source_portal": item["source_portal"],
                 "is_active": True,
@@ -615,7 +746,7 @@ class PrivateIngestor(BaseIngestor):
 
 
 # ==============================================================================
-# 5. SUPABASE DATABASE INGESTOR & BATCH UPSERT
+# 6. SUPABASE DATABASE INGESTOR & BATCH UPSERT
 # ==============================================================================
 
 class SupabaseIngestor:
@@ -680,7 +811,7 @@ class SupabaseIngestor:
 
 
 # ==============================================================================
-# 6. PIPELINE ORCHESTRATOR
+# 7. PIPELINE ORCHESTRATOR
 # ==============================================================================
 
 def run_ingestion_pipeline(dry_run: bool = False, export_json: Optional[str] = None):

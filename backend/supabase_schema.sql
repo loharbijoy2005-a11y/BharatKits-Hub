@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS public.jobs (
     department_or_board VARCHAR(150),       -- e.g. SSC, UPSC, RRB, IBPS, State PSC, Police, Defence
     gov_sector VARCHAR(50),                 -- Central, State, Railway, Defence, Banking, PSU, Teaching
     notification_pdf_url TEXT,              -- Official notification PDF link
+    official_pdf_fallback TEXT,             -- Fallback recruitment noticeboard link
+    has_direct_pdf BOOLEAN DEFAULT FALSE,   -- Verified active direct PDF flag
     vacancies_count INTEGER DEFAULT 0,      -- Number of open posts
     last_date_to_apply DATE,                -- Application deadline
     qualification VARCHAR(200),             -- 10th, 12th, Graduate, B.Tech, Diploma, PG

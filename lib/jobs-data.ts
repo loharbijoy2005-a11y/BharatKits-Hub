@@ -10,6 +10,8 @@ export interface BaseJob {
   apply_url: string;
   posted_date: string;
   is_active: boolean;
+  has_direct_pdf?: boolean;
+  official_pdf_fallback?: string;
 }
 
 export interface GovtJob extends BaseJob {
@@ -17,6 +19,8 @@ export interface GovtJob extends BaseJob {
   department_or_board: string;
   gov_sector: string;
   notification_pdf_url?: string | null;
+  official_pdf_fallback?: string;
+  has_direct_pdf?: boolean;
   vacancies_count: number;
   last_date_to_apply: string;
   qualification: string;

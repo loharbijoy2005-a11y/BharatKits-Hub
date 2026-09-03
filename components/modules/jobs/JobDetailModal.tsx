@@ -251,15 +251,28 @@ export function JobDetailModal({
 
         {/* Modal Sticky Bottom Actions */}
         <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 flex items-center gap-3">
-          {isGovt && govtJob?.notification_pdf_url && (
+          {isGovt && govtJob && (
             <a
-              href={govtJob.notification_pdf_url}
+              href={
+                govtJob.has_direct_pdf && govtJob.notification_pdf_url
+                  ? govtJob.notification_pdf_url
+                  : govtJob.official_pdf_fallback || govtJob.apply_url
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm transition-all"
             >
-              <FileDown className="w-4 h-4 text-rose-500" />
-              Download Official PDF
+              {govtJob.has_direct_pdf && govtJob.notification_pdf_url ? (
+                <>
+                  <FileDown className="w-4 h-4 text-rose-500" />
+                  Download Official PDF
+                </>
+              ) : (
+                <>
+                  <ExternalLink className="w-4 h-4 text-blue-500" />
+                  View Official Notice Board
+                </>
+              )}
             </a>
           )}
 

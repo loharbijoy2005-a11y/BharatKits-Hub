@@ -238,21 +238,34 @@ export function JobCard({
 
       {/* Action Buttons Row */}
       <div className="pt-2 flex items-center gap-2.5">
-        {/* PDF Notification Download (Govt only) */}
-        {isGovt && govtJob?.notification_pdf_url && (
+        {/* PDF Notification Download or Official Notice Board (Govt) */}
+        {isGovt && govtJob && (
           <a
-            href={govtJob.notification_pdf_url}
+            href={
+              govtJob.has_direct_pdf && govtJob.notification_pdf_url
+                ? govtJob.notification_pdf_url
+                : govtJob.official_pdf_fallback || govtJob.apply_url
+            }
             target="_blank"
             rel="noopener noreferrer"
             className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 transition-all shadow-sm"
           >
-            <FileDown className="w-3.5 h-3.5 text-rose-500" />
-            Official PDF
+            {govtJob.has_direct_pdf && govtJob.notification_pdf_url ? (
+              <>
+                <FileDown className="w-3.5 h-3.5 text-rose-500" />
+                Download PDF
+              </>
+            ) : (
+              <>
+                <ExternalLink className="w-3.5 h-3.5 text-blue-500" />
+                Notice Board
+              </>
+            )}
           </a>
         )}
 
-        {/* Details button if not govt with PDF */}
-        {(!isGovt || !govtJob?.notification_pdf_url) && (
+        {/* Details button for Private Jobs */}
+        {!isGovt && (
           <button
             onClick={() => onOpenDetails(job)}
             className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 transition-all shadow-sm"
