@@ -593,7 +593,7 @@ class EmploymentNewsGazetteIngestor(BaseIngestor):
                 "source": "Employment News",
                 "state": "All India",
                 "qualification": "Graduation with minimum 60% & 10+2 with Physics & Math",
-                "last_date": (date.today() + timedelta(days=22)).strftime("%d %b %Y"),
+                "last_date": "21 Jun 2026",
                 "salary": "Flying Officer Level 10 (₹56,100 - ₹1,77,500 + MSP)",
                 "apply_url": "https://afcat.cdac.in/",
                 "official_pdf": "https://afcat.cdac.in/AFCAT/assets/images/news/AFCAT_01_2026.pdf",

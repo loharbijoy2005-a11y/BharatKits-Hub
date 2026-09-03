@@ -16,8 +16,6 @@ export interface BaseJob {
   qualification?: string;
   salary?: string;
   last_date?: string;
-  last_date_parsed?: string | null;
-  is_closed?: boolean;
   has_direct_pdf?: boolean;
   official_pdf_fallback?: string;
   [key: string]: any;
@@ -74,10 +72,6 @@ const VAGUE_DATE_KEYWORDS = [
   "open", "ongoing", "walk", "immediate", "rolling", "till", "notified", "filled", "announced",
 ];
 
-/**
- * Universal Date Normalizer for TypeScript
- * Converts raw Indian job date strings into ISO-8601 YYYY-MM-DD or null.
- */
 export function normalizeDateToISO(raw?: string | null): string | null {
   if (!raw) return null;
   const clean = raw.trim();
@@ -87,13 +81,11 @@ export function normalizeDateToISO(raw?: string | null): string | null {
     return null;
   }
 
-  // 1. ISO format: YYYY-MM-DD
   const isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (isoMatch) {
     return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
   }
 
-  // 2. DD/MM/YYYY
   const slashMatch = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (slashMatch) {
     const day = slashMatch[1].padStart(2, "0");
@@ -102,7 +94,6 @@ export function normalizeDateToISO(raw?: string | null): string | null {
     return `${year}-${month}-${day}`;
   }
 
-  // 3. DD-MM-YYYY
   const dashMatch = clean.match(/^(\d{1,2})-(\d{1,2})-(\d{4})/);
   if (dashMatch) {
     const day = dashMatch[1].padStart(2, "0");
@@ -111,7 +102,6 @@ export function normalizeDateToISO(raw?: string | null): string | null {
     return `${year}-${month}-${day}`;
   }
 
-  // 4. DD Mon YYYY / DD Month YYYY (e.g., "15 Oct 2026", "29 Sep 2026", "15 October 2026")
   const textMatch = clean.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
   if (textMatch) {
     const day = textMatch[1].padStart(2, "0");
@@ -123,7 +113,6 @@ export function normalizeDateToISO(raw?: string | null): string | null {
     }
   }
 
-  // 5. Fallback Date constructor attempt for other standard formats
   const parsed = new Date(clean);
   if (!isNaN(parsed.getTime())) {
     return parsed.toISOString().split("T")[0];
@@ -132,9 +121,6 @@ export function normalizeDateToISO(raw?: string | null): string | null {
   return null;
 }
 
-/**
- * Calculates deadline status metrics accurately using normalized dates.
- */
 export function getJobDeadlineInfo(job: Partial<Job>): {
   isClosed: boolean;
   diffDays: number | null;
@@ -169,8 +155,7 @@ export function getJobDeadlineInfo(job: Partial<Job>): {
   };
 }
 
-
-const RAW_INITIAL_JOBS_DATA: Job[] = [
+export const INITIAL_JOBS_DATA: Job[] = [
   {
     "job_hash": "83537d55d6453db27af9295ee628aa0b4c9d9037a2bed1a422b75113cf7a42ab",
     "title": "Ministry of Rural Development - District Programme Coordinator & Gram Rozgar Sahayak",
@@ -574,8 +559,8 @@ const RAW_INITIAL_JOBS_DATA: Job[] = [
     "department_or_company": "Indian Air Force (IAF)",
     "department_or_board": "Indian Air Force (IAF)",
     "qualification": "Graduation with minimum 60% & 10+2 with Physics & Math",
-    "last_date": "25 Sep 2026",
-    "last_date_to_apply": "25 Sep 2026",
+    "last_date": "21 Jun 2026",
+    "last_date_to_apply": "21 Jun 2026",
     "salary": "Flying Officer Level 10 (₹56,100 - ₹1,77,500 + MSP)",
     "salary_range": "Flying Officer Level 10 (₹56,100 - ₹1,77,500 + MSP)",
     "apply_url": "https://afcat.cdac.in/",
@@ -2617,51 +2602,6 @@ const RAW_INITIAL_JOBS_DATA: Job[] = [
     "id": "job-85"
   }
 ];
-
-function getRelativeDateInfo(offsetDays: number) {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  const iso = d.toISOString().split("T")[0];
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const day = d.getDate().toString().padStart(2, "0");
-  const month = months[d.getMonth()];
-  const year = d.getFullYear();
-  return {
-    iso,
-    formatted: `${day} ${month} ${year}`,
-  };
-}
-
-export const INITIAL_JOBS_DATA: Job[] = RAW_INITIAL_JOBS_DATA.map((j, idx) => {
-  const isGovt = j.category === "government" || j.category === "teaching";
-  const todayISO = new Date().toISOString().split("T")[0];
-
-  if (isGovt) {
-    // Dynamic offsets across seed records (including sample last-day and expired items for testing)
-    const offsets = [24, 28, 4, 30, 22, 0, 25, 18, -4, 32, -8, 14, 19, 27, 21, 16, 29, 31, 23, 15];
-    const offset = offsets[idx % offsets.length];
-    const dateInfo = getRelativeDateInfo(offset);
-    const isClosed = offset < 0;
-
-    return {
-      ...j,
-      posted_date: todayISO,
-      last_date: dateInfo.formatted,
-      last_date_to_apply: dateInfo.iso,
-      last_date_parsed: dateInfo.iso,
-      is_closed: isClosed,
-    };
-  } else {
-    return {
-      ...j,
-      posted_date: todayISO,
-      last_date: "Open until filled",
-      last_date_to_apply: "Open until filled",
-      last_date_parsed: null,
-      is_closed: false,
-    };
-  }
-});
 
 export const ALL_SECTORS_LIST = [
   "All Sectors",
