@@ -20,6 +20,127 @@ ALL INDIA CENTRALIZED JOB PORTAL - THREE MASTER INGESTION PIPES
    - `on_conflict="job_hash"` and clean schema field mapping.
 ==============================================================================
 """
+import os
+import sys
+import re
+import json
+import time
+import hashlib
+import logging
+import argparse
+from urllib.parse import urljoin, urlparse, urlunparse
+from datetime import datetime, date, timedelta
+from typing import List, Dict, Any, Optional, Tuple
+import requests
+from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
+# Load environment configuration
+load_dotenv()
+
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+)
+REQUEST_TIMEOUT = 12
+
+# ==============================================================================
+# DYNAMIC LIVE PORTAL WEB SCRAPER & SANITIZATION PIPELINE
+# ==============================================================================
+
+def extract_live_portal_data(url: str, html_content: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Extracts dynamic closing dates and vacancy figures directly from source websites.
+    NO hardcoded fallback dates or mock values. Returns null if unparseable.
+    """
+    headers = {
+        "User-Agent": DEFAULT_USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    }
+    
+    if not html_content:
+        try:
+            resp = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
+            if resp.status_code == 200:
+                html_content = resp.text
+            else:
+                return {
+                    "source_url": url,
+                    "error": f"HTTP {resp.status_code}",
+                    "raw_closing_date": None,
+                    "parsed_iso_date": None,
+                    "remaining_days": None,
+                    "raw_vacancies": None,
+                    "parsed_vacancies": None,
+                }
+        except Exception as e:
+            return {
+                "source_url": url,
+                "error": str(e),
+                "raw_closing_date": None,
+                "parsed_iso_date": None,
+                "remaining_days": None,
+                "raw_vacancies": None,
+                "parsed_vacancies": None,
+            }
+
+    soup = BeautifulSoup(html_content, "html.parser") if html_content else None
+    text_content = soup.get_text(separator=" ") if soup else ""
+
+    # Multi-fallback RegEx & Selectors for Closing Date
+    raw_date = None
+    date_patterns = [
+        r"(?:Last Date|Closing Date|Apply By|End Date)\s*[:\-]?\s*([0-9]{1,2}[\/\-\s.][A-Za-z0-9]+[\/\-\s.][0-9]{4})",
+        r"(?:Last Date|Closing Date|Apply By|End Date)\s*[:\-]?\s*([0-9]{4}[\/\-][0-9]{1,2}[\/\-][0-9]{1,2})",
+        r"\b([0-9]{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+[0-9]{4})\b",
+    ]
+
+    for pat in date_patterns:
+        match = re.search(pat, text_content, re.IGNORECASE)
+        if match:
+            raw_date = match.group(1).strip()
+            break
+
+    # Multi-fallback RegEx & Selectors for Vacancy Figures
+    raw_vacancies = None
+    vacancy_patterns = [
+        r"(?:Vacancies|Total Posts|No\. of Posts|Seats|Openings)\s*[:\-]?\s*([0-9,]+(?:\s+Posts|\s+Vacancies)?)",
+        r"\b([0-9,]{3,7})\s+(?:Vacancies|Posts|Positions)\b",
+    ]
+
+    for pat in vacancy_patterns:
+        match = re.search(pat, text_content, re.IGNORECASE)
+        if match:
+            raw_vacancies = match.group(1).strip()
+            break
+
+    parsed_iso = normalize_date_to_iso(raw_date) if raw_date else None
+    rem_days = None
+    if parsed_iso:
+        try:
+            target = datetime.strptime(parsed_iso, "%Y-%m-%d").date()
+            rem_days = (target - date.today()).days
+        except Exception:
+            rem_days = None
+
+    parsed_vacs = None
+    if raw_vacancies:
+        m_vac = re.search(r"\b(\d{1,3}(?:,\d{3})+|\d{2,6})\b", raw_vacancies)
+        if m_vac:
+            try:
+                parsed_vacs = int(m_vac.group(1).replace(",", ""))
+            except ValueError:
+                parsed_vacs = None
+
+    return {
+        "source_url": url,
+        "raw_closing_date": raw_date,
+        "parsed_iso_date": parsed_iso,
+        "remaining_days": rem_days,
+        "raw_vacancies": raw_vacancies,
+        "parsed_vacancies": parsed_vacs,
+        "is_closed": rem_days < 0 if rem_days is not None else False
+    }
 
 import os
 import sys
