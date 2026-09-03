@@ -751,16 +751,60 @@ export default function Page() {
             </div>
 
             {/* ── COPYRIGHT BAR ── */}
-            <div className="py-6 flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="text-center md:text-left space-y-1">
-                <div className="text-[14px] font-black text-white">© 2026 Bijoy Lohar. All Rights Reserved.</div>
-                <div className="text-xs text-slate-400">
-                  Designed &amp; Developed by{" "}
-                  <a href="https://github.com/loharbijoy2005-a11y" target="_blank" rel="noopener noreferrer" className="text-orange-400 font-bold hover:text-orange-300 transition-colors">
-                    Bijoy Lohar ↗
-                  </a>
+            <div className="py-6 flex flex-col md:flex-row items-center justify-between gap-6">
+              {/* Creator VFX Card */}
+              <div className="flex items-center gap-4 text-center md:text-left">
+                {/* VFX Glowing Avatar Frame */}
+                <a
+                  href="https://github.com/loharbijoy2005-a11y"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative block shrink-0"
+                  title="Bijoy Lohar - Founder &amp; Lead Architect"
+                >
+                  {/* Outer animated neon aura glow */}
+                  <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 opacity-75 blur-md group-hover:opacity-100 group-hover:blur-lg transition-all duration-500 animate-pulse" />
+                  
+                  {/* Holographic border container */}
+                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl p-0.5 bg-gradient-to-br from-amber-400 via-rose-500 to-indigo-600 shadow-2xl">
+                    <div className="w-full h-full rounded-[14px] overflow-hidden bg-slate-950 flex items-center justify-center relative">
+                      <img
+                        src="https://avatars.githubusercontent.com/u/255526760?v=4"
+                        alt="Bijoy Lohar - Creator of BharatKits Hub"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      {/* Cyber scanline highlight */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 to-transparent pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Online status indicator badge */}
+                  <span className="absolute -bottom-1 -right-1 flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-slate-950" />
+                  </span>
+                </a>
+
+                {/* Creator Title & Copyright */}
+                <div className="space-y-0.5">
+                  <div className="text-[14px] font-black text-white tracking-tight flex items-center justify-center md:justify-start gap-2">
+                    <span>© 2026 Bijoy Lohar. All Rights Reserved.</span>
+                  </div>
+                  <div className="text-xs text-slate-400 flex items-center justify-center md:justify-start gap-1.5 flex-wrap">
+                    <span>Designed &amp; Developed by</span>
+                    <a
+                      href="https://github.com/loharbijoy2005-a11y"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-amber-400 font-bold hover:text-amber-300 transition-colors inline-flex items-center gap-1 group"
+                    >
+                      Bijoy Lohar <span className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
+                    </a>
+                  </div>
                 </div>
               </div>
+
+              {/* Privacy & Architecture Badge */}
               <div className="flex flex-col sm:flex-row items-center gap-3 text-center md:text-right">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-400">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
