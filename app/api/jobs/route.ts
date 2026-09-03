@@ -14,16 +14,18 @@ export async function GET(request: NextRequest) {
     const qualification = searchParams.get("qualification") || "All Qualifications";
     const query = (searchParams.get("search") || "").toLowerCase().trim();
 
-    // 1. Fetch live jobs strictly from environment variables
+    // 1. Fetch live jobs strictly from environment variables with production fallback
     const supabaseUrl =
       process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      process.env.SUPABASE_URL;
+      process.env.SUPABASE_URL ||
+      "https://iydiafdwysbirlpcchlf.supabase.co";
 
     const supabaseKey =
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_KEY;
+      process.env.SUPABASE_KEY ||
+      "sb_publishable_VFUfCc4-II0X6ql1o7iZHg_0LWxCdXA";
 
     let allJobs: Job[] = [];
 
