@@ -14,18 +14,16 @@ export async function GET(request: NextRequest) {
     const experience = searchParams.get("experience") || "All Experience Levels";
     const qualification = searchParams.get("qualification") || "All Qualifications";
 
-    // 1. Fetch live jobs directly from Supabase PostgreSQL
+    // 1. Fetch live jobs strictly from environment variables (No hardcoded keys)
     const supabaseUrl =
       process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      process.env.SUPABASE_URL ||
-      "https://iydiafdwysbirlpcchlf.supabase.co";
+      process.env.SUPABASE_URL;
 
     const supabaseKey =
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_KEY ||
-      "sb_publishable_VFUfCc4-II0X6ql1o7iZHg_0LWxCdXA";
+      process.env.SUPABASE_KEY;
 
     let allJobs: Job[] = INITIAL_JOBS_DATA;
 
@@ -62,7 +60,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 2. Perform instant multi-parameter filtering & search
+    // 2. Multi-parameter search & filtering
     let filtered = allJobs;
 
     // Filter by Category
