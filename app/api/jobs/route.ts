@@ -67,6 +67,10 @@ export async function GET(request: NextRequest) {
               const deadlineInfo = getJobDeadlineInfo({ ...j, last_date_parsed: parsedDateISO });
               const isClosed = j.is_closed !== undefined ? Boolean(j.is_closed) : deadlineInfo.isClosed;
 
+              const officialDomain = j.official_source_domain || (
+                j.apply_url ? j.apply_url.split("//")[1]?.split("/")[0]?.replace(/^www\./, "") : (isGovt ? "gov.in" : "careers.com")
+              );
+
               if (isGovt || isTeaching) {
                 return {
                   id: j.id || `db-job-${idx + 1}`,
@@ -80,12 +84,13 @@ export async function GET(request: NextRequest) {
                   gov_sector: detectedSector,
                   qualification: j.qualification || "Graduate",
                   last_date: j.last_date || j.last_date_to_apply || "Open until filled",
-                  last_date_to_apply: parsedDateISO || j.last_date_to_apply || j.last_date || "2026-09-30",
+                  last_date_to_apply: parsedDateISO || j.last_date_to_apply || j.last_date || "2026-10-30",
                   last_date_parsed: parsedDateISO,
                   is_closed: isClosed,
                   salary: j.salary || j.salary_range || "As per Norms",
                   salary_range: j.salary_range || j.salary || "As per Norms",
                   apply_url: j.apply_url || "https://ssc.gov.in/",
+                  official_source_domain: officialDomain,
                   official_pdf: j.official_pdf || j.notification_pdf_url || j.apply_url,
                   notification_pdf_url: j.notification_pdf_url || j.official_pdf || null,
                   official_pdf_fallback: j.official_pdf_fallback || j.apply_url,
@@ -114,7 +119,8 @@ export async function GET(request: NextRequest) {
                   is_closed: isClosed,
                   salary: j.salary || j.salary_range || "Competitive",
                   salary_range: j.salary_range || j.salary || "Competitive",
-                  apply_url: j.apply_url || "https://careers.google.com/",
+                  apply_url: j.apply_url || "https://razorpay.com/jobs/",
+                  official_source_domain: officialDomain,
                   description: j.description || "",
                   posted_date: j.posted_date || "2026-09-03",
                   is_active: j.is_active ?? true,
