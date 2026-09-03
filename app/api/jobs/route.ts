@@ -25,14 +25,16 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.SUPABASE_KEY;
 
-    let allJobs: Job[] = INITIAL_JOBS_DATA.map((j) => {
-      const deadlineInfo = getJobDeadlineInfo(j);
-      return {
-        ...j,
-        last_date_parsed: j.last_date_parsed || deadlineInfo.parsedDateISO,
-        is_closed: j.is_closed !== undefined ? j.is_closed : deadlineInfo.isClosed,
-      };
-    });
+    let allJobs: Job[] = Array.isArray(INITIAL_JOBS_DATA) && INITIAL_JOBS_DATA.length > 0
+      ? INITIAL_JOBS_DATA.map((j) => {
+          const deadlineInfo = getJobDeadlineInfo(j);
+          return {
+            ...j,
+            last_date_parsed: j.last_date_parsed || deadlineInfo.parsedDateISO,
+            is_closed: j.is_closed !== undefined ? j.is_closed : deadlineInfo.isClosed,
+          };
+        })
+      : [];
 
     if (supabaseUrl && supabaseKey) {
       try {
@@ -80,7 +82,7 @@ export async function GET(request: NextRequest) {
                   gov_sector: detectedSector,
                   qualification: j.qualification || "Graduate",
                   last_date: j.last_date || j.last_date_to_apply || "Open until filled",
-                  last_date_to_apply: parsedDateISO || j.last_date_to_apply || j.last_date || "2026-09-30",
+                  last_date_to_apply: parsedDateISO || j.last_date_to_apply || j.last_date || null,
                   last_date_parsed: parsedDateISO,
                   is_closed: isClosed,
                   salary: j.salary || j.salary_range || "As per Norms",
@@ -94,7 +96,7 @@ export async function GET(request: NextRequest) {
                   age_limit: j.age_limit || "18 - 40 Years",
                   fee_details: j.fee_details || "Gen/OBC: ₹100, SC/ST: ₹0",
                   description: j.description || "",
-                  posted_date: j.posted_date || "2026-09-03",
+                  posted_date: j.posted_date || new Date().toISOString().split("T")[0],
                   is_active: j.is_active ?? true,
                 };
               } else {
@@ -116,7 +118,7 @@ export async function GET(request: NextRequest) {
                   salary_range: j.salary_range || j.salary || "Competitive",
                   apply_url: j.apply_url || "https://careers.google.com/",
                   description: j.description || "",
-                  posted_date: j.posted_date || "2026-09-03",
+                  posted_date: j.posted_date || new Date().toISOString().split("T")[0],
                   is_active: j.is_active ?? true,
                   skills_tags: j.skills_tags || ["Tech", "Engineering"],
                   experience_level: j.experience_level || "Fresher / 1-3 Years",
@@ -128,7 +130,7 @@ export async function GET(request: NextRequest) {
           }
         }
       } catch (err) {
-        console.warn("Supabase fetch fallback to bundled seed data:", err);
+        console.warn("Supabase fetch error, returning empty list:", err);
       }
     }
 

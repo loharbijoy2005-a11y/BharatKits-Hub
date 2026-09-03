@@ -11,7 +11,7 @@ for i, item in enumerate(data):
     item['title'] = item.get('title', 'Recruitment Opening')
     item['description'] = item.get('description', '') or f"Job opening for {item['title']}."
     item['apply_url'] = item.get('apply_url', '')
-    item['posted_date'] = item.get('posted_date', '2026-09-03')
+    item['posted_date'] = item.get('posted_date') or None
     item['is_active'] = True
     
     # State normalization
@@ -30,7 +30,7 @@ for i, item in enumerate(data):
         item['official_pdf_fallback'] = item.get('official_pdf_fallback') or item.get('apply_url')
         item['has_direct_pdf'] = bool(item.get('has_direct_pdf', False))
         item['vacancies_count'] = int(item.get('vacancies_count') or 0)
-        item['last_date_to_apply'] = item.get('last_date') or item.get('last_date_to_apply') or '2026-09-30'
+        item['last_date_to_apply'] = item.get('last_date_to_apply') or item.get('last_date') or None
         item['qualification'] = item.get('qualification') or '10th / 12th / Graduate / B.Ed'
         item['age_limit'] = item.get('age_limit') or '18 - 40 Years'
         item['salary_range'] = item.get('salary') or item.get('salary_range') or 'As per Govt Norms'

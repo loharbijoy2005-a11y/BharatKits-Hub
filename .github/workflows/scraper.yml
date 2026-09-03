@@ -2,13 +2,13 @@ name: All India Job Scraper Pipeline
 
 on:
   schedule:
-    # Runs every 6 hours at minute 0 (00:00, 06:00, 12:00, 18:00 UTC) for ₹0
-    - cron: '0 */6 * * *'
+    # Runs every 12 hours at minute 0 (00:00 and 12:00 UTC) for ₹0
+    - cron: '0 */12 * * *'
   workflow_dispatch: # Allows manual trigger from GitHub Actions tab
 
 jobs:
   scrape-and-ingest:
-    name: Scrape Govt & Private Jobs
+    name: Scrape Govt & Private Jobs with Gemini AI
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -27,11 +27,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Run Scraper & Ingest to Supabase
+      - name: Run Scraper & Gemini Ingestion to Supabase
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           python backend/scraper.py
 

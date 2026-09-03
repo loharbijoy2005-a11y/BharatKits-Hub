@@ -6,3 +6,5 @@ python-dotenv>=1.0.1
 pydantic>=2.7.0
 urllib3>=2.2.0
 lxml>=5.2.0
+google-genai>=1.0.0
+

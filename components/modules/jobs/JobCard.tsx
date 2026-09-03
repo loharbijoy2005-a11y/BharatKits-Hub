@@ -27,6 +27,41 @@ interface JobCardProps {
   onShare: (job: Job) => void;
 }
 
+export function formatDisplayDate(dateStr?: string | null): string {
+  if (!dateStr) return "Recently";
+  const clean = dateStr.trim();
+  if (!clean || clean.toLowerCase() === "null" || clean.toLowerCase() === "undefined") {
+    return "Open / Unstated";
+  }
+
+  if (["open", "ongoing", "immediate", "rolling"].some((kw) => clean.toLowerCase().includes(kw))) {
+    return "Open / Rolling";
+  }
+
+  const isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    const year = parseInt(isoMatch[1], 10);
+    const month = parseInt(isoMatch[2], 10) - 1;
+    const day = parseInt(isoMatch[3], 10);
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const target = new Date(year, month, day);
+
+    const diffTime = now.getTime() - target.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays > 1 && diffDays <= 7) return `${diffDays} days ago`;
+
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${day} ${months[month] || ""}`;
+  }
+
+  return clean;
+}
+
 export function JobCard({
   job,
   onOpenDetails,
@@ -258,9 +293,9 @@ export function JobCard({
           <span className="flex items-center gap-1 truncate max-w-[55%]">
             <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <span className="truncate">
-              {isGovt && govtJob?.last_date
-                ? `Last Date: ${govtJob.last_date}`
-                : `Posted: ${job.posted_date || "Today"}`}
+              {isGovt && govtJob?.last_date && govtJob.last_date !== "Open until filled"
+                ? `Last Date: ${formatDisplayDate(govtJob.last_date)}`
+                : `Posted: ${formatDisplayDate(job.posted_date)}`}
             </span>
           </span>
           {deadlineStatus && (

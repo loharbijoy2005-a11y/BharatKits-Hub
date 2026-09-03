@@ -11,6 +11,8 @@ import {
 import { JobCard } from "./JobCard";
 import { JobFilter } from "./JobFilter";
 import { JobDetailModal } from "./JobDetailModal";
+import { PdfJobExtractor } from "./PdfJobExtractor";
+import { AiJobSearch } from "./AiJobSearch";
 import {
   Briefcase,
   Landmark,
@@ -25,7 +27,7 @@ import {
 } from "lucide-react";
 
 export default function JobPortal() {
-  const [jobs, setJobs] = useState<Job[]>(INITIAL_JOBS_DATA);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
@@ -56,7 +58,7 @@ export default function JobPortal() {
     }
   }, []);
 
-  // Fetch live jobs from API route (with fallback)
+  // Fetch live jobs from API route
   useEffect(() => {
     async function fetchJobs() {
       try {
@@ -64,12 +66,13 @@ export default function JobPortal() {
         const res = await fetch("/api/jobs");
         if (res.ok) {
           const data = await res.json();
-          if (data.success && Array.isArray(data.jobs) && data.jobs.length > 0) {
+          if (data.success && Array.isArray(data.jobs)) {
             setJobs(data.jobs);
           }
         }
       } catch (e) {
-        console.warn("Using bundled jobs fallback dataset:", e);
+        console.error("Error fetching jobs from API:", e);
+        setJobs([]);
       } finally {
         setLoading(false);
       }
@@ -333,6 +336,12 @@ export default function JobPortal() {
           </div>
         </div>
       </div>
+
+      {/* Real-Time Gemini AI Google Search Grounding Component */}
+      <AiJobSearch />
+
+      {/* Gemini PDF Job Extractor Component */}
+      <PdfJobExtractor />
 
       {/* Feed vs Bookmarks Toggle Header */}
       <div className="flex items-center justify-between gap-4">

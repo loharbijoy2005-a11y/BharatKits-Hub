@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Job, GovtJob, PrivateJob, getJobDeadlineInfo } from "@/lib/jobs-data";
+import { formatDisplayDate } from "./JobCard";
 import {
   X,
   ExternalLink,
@@ -91,7 +92,7 @@ export function JobDetailModal({
                 Active
               </span>
             )}
-            <span className="text-xs text-slate-500">Posted: {job.posted_date || "Recent"}</span>
+            <span className="text-xs text-slate-500">Posted: {formatDisplayDate(job.posted_date)}</span>
           </div>
 
           <button
@@ -142,7 +143,7 @@ export function JobDetailModal({
                 <div>
                   <div className="text-[11px] uppercase font-bold text-slate-400">Last Date to Apply</div>
                   <div className="text-sm font-bold text-rose-600 dark:text-rose-400">
-                    {govtJob.last_date_to_apply || govtJob.last_date || "Open until filled"}
+                    {formatDisplayDate(govtJob.last_date_to_apply || govtJob.last_date)}
                     {isClosed && " (Expired)"}
                   </div>
                 </div>
@@ -154,6 +155,26 @@ export function JobDetailModal({
                   <div className="text-[11px] uppercase font-bold text-slate-400">Application Fee</div>
                   <div className="text-sm font-bold text-slate-800 dark:text-slate-200">
                     {govtJob.fee_details || "As per notification rules"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-[11px] uppercase font-bold text-slate-400">Age Limit</div>
+                  <div className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    {govtJob.age_limit || "18 - 40 Years (Relocation as per norms)"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-[11px] uppercase font-bold text-slate-400">Pay Scale / Salary</div>
+                  <div className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    {govtJob.salary_range || govtJob.salary || "As per Govt Rules"}
                   </div>
                 </div>
               </div>
