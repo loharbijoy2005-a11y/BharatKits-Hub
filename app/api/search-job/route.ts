@@ -46,7 +46,7 @@ Return a strictly valid JSON object (wrapped in \`\`\`json ... \`\`\` or raw JSO
 
     try {
       const aiResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: {
           tools: [{ googleSearch: {} }],
