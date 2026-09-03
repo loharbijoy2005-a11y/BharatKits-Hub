@@ -1,0 +1,5 @@
+# Ignore backend scraper & GitHub actions from Vercel build
+backend/
+.github/
+JOB_PORTAL_SETUP.md
+README.md
