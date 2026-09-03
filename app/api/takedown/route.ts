@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // Owner recipient address is kept strictly server-side (never exposed to frontend)
 const ADMIN_NOTIFICATION_EMAIL = process.env.TAKEDOWN_ADMIN_EMAIL || "bijoylohar457@gmail.com";
 
