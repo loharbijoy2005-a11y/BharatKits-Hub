@@ -435,7 +435,7 @@ export default function GovtDirectory() {
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                  Apply for a New PAN Card (Form 49A/93), make corrections, or generate an Instant Free e-PAN in 10 minutes.
+                  Apply for a New PAN Card (Form 49A/93), make corrections, track status, or get Instant Digital e-PAN.
                 </p>
               </div>
             </div>
@@ -506,22 +506,22 @@ export default function GovtDirectory() {
               </a>
             </div>
 
-            {/* Option 3: Instant 10-Min Free e-PAN */}
+            {/* Option 3: Instant Digital e-PAN */}
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border-2 border-amber-300/70 dark:border-amber-800/70 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                    100% Free &amp; Instant
+                    Digital Instant Portal
                   </span>
                   <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> 10-Min Aadhaar OTP
+                    <Sparkles className="w-3 h-3" /> Aadhaar OTP Based
                   </span>
                 </div>
                 <h4 className="text-sm font-black text-slate-900 dark:text-white">
                   Instant e-PAN (Income Tax Dept)
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 mb-4 leading-relaxed">
-                  Get a valid digital PAN card PDF instantly for free using your Aadhaar number &amp; mobile OTP verification.
+                  Direct paperless allotment or download of digital e-PAN in minutes using Aadhaar authentication.
                 </p>
               </div>
               <a
@@ -530,7 +530,7 @@ export default function GovtDirectory() {
                 rel="noopener noreferrer"
                 className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black transition-all flex items-center justify-center gap-1.5"
               >
-                <span>Generate Free e-PAN</span>
+                <span>Instant e-PAN Portal</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>

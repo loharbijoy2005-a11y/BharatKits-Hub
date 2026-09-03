@@ -74,11 +74,11 @@ export const govtServices: ServiceItem[] = [
   // ==========================================
   {
     id: "pan-instant-epan",
-    title: "Instant e-PAN Portal (Income Tax Dept)",
-    description: "Get a 100% free digital PAN card within 10 minutes using your Aadhaar number & mobile OTP verification.",
+    title: "Instant Digital e-PAN (Income Tax Dept)",
+    description: "Allotment or download of paperless digital e-PAN using Aadhaar authentication & mobile OTP.",
     url: "https://eportal.incometax.gov.in/iec/foservices/#/pre-login/instant-e-pan",
     category: "identity",
-    tags: ["pan card", "instant epan", "free pan card", "aadhaar pan", "income tax pan", "download pan", "pan online"],
+    tags: ["pan card", "instant epan", "digital pan card", "aadhaar pan", "income tax pan", "download pan", "pan online"],
     featured: true,
   },
   {
