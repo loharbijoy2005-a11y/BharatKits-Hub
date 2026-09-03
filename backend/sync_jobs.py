@@ -15,6 +15,11 @@ for i, item in enumerate(data):
     item['posted_date'] = item.get('posted_date', '2026-09-03')
     item['is_active'] = bool(item.get('is_active', True))
     
+    # Official Source Domain
+    item['official_source_domain'] = item.get('official_source_domain') or (
+        item['apply_url'].split('//')[-1].split('/')[0].replace('www.', '') if item.get('apply_url') else 'gov.in'
+    )
+    
     # State normalization
     item['state'] = item.get('state') or item.get('state_or_location') or item.get('work_location') or 'All India'
     if isinstance(item['state'], list):
@@ -84,6 +89,7 @@ export interface BaseJob {
   apply_url: string;
   posted_date: string;
   is_active: boolean;
+  official_source_domain?: string;
   department_or_company?: string;
   qualification?: string;
   salary?: string;

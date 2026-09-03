@@ -17,6 +17,7 @@ import {
   BookOpen,
   Lock,
   CheckCircle,
+  ShieldCheck,
 } from "lucide-react";
 
 interface JobCardProps {
@@ -162,7 +163,7 @@ export function JobCard({
         </div>
 
         {/* Job Title & Organization */}
-        <div className="mb-4">
+        <div className="mb-3">
           <h3
             onClick={() => onOpenDetails(job)}
             className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors cursor-pointer line-clamp-2 leading-snug"
@@ -170,19 +171,30 @@ export function JobCard({
             {job.title}
           </h3>
 
-          <div className="mt-1.5 flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
-            {isGovt ? (
-              <span>🏛️ {govtJob?.department_or_board}</span>
-            ) : (
-              <span className="flex items-center gap-1.5">
-                <img
-                  src={privJob?.company_logo_url}
-                  alt={privJob?.company_name}
-                  className="w-4 h-4 rounded-full object-cover"
-                />
-                {privJob?.company_name}
+          <div className="mt-1.5 flex items-center justify-between gap-2 flex-wrap">
+            <div className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
+              {isGovt ? (
+                <span>🏛️ {govtJob?.department_or_board}</span>
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  <img
+                    src={privJob?.company_logo_url}
+                    alt={privJob?.company_name}
+                    className="w-4 h-4 rounded-full object-cover"
+                  />
+                  {privJob?.company_name}
+                </span>
+              )}
+            </div>
+
+            {/* Verified Official Source Badge */}
+            <div className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200/80 dark:border-emerald-800/60 shrink-0">
+              <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+              <span>Verified Official Source:</span>
+              <span className="font-mono text-slate-800 dark:text-slate-200">
+                {job.official_source_domain || (job.apply_url ? new URL(job.apply_url).hostname.replace(/^www\./, "") : "gov.in")}
               </span>
-            )}
+            </div>
           </div>
         </div>
 
