@@ -1,8 +1,49 @@
 "use client";
 import React, { useState } from "react";
-import { ShieldCheck, Scale, FileText, Heart, ExternalLink, BookOpen, Landmark, Building2, Globe } from "lucide-react";
+import {
+  ShieldCheck,
+  Scale,
+  FileText,
+  Heart,
+  ExternalLink,
+  BookOpen,
+  Landmark,
+  Building2,
+  Globe,
+  Train,
+  Mail,
+  CreditCard,
+  Cpu,
+  Stethoscope,
+  Briefcase,
+  ArrowUpRight,
+  Code2,
+  Zap,
+} from "lucide-react";
 import { LegalDisclaimerModal } from "./LegalDisclaimerModal";
 import { TakedownDialog } from "./TakedownDialog";
+
+const SECTOR_LINKS = [
+  { icon: BookOpen,    label: "Teaching & Education",   color: "text-rose-400",   desc: "CTET, KVS, NVS, BPSC TRE" },
+  { icon: Mail,        label: "Panchayat & Postal",     color: "text-amber-400",  desc: "GDS, Gram Sachiv, Patwari" },
+  { icon: Train,       label: "Railway",                color: "text-sky-400",    desc: "RRB NTPC, Group D, ALP" },
+  { icon: ShieldCheck, label: "Police & Defence",       color: "text-red-400",    desc: "Constable, SI, CRPF, BSF" },
+  { icon: Landmark,    label: "Central SSC & UPSC",     color: "text-indigo-400", desc: "CGL, CHSL, IAS, IPS" },
+  { icon: Building2,   label: "State PSC & Subordinate",color: "text-orange-400", desc: "WBPSC, UPPSC, BPSC, MPSC" },
+  { icon: CreditCard,  label: "Banking & Finance",      color: "text-cyan-400",   desc: "IBPS, SBI PO, RBI, LIC" },
+  { icon: Cpu,         label: "PSU & Engineering",      color: "text-purple-400", desc: "BHEL, ONGC, ISRO, DRDO" },
+  { icon: Stethoscope, label: "Medical & Health",       color: "text-teal-400",   desc: "AIIMS, NHM, ESIC, ANM" },
+  { icon: Briefcase,   label: "Private & Corporate",    color: "text-blue-400",   desc: "IT, BPO, Startups, Remote" },
+];
+
+const QUICK_PORTALS = [
+  { label: "Employment News",  url: "https://employmentnews.gov.in" },
+  { label: "NCS Portal",       url: "https://ncs.gov.in" },
+  { label: "SSC Official",     url: "https://ssc.gov.in" },
+  { label: "UPSC Official",    url: "https://upsc.gov.in" },
+  { label: "RRB NTPC",         url: "https://indianrailways.gov.in" },
+  { label: "IBPS",             url: "https://ibps.in" },
+];
 
 export function JobPortalFooter() {
   const [legalModalOpen, setLegalModalOpen] = useState(false);
@@ -15,115 +56,206 @@ export function JobPortalFooter() {
   };
 
   return (
-    <footer className="mt-16 border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
-      {/* Top Section: Mission & Quick Sector Links */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand Mission */}
-          <div className="md:col-span-2 space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-black bg-gradient-to-r from-amber-600 via-rose-600 to-indigo-600 bg-clip-text text-transparent">
-                BharatKits All India Job Portal
-              </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
-                100% Free Public Utility
-              </span>
+    <footer className="mt-20 relative overflow-hidden">
+      {/* Tricolor Top Accent Bar */}
+      <div className="h-1 w-full flex">
+        <div className="flex-1 bg-[#FF9933]" />
+        <div className="flex-1 bg-white dark:bg-slate-300" />
+        <div className="flex-1 bg-[#138808]" />
+      </div>
+
+      {/* Main Footer Body */}
+      <div className="bg-slate-950 text-slate-300 relative">
+        {/* Subtle Background Glow */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-32 left-1/4 w-96 h-96 rounded-full bg-indigo-900/20 blur-3xl" />
+          <div className="absolute -bottom-20 right-1/4 w-72 h-72 rounded-full bg-amber-900/15 blur-3xl" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* ── TOP SECTION ── */}
+          <div className="py-12 grid grid-cols-1 lg:grid-cols-12 gap-10 border-b border-slate-800/80">
+
+            {/* Brand Column */}
+            <div className="lg:col-span-4 space-y-5">
+              {/* Logo & Name */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center shadow-lg shadow-amber-900/40">
+                    <Globe className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-base font-black text-white leading-tight">BharatKits Hub</div>
+                    <div className="text-[10px] text-amber-400 font-bold uppercase tracking-widest">All India Job Portal</div>
+                  </div>
+                </div>
+
+                {/* Live Indicator */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 text-[11px] font-bold">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  Auto-updated every 6 hours via GitHub Actions
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-400 leading-relaxed">
+                India's first zero-cost, fully automated job aggregator covering all Central & State Government vacancies, Teaching/TET commissions, Railways, Defence, Banking, PSUs, and top Corporate/IT employers — with verified direct apply links.
+              </p>
+
+              {/* Digital India Badge */}
+              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF9933]/10 via-white/5 to-[#138808]/10 border border-slate-800">
+                <span className="text-2xl">🇮🇳</span>
+                <div>
+                  <div className="text-xs font-black text-white">Made for Digital India</div>
+                  <div className="text-[10px] text-slate-500">Jai Hind 🙏</div>
+                </div>
+              </div>
+
+              {/* Automation Badges */}
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-semibold">
+                  <Zap className="w-3 h-3 text-amber-400" /> 3 Mega-Sources
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-semibold">
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" /> Zero 404 Links
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-semibold">
+                  <Code2 className="w-3 h-3 text-slate-400" /> Open Source
+                </span>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-lg">
-              Empowering Indian youth, educators, and professionals with centralized, zero-cost access to 100% of Central Government, State Subordinate, Teaching/TET Commissions, and Corporate Tech vacancies with direct verified notification links.
+
+            {/* 10 Sectors Grid */}
+            <div className="lg:col-span-5 space-y-3">
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                10 Authoritative Sectors Covered
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {SECTOR_LINKS.map(({ icon: Icon, label, color, desc }) => (
+                  <div
+                    key={label}
+                    className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-colors group"
+                  >
+                    <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${color} group-hover:scale-110 transition-transform`} />
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold text-slate-200 truncate">{label}</div>
+                      <div className="text-[10px] text-slate-500 truncate">{desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Links Column */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Official Portals */}
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                  Official Govt Portals
+                </h4>
+                <ul className="space-y-2">
+                  {QUICK_PORTALS.map(({ label, url }) => (
+                    <li key={label}>
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-xs text-slate-400 hover:text-amber-400 transition-colors group"
+                      >
+                        <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity -ml-0.5" />
+                        <ExternalLink className="w-3 h-3 group-hover:hidden" />
+                        {label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Legal Links */}
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                  Legal & Compliance
+                </h4>
+                <ul className="space-y-2">
+                  <li>
+                    <button
+                      onClick={() => openLegal("disclaimer")}
+                      className="flex items-center gap-2 text-xs text-slate-400 hover:text-indigo-400 transition-colors"
+                    >
+                      <Scale className="w-3.5 h-3.5" /> Legal Disclaimer
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => openLegal("privacy")}
+                      className="flex items-center gap-2 text-xs text-slate-400 hover:text-indigo-400 transition-colors"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" /> Privacy Policy
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => openLegal("terms")}
+                      className="flex items-center gap-2 text-xs text-slate-400 hover:text-indigo-400 transition-colors"
+                    >
+                      <FileText className="w-3.5 h-3.5" /> Terms of Service
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => setTakedownOpen(true)}
+                      className="flex items-center gap-2 text-xs text-amber-500 hover:text-amber-300 font-bold transition-colors"
+                    >
+                      🛡️ Content Removal Request
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* ── DISCLAIMER BANNER ── */}
+          <div className="py-4 border-b border-slate-800/60">
+            <p className="text-[11px] text-slate-500 text-center leading-relaxed max-w-4xl mx-auto">
+              <span className="font-bold text-amber-600">⚠️ Legal Disclaimer:</span>{" "}
+              This portal is an independent informational aggregator and is{" "}
+              <span className="font-semibold text-slate-400">not affiliated</span> with any government recruitment board or private employer.
+              All job notices belong to their respective authorities. Users must verify all details on the official portals before applying.
+              Apply link verification is performed via automated HTTP HEAD checks — dead links are replaced with the verified parent portal.
             </p>
-            <div className="pt-1 flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-              <Globe className="w-4 h-4 text-indigo-500" />
-              <span>🇮🇳 Made for Digital India</span>
+          </div>
+
+          {/* ── BOTTOM COPYRIGHT BAR ── */}
+          <div className="py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Copyright */}
+            <div className="text-center sm:text-left">
+              <div className="text-[13px] font-black text-white tracking-tight">
+                © 2026 Bijoy Lohar. All Rights Reserved.
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">
+                Designed &amp; Maintained by{" "}
+                <a
+                  href="https://github.com/loharbijoy2005-a11y"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-400 font-bold hover:text-amber-300 transition-colors inline-flex items-center gap-1"
+                >
+                  Bijoy Lohar <ArrowUpRight className="w-3 h-3" />
+                </a>
+              </div>
             </div>
-          </div>
 
-          {/* Quick Sector Portals */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
-              Key Ingestion Sectors
-            </h4>
-            <ul className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
-              <li className="flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-rose-500" />
-                <span>Teaching &amp; TET (CTET, KVS, BPSC)</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <Landmark className="w-3.5 h-3.5 text-amber-500" />
-                <span>State PSCs &amp; Police Boards</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-blue-500" />
-                <span>Central Commissions (SSC, UPSC, RRB)</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <ExternalLink className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Public ATS &amp; Corporate Tech</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal Compliance & Content Moderation */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
-              Compliance &amp; Trust
-            </h4>
-            <ul className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
-              <li>
-                <button
-                  onClick={() => openLegal("disclaimer")}
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5 text-left"
-                >
-                  <Scale className="w-3.5 h-3.5" />
-                  Legal Disclaimer
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => openLegal("privacy")}
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5 text-left"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  Privacy Policy
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => openLegal("terms")}
-                  className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5 text-left"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  Terms of Service
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setTakedownOpen(true)}
-                  className="text-amber-600 dark:text-amber-400 font-bold hover:underline transition-colors flex items-center gap-1.5 text-left"
-                >
-                  🛡️ Content Removal Request Form
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Middle Section: Disclaimer Banner */}
-      <div className="border-t border-slate-200/60 dark:border-slate-800/60 bg-amber-50/50 dark:bg-amber-950/20 py-3.5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-          <strong>Legal Disclaimer:</strong> This portal is an independent informational aggregator and is not affiliated with any government recruitment board or private employer. All notices belong to their respective authorities. Users must verify details on the official portals before applying.
-        </div>
-      </div>
-
-      {/* Bottom Copyright Bar */}
-      <div className="border-t border-slate-200/80 dark:border-slate-800/80 py-4 bg-slate-100/60 dark:bg-slate-950/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-          <div className="font-semibold text-slate-700 dark:text-slate-300">
-            © 2026 Bijoy Lohar. All Rights Reserved. Designed &amp; Maintained by Bijoy Lohar.
-          </div>
-          <div className="flex items-center gap-1 text-[11px] text-slate-400">
-            Made with <Heart className="w-3 h-3 text-rose-500 fill-rose-500 mx-0.5" /> for the Youth of India
+            {/* Right Side: Made with love */}
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                Made with <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 mx-0.5 animate-pulse" /> for the Youth of India
+              </span>
+              <div className="h-4 w-px bg-slate-800" />
+              <span className="text-xl" title="Made for Digital India">🇮🇳</span>
+            </div>
           </div>
         </div>
       </div>
