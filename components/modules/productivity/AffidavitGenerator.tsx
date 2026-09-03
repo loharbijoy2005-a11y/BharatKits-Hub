@@ -9,20 +9,27 @@ import {
   Check,
   Sliders,
   Maximize2,
-  Download,
   Settings2,
   FileDown,
   RotateCcw,
+  Edit3,
+  Bold,
+  Underline,
+  PlusCircle,
+  Eye,
 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-type TemplateType = "rent" | "gap" | "address" | "income";
+type TemplateType = "address" | "gap" | "income" | "rent";
 type PaperType = "plain" | "stamp" | "estamp";
 
 export default function AffidavitGenerator() {
   const [activeTemplate, setActiveTemplate] = useState<TemplateType>("address");
   const [paperType, setPaperType] = useState<PaperType>("plain");
+
+  // Direct Editing Mode
+  const [isDirectEdit, setIsDirectEdit] = useState<boolean>(true);
 
   // Typography & Layout Controls
   const [fontSize, setFontSize] = useState<number>(13); // in px
@@ -32,16 +39,15 @@ export default function AffidavitGenerator() {
   const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const documentRef = useRef<HTMLDivElement>(null);
+  const contentAreaRef = useRef<HTMLDivElement>(null);
 
-  // Rent state
-  const [rentData, setRentData] = useState({
-    ownerName: "Rajesh Kumar",
-    tenantName: "Sunil Sharma",
-    address: "Flat No. 402, Block B, Sector 62, Noida, Uttar Pradesh - 201301",
-    rentAmount: "15000",
-    securityDeposit: "30000",
-    term: "11",
-    startDate: new Date().toISOString().split("T")[0],
+  // Address state
+  const [addressData, setAddressData] = useState({
+    name: "Vikram Singh",
+    fatherName: "Baldev Singh",
+    age: "28",
+    address: "House No. 124, Village Rampur, Dist. Patna, Bihar - 800001",
+    purpose: "Address Verification & Citizen Service Application",
   });
 
   // Gap state
@@ -54,13 +60,15 @@ export default function AffidavitGenerator() {
     currentYear: new Date().getFullYear().toString(),
   });
 
-  // Address state
-  const [addressData, setAddressData] = useState({
-    name: "Vikram Singh",
-    fatherName: "Baldev Singh",
-    age: "28",
-    address: "House No. 124, Village Rampur, Dist. Patna, Bihar - 800001",
-    purpose: "Address Verification & Citizen Service Application",
+  // Rent state
+  const [rentData, setRentData] = useState({
+    ownerName: "Rajesh Kumar",
+    tenantName: "Sunil Sharma",
+    address: "Flat No. 402, Block B, Sector 62, Noida, Uttar Pradesh - 201301",
+    rentAmount: "15000",
+    securityDeposit: "30000",
+    term: "11",
+    startDate: new Date().toISOString().split("T")[0],
   });
 
   // Income state
@@ -75,9 +83,9 @@ export default function AffidavitGenerator() {
 
   // Auto 1-Page Fit Preset
   const handleAutoFitOnePage = () => {
-    setFontSize(12.5);
-    setLineHeight(1.4);
-    setSignatureGapPx(20);
+    setFontSize(12);
+    setLineHeight(1.38);
+    setSignatureGapPx(18);
     if (paperType === "plain") {
       setStampGapMm(0);
     }
@@ -87,7 +95,7 @@ export default function AffidavitGenerator() {
   const handleResetLayout = () => {
     setFontSize(13);
     setLineHeight(1.5);
-    setSignatureGapPx(28);
+    setSignatureGapPx(24);
     setStampGapMm(paperType === "plain" ? 0 : paperType === "stamp" ? 75 : 90);
   };
 
@@ -100,12 +108,12 @@ export default function AffidavitGenerator() {
       setLineHeight(1.5);
     } else if (type === "stamp") {
       setStampGapMm(75); // Standard 75mm (approx 3 inches) for physical Non-Judicial stamp paper
-      setFontSize(12); // Slightly more compact to accommodate the top margin
+      setFontSize(11.5); // Compact to accommodate top margin
       setLineHeight(1.35);
       setSignatureGapPx(16);
     } else if (type === "estamp") {
       setStampGapMm(90); // e-Stamp certificate header gap
-      setFontSize(11.5);
+      setFontSize(11);
       setLineHeight(1.3);
       setSignatureGapPx(14);
     }
@@ -149,6 +157,11 @@ export default function AffidavitGenerator() {
     } finally {
       setIsExporting(false);
     }
+  };
+
+  // Inline Rich Text Formatting Commands
+  const executeCommand = (command: string, value: string = "") => {
+    document.execCommand(command, false, value);
   };
 
   return (
@@ -214,15 +227,32 @@ export default function AffidavitGenerator() {
           })}
         </div>
 
-        {/* 1-Click Fit Button */}
-        <button
-          onClick={handleAutoFitOnePage}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-xs font-bold transition-all cursor-pointer shadow-sm"
-          title="Auto-balance font size & margins to fit perfectly on 1 Single Page"
-        >
-          <Maximize2 className="w-3.5 h-3.5 text-amber-500" />
-          <span>Auto-Fit 1 Page</span>
-        </button>
+        {/* Action Controls */}
+        <div className="flex items-center gap-2">
+          {/* Direct Edit Mode Toggle */}
+          <button
+            onClick={() => setIsDirectEdit(!isDirectEdit)}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+              isDirectEdit
+                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 shadow-sm"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700"
+            }`}
+            title="Toggle Direct Click-to-Edit Mode on Document"
+          >
+            <Edit3 className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Direct Edit Mode: {isDirectEdit ? "ON" : "OFF"}</span>
+          </button>
+
+          {/* 1-Click Fit Button */}
+          <button
+            onClick={handleAutoFitOnePage}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-xs font-bold transition-all cursor-pointer shadow-sm"
+            title="Auto-balance font size & margins to fit perfectly on 1 Single Page"
+          >
+            <Maximize2 className="w-3.5 h-3.5 text-amber-500" />
+            <span>Auto-Fit 1 Page</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -332,7 +362,7 @@ export default function AffidavitGenerator() {
               />
             </div>
 
-            {/* Top Stamp Margin Gap Slider (Only shown if stamp paper mode is selected) */}
+            {/* Top Stamp Margin Gap Slider */}
             {paperType !== "plain" && (
               <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between text-xs">
@@ -352,17 +382,14 @@ export default function AffidavitGenerator() {
                   onChange={(e) => setStampGapMm(parseInt(e.target.value))}
                   className="w-full accent-rose-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
                 />
-                <p className="text-[10px] text-slate-400">
-                  Adjust this margin to leave space for the physical stamp graphics at top.
-                </p>
               </div>
             )}
           </div>
 
-          {/* Form Fields Card */}
+          {/* Form Quick Fill Card */}
           <div className="utility-card p-6 rounded-3xl border shadow-sm space-y-5 bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800/40">
             <h3 className="text-md font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-500" /> Enter Affidavit Details
+              <Sparkles className="w-4 h-4 text-amber-500" /> Auto-Fill Details
             </h3>
 
             {/* ADDRESS DECLARATION FORM */}
@@ -628,14 +655,50 @@ export default function AffidavitGenerator() {
           </div>
         </div>
 
-        {/* --- LIVE PREVIEW (RIGHT) --- */}
-        <div className="lg:col-span-7 flex justify-center print:w-full print:p-0">
+        {/* --- LIVE PREVIEW / WYSIWYG DIRECT EDIT CANVAS (RIGHT) --- */}
+        <div className="lg:col-span-7 flex flex-col items-center print:w-full print:p-0 space-y-3">
+          {/* WYSIWYG Editor Toolbar Banner */}
+          <div className="w-full max-w-[800px] flex items-center justify-between px-4 py-2 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 rounded-2xl text-xs text-amber-800 dark:text-amber-200 print:hidden shadow-sm">
+            <div className="flex items-center gap-2 font-bold">
+              <Edit3 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span>
+                {isDirectEdit
+                  ? "✏️ Direct Edit Mode Active: Click anywhere on the paper to edit or add text!"
+                  : "👁️ Preview Mode: Click 'Direct Edit Mode' to customize document text"}
+              </span>
+            </div>
+            {isDirectEdit && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => executeCommand("bold")}
+                  className="p-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-amber-500 hover:text-white transition-colors cursor-pointer"
+                  title="Bold (Ctrl+B)"
+                >
+                  <Bold className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => executeCommand("underline")}
+                  className="p-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-amber-500 hover:text-white transition-colors cursor-pointer"
+                  title="Underline (Ctrl+U)"
+                >
+                  <Underline className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+
           <div
             ref={documentRef}
-            className="printable-document w-full max-w-[800px] bg-white text-slate-900 border border-slate-200 shadow-xl rounded-2xl overflow-hidden flex flex-col font-serif select-text print:border-0 print:shadow-none print:rounded-none"
+            className={`printable-document w-full max-w-[800px] bg-white text-slate-900 border border-slate-200 shadow-xl rounded-2xl overflow-hidden flex flex-col font-serif select-text print:border-0 print:shadow-none print:rounded-none transition-all ${
+              isDirectEdit
+                ? "ring-2 ring-amber-500/50 hover:ring-amber-500 cursor-text"
+                : ""
+            }`}
             style={{ minHeight: "297mm" }}
           >
-            {/* Top Stamp Margin Area (Only visible when stamp mode or gap > 0) */}
+            {/* Top Stamp Margin Area */}
             {stampGapMm > 0 && (
               <div
                 className="print-stamp-gap w-full bg-slate-50/70 dark:bg-slate-900/10 border-b border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-center select-none"
@@ -652,9 +715,12 @@ export default function AffidavitGenerator() {
               </div>
             )}
 
-            {/* Document Content Box with Dynamic Font Size & Line Height */}
+            {/* Document Content Box with Dynamic Font Size & Line Height & Direct ContentEditable */}
             <div
-              className="p-8 sm:p-12 text-slate-800 print:text-black print:p-6"
+              ref={contentAreaRef}
+              contentEditable={isDirectEdit}
+              suppressContentEditableWarning={true}
+              className="p-8 sm:p-12 text-slate-800 print:text-black print:p-6 outline-none focus:outline-none"
               style={{
                 fontSize: `${fontSize}px`,
                 lineHeight: lineHeight,
@@ -856,7 +922,7 @@ export default function AffidavitGenerator() {
             {/* Footer stamp notice */}
             <div className="mt-auto p-4 bg-slate-50 border-t border-slate-100 text-center text-[10px] text-slate-400 font-sans select-none print:hidden">
               <span className="flex items-center justify-center gap-1">
-                <Check className="w-3.5 h-3.5 text-green-500" /> Draft is optimized for single-page printing on standard A4 / Stamp paper.
+                <Check className="w-3.5 h-3.5 text-green-500" /> Click anywhere on this page to edit text directly • Ready for single-page print.
               </span>
             </div>
           </div>
