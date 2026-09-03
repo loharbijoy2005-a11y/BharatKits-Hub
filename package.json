@@ -11,6 +11,8 @@
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
+    "@supabase/ssr": "^0.12.5",
+    "@supabase/supabase-js": "^2.114.0",
     "bignumber.js": "^11.1.5",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",

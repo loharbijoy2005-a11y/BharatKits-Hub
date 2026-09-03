@@ -18,6 +18,7 @@ import AffidavitGenerator from "@/components/modules/productivity/AffidavitGener
 import AadhaarQrScanner from "@/components/modules/productivity/AadhaarQrScanner";
 import HtmlPdfStudio from "@/components/modules/productivity/HtmlPdfStudio";
 import PdfEditorStudio from "@/components/modules/media/PdfEditorStudio";
+import JobPortal from "@/components/modules/jobs/JobPortal";
 
 import {
   Landmark,
@@ -40,6 +41,7 @@ import {
   ShieldAlert,
   FileCode2,
   PenTool,
+  Briefcase,
 } from "lucide-react";
 
 interface ToolItem {
@@ -53,6 +55,31 @@ interface ToolItem {
 }
 
 const tools: ToolItem[] = [
+  {
+    id: "job-portal",
+    title: "All India Job Portal (Sarkari & Private)",
+    description:
+      "Automated job aggregator for Central & State Govt (SSC, UPSC, RRB) and top Private Tech careers with official PDF downloads & direct links.",
+    icon: Briefcase,
+    category: "directory",
+    color: "from-amber-500 via-orange-500 to-indigo-600",
+    tags: [
+      "sarkari result",
+      "sarkari job",
+      "ssc cgl",
+      "upsc",
+      "railway job",
+      "rrb ntpc",
+      "bank po",
+      "private jobs",
+      "tech jobs",
+      "fresher jobs",
+      "naukri",
+      "gov jobs",
+      "job portal",
+      "jobs",
+    ],
+  },
   {
     id: "govt-directory",
     title: "Govt Portal Directory",
@@ -533,6 +560,7 @@ export default function Page() {
 
             {/* Active Workspace Switcher */}
             <div className="w-full">
+              {activeView === "job-portal" && <JobPortal />}
               {activeView === "govt-directory" && <GovtDirectory />}
               {activeView === "resizer-compressor" && <GovtImageResizer />}
               {activeView === "image-pdf" && <IdPdfCombiner />}
