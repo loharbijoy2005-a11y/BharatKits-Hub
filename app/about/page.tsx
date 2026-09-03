@@ -1,15 +1,11 @@
-import React from "react";
-import type { Metadata } from "next";
+"use client";
+import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Globe, ShieldCheck, Heart, Code2, Zap, ArrowUpRight, CheckCircle2 } from "lucide-react";
-
-export const metadata: Metadata = {
-  title: "About Us | BharatKits Hub - Digital India Public Utilities",
-  description:
-    "Learn about BharatKits Hub, a 100% free open-source local-first utility suite and centralized job aggregator designed & developed by Bijoy Lohar.",
-};
+import { ArrowLeft, Globe, ShieldCheck, Heart, Code2, ArrowUpRight } from "lucide-react";
 
 export default function AboutPage() {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 selection:bg-amber-500 selection:text-white">
       {/* Header Bar */}
@@ -83,16 +79,21 @@ export default function AboutPage() {
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
             Meet the Creator &amp; Maintainer
           </h2>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-amber-500/50 shadow-xl shadow-amber-500/10 shrink-0 bg-slate-100 dark:bg-slate-800">
-              <img
-                src="https://github.com/loharbijoy2005-a11y.png"
-                alt="Bijoy Lohar - Creator of BharatKits Hub"
-                className="w-full h-full object-cover"
-              />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-amber-500/50 shadow-xl shadow-amber-500/20 shrink-0 bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center text-white font-black text-2xl">
+              {!imgError ? (
+                <img
+                  src="https://avatars.githubusercontent.com/u/255526760?v=4"
+                  alt="Bijoy Lohar - Creator of BharatKits Hub"
+                  className="w-full h-full object-cover"
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <span>BL</span>
+              )}
             </div>
             <div className="space-y-1">
-              <h3 className="text-xl font-black text-slate-900 dark:text-white">
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                 Bijoy Lohar
               </h3>
               <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">
