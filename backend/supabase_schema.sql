@@ -1,28 +1,50 @@
 -- ============================================================================
--- ALL INDIA CENTRALIZED JOB PORTAL - PRODUCTION SUPABASE SCHEMA
--- Zero-Cost PostgreSQL Architecture with Deduplication & Compliance
+-- ALL INDIA CENTRALIZED JOB PORTAL - PRODUCTION SUPABASE POSTGRESQL SCHEMA
+-- 100% Aggregation: Teaching/Education, State Subordinate, Central & Corporate
 -- ============================================================================
 
--- 1. Enable Extensions
+-- 1. Enable UUID Extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 2. Master Jobs Table
 CREATE TABLE IF NOT EXISTS public.jobs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
-    category TEXT NOT NULL CHECK (category IN ('government', 'private')),
-    sector TEXT DEFAULT 'General',                       -- Central, State, IT, Banking, Railway, Engineering, etc.
-    department_or_company TEXT NOT NULL,                -- SSC, UPSC, Google, Swiggy, TCS, etc.
-    location TEXT DEFAULT 'All India',                  -- State, City, or Remote
-    qualification TEXT DEFAULT 'Not Specified',         -- 10th, 12th, Graduate, B.Tech, Diploma, PG
-    last_date TEXT DEFAULT 'Open until filled',          -- Deadline date or string
+    category TEXT NOT NULL CHECK (category IN ('government', 'private', 'teaching')),
+    sector TEXT DEFAULT 'General',                       -- Teaching & Education, Central Govt, State Govt, Police & Defence, Banking/Railway, IT & Software, Core Private
+    state TEXT DEFAULT 'All India',                     -- West Bengal, Jharkhand, Uttar Pradesh, Bihar, Delhi NCR, Maharashtra, etc.
+    department_or_company TEXT NOT NULL,                -- CTET, KVS, NVS, BPSC, WB SSC, SSC, UPSC, Google, Swiggy, etc.
+    qualification TEXT DEFAULT 'Not Specified',         -- B.Ed, D.El.Ed, CTET Qualified, 10th, 12th, Graduate, B.Tech, Master's
+    last_date TEXT DEFAULT 'Open until filled',          -- Deadline string / date
     salary TEXT DEFAULT 'Competitive / As per Norms',   -- Salary or Pay Scale
-    apply_url TEXT UNIQUE NOT NULL,                     -- Primary Unique Link (Prevents duplicate entries)
-    official_pdf TEXT,                                  -- Direct PDF URL or Official Notice Board URL
+    apply_url TEXT UNIQUE NOT NULL,                     -- Primary Unique Key (Guarantees zero duplicate entries)
+    official_pdf TEXT,                                  -- Direct PDF URL or Fallback Official Notice Board URL
     has_direct_pdf BOOLEAN DEFAULT FALSE,               -- Verified active direct PDF flag
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+
+    -- Compatibility Aliases for Dual-Engine Ingestion
+    job_hash VARCHAR(64),
+    department_or_board TEXT,
+    company_name TEXT,
+    gov_sector TEXT,
+    state_or_location TEXT,
+    work_location TEXT,
+    notification_pdf_url TEXT,
+    official_pdf_fallback TEXT,
+    vacancies_count INTEGER DEFAULT 0,
+    last_date_to_apply TEXT,
+    salary_range TEXT,
+    fee_details TEXT,
+    age_limit TEXT,
+    experience_level TEXT,
+    employment_type TEXT,
+    skills_tags TEXT[] DEFAULT '{}',
+    company_logo_url TEXT,
+    source_portal TEXT,
+    description TEXT,
+    posted_date TEXT DEFAULT CURRENT_DATE::text
 );
 
 -- 3. Compliance & Takedown Requests Table
@@ -37,13 +59,14 @@ CREATE TABLE IF NOT EXISTS public.takedown_requests (
 -- 4. High-Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_jobs_category ON public.jobs (category);
 CREATE INDEX IF NOT EXISTS idx_jobs_sector ON public.jobs (sector);
+CREATE INDEX IF NOT EXISTS idx_jobs_state ON public.jobs (state);
 CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON public.jobs (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_jobs_dept_company ON public.jobs (department_or_company);
-CREATE INDEX IF NOT EXISTS idx_jobs_location ON public.jobs (location);
+CREATE INDEX IF NOT EXISTS idx_jobs_is_active ON public.jobs (is_active);
 
 -- Full-Text Search GIN Index for instantaneous sub-millisecond search
 CREATE INDEX IF NOT EXISTS idx_jobs_fts ON public.jobs 
-USING gin(to_tsvector('english', coalesce(title, '') || ' ' || coalesce(department_or_company, '') || ' ' || coalesce(location, '') || ' ' || coalesce(sector, '') || ' ' || coalesce(qualification, '')));
+USING gin(to_tsvector('english', coalesce(title, '') || ' ' || coalesce(department_or_company, '') || ' ' || coalesce(state, '') || ' ' || coalesce(sector, '') || ' ' || coalesce(qualification, '')));
 
 -- 5. Automatic Updated_At Trigger
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -71,7 +94,7 @@ CREATE POLICY "Public users can view active jobs"
     FOR SELECT
     USING (is_active = TRUE);
 
--- Allow service_role full read/write access to jobs
+-- Allow service_role / automated scraper full access
 DROP POLICY IF EXISTS "Service role has full access to jobs" ON public.jobs;
 CREATE POLICY "Service role has full access to jobs"
     ON public.jobs

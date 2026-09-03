@@ -37,7 +37,8 @@ export function JobDetailModal({
 
   if (!job) return null;
 
-  const isGovt = job.category === "government";
+  const isGovt = job.category === "government" || job.category === "teaching";
+  const isTeaching = job.category === "teaching";
   const govtJob = isGovt ? (job as GovtJob) : null;
   const privJob = !isGovt ? (job as PrivateJob) : null;
 

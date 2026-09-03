@@ -8,13 +8,13 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category") || "all";
-    const query = (searchParams.get("search") || "").toLowerCase().trim();
-    const board = searchParams.get("board") || "All Boards";
+    const sector = searchParams.get("sector") || "All Sectors";
     const state = searchParams.get("state") || "All India";
-    const experience = searchParams.get("experience") || "All Experience Levels";
+    const board = searchParams.get("board") || "All Boards";
     const qualification = searchParams.get("qualification") || "All Qualifications";
+    const query = (searchParams.get("search") || "").toLowerCase().trim();
 
-    // 1. Fetch live jobs strictly from environment variables (No hardcoded keys)
+    // 1. Fetch live jobs strictly from environment variables
     const supabaseUrl =
       process.env.NEXT_PUBLIC_SUPABASE_URL ||
       process.env.SUPABASE_URL;
@@ -33,9 +33,9 @@ export async function GET(request: NextRequest) {
         url.searchParams.set("select", "*");
         url.searchParams.set("is_active", "eq.true");
         url.searchParams.set("order", "posted_date.desc,created_at.desc");
-        url.searchParams.set("limit", "200");
+        url.searchParams.set("limit", "250");
 
-        if (category !== "all") {
+        if (category !== "all" && category !== "teaching") {
           url.searchParams.set("category", `eq.${category}`);
         }
 
@@ -50,89 +50,126 @@ export async function GET(request: NextRequest) {
         if (res.ok) {
           const dbJobs = await res.json();
           if (Array.isArray(dbJobs) && dbJobs.length > 0) {
-            allJobs = dbJobs;
+            // Map DB jobs to frontend model
+            allJobs = dbJobs.map((j: any, idx: number): Job => {
+              const isGovt = j.category === "government" || j.category === "teaching";
+              const isTeaching =
+                j.category === "teaching" ||
+                (j.gov_sector || "").toLowerCase().includes("teaching") ||
+                (j.department_or_board || "").toLowerCase().includes("tet") ||
+                (j.department_or_board || "").toLowerCase().includes("kvs") ||
+                (j.title || "").toLowerCase().includes("teacher");
+
+              if (isGovt || isTeaching) {
+                return {
+                  id: j.id || `db-job-${idx + 1}`,
+                  job_hash: j.job_hash || `hash-${idx + 1}`,
+                  category: isTeaching ? "teaching" : "government",
+                  title: j.title || "Government Opening",
+                  sector: j.sector || j.gov_sector || (isTeaching ? "Teaching & Education" : "Government"),
+                  state: j.state || j.state_or_location || "All India",
+                  state_or_location: j.state || j.state_or_location || "All India",
+                  department_or_board: j.department_or_board || j.department_or_company || "Govt Board",
+                  gov_sector: j.sector || j.gov_sector || (isTeaching ? "Teaching & Education" : "Government"),
+                  qualification: j.qualification || "Graduate",
+                  last_date: j.last_date || j.last_date_to_apply || "Open until filled",
+                  last_date_to_apply: j.last_date_to_apply || j.last_date || "2026-09-30",
+                  salary: j.salary || j.salary_range || "As per Norms",
+                  salary_range: j.salary_range || j.salary || "As per Norms",
+                  apply_url: j.apply_url || "https://ssc.gov.in/",
+                  official_pdf: j.official_pdf || j.notification_pdf_url || j.apply_url,
+                  notification_pdf_url: j.notification_pdf_url || j.official_pdf || null,
+                  official_pdf_fallback: j.official_pdf_fallback || j.apply_url,
+                  has_direct_pdf: Boolean(j.has_direct_pdf),
+                  vacancies_count: j.vacancies_count || 0,
+                  age_limit: j.age_limit || "18 - 40 Years",
+                  fee_details: j.fee_details || "Gen/OBC: ₹100, SC/ST: ₹0",
+                  description: j.description || "",
+                  posted_date: j.posted_date || "2026-09-03",
+                  is_active: j.is_active ?? true,
+                };
+              } else {
+                return {
+                  id: j.id || `db-job-${idx + 1}`,
+                  job_hash: j.job_hash || `hash-${idx + 1}`,
+                  category: "private",
+                  title: j.title || "Private Opening",
+                  sector: j.sector || "IT & Software",
+                  state: j.state || j.work_location || "All India",
+                  work_location: j.work_location || j.state || "Bengaluru / Remote",
+                  company_name: j.company_name || j.department_or_company || "Company",
+                  company_logo_url: j.company_logo_url || fLogo(j.company_name || "Co"),
+                  qualification: j.qualification || "Graduate",
+                  last_date: j.last_date || "Open until filled",
+                  salary: j.salary || j.salary_range || "Competitive",
+                  salary_range: j.salary_range || j.salary || "Competitive",
+                  apply_url: j.apply_url || "https://careers.google.com/",
+                  description: j.description || "",
+                  posted_date: j.posted_date || "2026-09-03",
+                  is_active: j.is_active ?? true,
+                  skills_tags: j.skills_tags || ["Tech", "Engineering"],
+                  experience_level: j.experience_level || "Fresher / 1-3 Years",
+                  employment_type: j.employment_type || "Full-time",
+                  source_portal: j.source_portal || "Direct ATS",
+                };
+              }
+            });
           }
-        } else {
-          console.warn(`Supabase returned status: ${res.status}`);
         }
       } catch (err) {
-        console.warn("Supabase fetch fallback to local seed data:", err);
+        console.warn("Supabase fetch fallback to bundled seed data:", err);
       }
     }
 
-    // 2. Multi-parameter search & filtering
+    // 2. Perform in-memory multi-parameter search & filtering
     let filtered = allJobs;
 
-    // Filter by Category
+    // Filter by Category (Sarkari vs Teaching vs Private)
     if (category !== "all") {
       filtered = filtered.filter((j) => j.category === category);
+    }
+
+    // Filter by Sector
+    if (sector !== "All Sectors") {
+      filtered = filtered.filter((j) => (j.sector || "").toLowerCase() === sector.toLowerCase());
+    }
+
+    // Filter by State
+    if (state !== "All India") {
+      filtered = filtered.filter((j) => {
+        const jobState = (j.state || (j as any).state_or_location || (j as any).work_location || "").toLowerCase();
+        return jobState.includes(state.toLowerCase()) || jobState === "all india";
+      });
+    }
+
+    // Filter by Board
+    if (board !== "All Boards") {
+      const key = board.toLowerCase().split("/")[0].trim();
+      filtered = filtered.filter((j) =>
+        ((j as any).department_or_board || "").toLowerCase().includes(key)
+      );
+    }
+
+    // Filter by Qualification
+    if (qualification !== "All Qualifications") {
+      const qKey = qualification.toLowerCase().split(" ")[0].replace(/[^a-z0-9]/g, "");
+      filtered = filtered.filter((j) =>
+        ((j as any).qualification || "").toLowerCase().includes(qKey)
+      );
     }
 
     // Search query match
     if (query) {
       filtered = filtered.filter((j) => {
-        const titleMatch = j.title.toLowerCase().includes(query);
+        const titleMatch = (j.title || "").toLowerCase().includes(query);
         const descMatch = (j.description || "").toLowerCase().includes(query);
+        const deptMatch = ((j as any).department_or_board || (j as any).company_name || "").toLowerCase().includes(query);
+        const stateMatch = ((j as any).state || (j as any).state_or_location || (j as any).work_location || "").toLowerCase().includes(query);
+        const qualMatch = ((j as any).qualification || "").toLowerCase().includes(query);
+        const secMatch = ((j as any).sector || "").toLowerCase().includes(query);
 
-        if (j.category === "government") {
-          const boardMatch = ((j as any).department_or_board || "").toLowerCase().includes(query);
-          const qualMatch = ((j as any).qualification || "").toLowerCase().includes(query);
-          const locMatch = ((j as any).state_or_location || "").toLowerCase().includes(query);
-          return titleMatch || descMatch || boardMatch || qualMatch || locMatch;
-        } else {
-          const compMatch = ((j as any).company_name || "").toLowerCase().includes(query);
-          const locMatch = ((j as any).work_location || "").toLowerCase().includes(query);
-          const skillsMatch = ((j as any).skills_tags || []).some((s: string) =>
-            s.toLowerCase().includes(query)
-          );
-          return titleMatch || descMatch || compMatch || locMatch || skillsMatch;
-        }
+        return titleMatch || descMatch || deptMatch || stateMatch || qualMatch || secMatch;
       });
-    }
-
-    // Board filter (Govt)
-    if (board !== "All Boards") {
-      filtered = filtered.filter(
-        (j) =>
-          j.category === "government" &&
-          ((j as any).department_or_board || "")
-            .toLowerCase()
-            .includes(board.toLowerCase().split("/")[0].trim())
-      );
-    }
-
-    // State filter
-    if (state !== "All India") {
-      filtered = filtered.filter((j) => {
-        if (j.category === "government") {
-          return (
-            ((j as any).state_or_location || "").toLowerCase().includes(state.toLowerCase()) ||
-            ((j as any).state_or_location || "").toLowerCase() === "all india"
-          );
-        } else {
-          return ((j as any).work_location || "").toLowerCase().includes(state.toLowerCase());
-        }
-      });
-    }
-
-    // Experience filter (Private)
-    if (experience !== "All Experience Levels") {
-      const expKey = experience.toLowerCase().split(" ")[0];
-      filtered = filtered.filter(
-        (j) =>
-          j.category === "private" &&
-          ((j as any).experience_level || "").toLowerCase().includes(expKey)
-      );
-    }
-
-    // Qualification filter (Govt)
-    if (qualification !== "All Qualifications") {
-      const qualKey = qualification.toLowerCase().split(" ")[0];
-      filtered = filtered.filter(
-        (j) =>
-          j.category === "government" &&
-          ((j as any).qualification || "").toLowerCase().includes(qualKey)
-      );
     }
 
     return NextResponse.json({
@@ -144,8 +181,12 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("API /api/jobs error:", error);
     return NextResponse.json(
-      { success: false, message: "Internal server error", error: String(error) },
+      { success: false, message: "Internal server error" },
       { status: 500 }
     );
   }
+}
+
+function fLogo(name: string) {
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4F46E5&color=fff`;
 }

@@ -14,8 +14,6 @@ import {
   Briefcase,
   Landmark,
   Building2,
-  Sparkles,
-  TrendingUp,
   Bookmark,
   Share2,
   CheckCircle2,
@@ -24,6 +22,7 @@ import {
   RefreshCw,
   Flame,
   ShieldCheck,
+  BookOpen,
 } from "lucide-react";
 
 export default function JobPortal() {
@@ -38,6 +37,7 @@ export default function JobPortal() {
     category: "all",
     searchQuery: "",
     govBoard: "All Boards",
+    sector: "All Sectors",
     state: "All India",
     qualification: "All Qualifications",
     experience: "All Experience Levels",
@@ -101,34 +101,21 @@ export default function JobPortal() {
   };
 
   const handleShare = (job: Job) => {
-    const isGovt = job.category === "government";
-    const shareText = `📢 ${job.title} (${
-      isGovt ? (job as GovtJob).department_or_board : (job as PrivateJob).company_name
-    })\nApply: ${job.apply_url}`;
-
-    if (navigator.share) {
-      navigator
-        .share({
-          title: job.title,
-          text: shareText,
-          url: job.apply_url,
-        })
-        .catch(() => {});
-    } else {
-      navigator.clipboard.writeText(shareText);
-      showToast("Job details copied to clipboard!");
-    }
+    const text = `🔥 New Job Opening: ${job.title}\n📍 State: ${job.state || "All India"}\n🔗 Apply & View Details: ${window.location.origin}/jobs`;
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, "_blank");
   };
 
   const handleFilterChange = (updated: Partial<JobFilterState>) => {
     setFilter((prev) => ({ ...prev, ...updated }));
   };
 
-  const handleResetFilter = () => {
+  const handleResetFilters = () => {
     setFilter({
       category: "all",
       searchQuery: "",
       govBoard: "All Boards",
+      sector: "All Sectors",
       state: "All India",
       qualification: "All Qualifications",
       experience: "All Experience Levels",
@@ -150,72 +137,85 @@ export default function JobPortal() {
       list = list.filter((j) => j.category === filter.category);
     }
 
+    // Sector
+    if (filter.sector && filter.sector !== "All Sectors") {
+      list = list.filter((j) => (j.sector || "").toLowerCase() === filter.sector.toLowerCase());
+    }
+
     // Search
     if (filter.searchQuery.trim()) {
       const q = filter.searchQuery.toLowerCase().trim();
       list = list.filter((j) => {
         const titleMatch = j.title.toLowerCase().includes(q);
         const descMatch = (j.description || "").toLowerCase().includes(q);
-        if (j.category === "government") {
+        const stateMatch = (j.state || "").toLowerCase().includes(q);
+        const secMatch = (j.sector || "").toLowerCase().includes(q);
+
+        if (j.category === "government" || j.category === "teaching") {
           const g = j as GovtJob;
           return (
             titleMatch ||
             descMatch ||
-            g.department_or_board.toLowerCase().includes(q) ||
-            g.qualification.toLowerCase().includes(q) ||
-            g.state_or_location.toLowerCase().includes(q)
+            stateMatch ||
+            secMatch ||
+            (g.department_or_board || "").toLowerCase().includes(q) ||
+            (g.qualification || "").toLowerCase().includes(q)
           );
         } else {
           const p = j as PrivateJob;
           return (
             titleMatch ||
             descMatch ||
-            p.company_name.toLowerCase().includes(q) ||
-            p.work_location.toLowerCase().includes(q) ||
+            stateMatch ||
+            secMatch ||
+            (p.company_name || "").toLowerCase().includes(q) ||
+            (p.work_location || "").toLowerCase().includes(q) ||
             (p.skills_tags || []).some((s) => s.toLowerCase().includes(q))
           );
         }
       });
     }
 
-    // Govt Board
+    // Board
     if (filter.govBoard !== "All Boards") {
       const key = filter.govBoard.toLowerCase().split("/")[0].trim();
-      list = list.filter(
-        (j) => j.category === "government" && (j as GovtJob).department_or_board.toLowerCase().includes(key)
-      );
+      list = list.filter((j) => {
+        if (j.category === "government" || j.category === "teaching") {
+          return ((j as GovtJob).department_or_board || "").toLowerCase().includes(key);
+        }
+        return false;
+      });
     }
 
     // State
     if (filter.state !== "All India") {
       list = list.filter((j) => {
-        if (j.category === "government") {
-          const g = j as GovtJob;
-          return (
-            g.state_or_location.toLowerCase().includes(filter.state.toLowerCase()) ||
-            g.state_or_location.toLowerCase() === "all india"
-          );
-        } else {
-          const p = j as PrivateJob;
-          return p.work_location.toLowerCase().includes(filter.state.toLowerCase());
-        }
+        const jobState = (j.state || "").toLowerCase();
+        const targetState = filter.state.toLowerCase();
+        return jobState.includes(targetState) || jobState === "all india";
       });
     }
 
     // Qualification
     if (filter.qualification !== "All Qualifications") {
-      const qKey = filter.qualification.toLowerCase().split(" ")[0];
-      list = list.filter(
-        (j) => j.category === "government" && (j as GovtJob).qualification.toLowerCase().includes(qKey)
-      );
+      const qKey = filter.qualification.toLowerCase().split(" ")[0].replace(/[^a-z0-9]/g, "");
+      list = list.filter((j) => {
+        if (j.category === "government" || j.category === "teaching") {
+          return ((j as GovtJob).qualification || "").toLowerCase().includes(qKey);
+        }
+        return true;
+      });
     }
 
     // Experience
     if (filter.experience !== "All Experience Levels") {
       const eKey = filter.experience.toLowerCase().split(" ")[0];
-      list = list.filter(
-        (j) => j.category === "private" && (j as PrivateJob).experience_level.toLowerCase().includes(eKey)
-      );
+      list = list.filter((j) => {
+        if (j.category === "private") {
+          return ((j as PrivateJob).experience_level || "").toLowerCase().includes(eKey);
+        }
+        return true;
+      });
     }
 
     return list;
@@ -224,11 +224,12 @@ export default function JobPortal() {
   // Statistics
   const stats = useMemo(() => {
     const govtCount = jobs.filter((j) => j.category === "government").length;
+    const teachingCount = jobs.filter((j) => j.category === "teaching").length;
     const privCount = jobs.filter((j) => j.category === "private").length;
     const totalVacancies = jobs
-      .filter((j) => j.category === "government")
+      .filter((j) => j.category === "government" || j.category === "teaching")
       .reduce((acc, curr) => acc + ((curr as GovtJob).vacancies_count || 0), 0);
-    return { govtCount, privCount, totalVacancies };
+    return { govtCount, teachingCount, privCount, totalVacancies };
   }, [jobs]);
 
   return (
@@ -241,173 +242,160 @@ export default function JobPortal() {
         </div>
       )}
 
-      {/* Hero Banner with Stats */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 border border-slate-800 shadow-2xl">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-
+      {/* Hero Banner with Live Metric Counters */}
+      <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white border border-indigo-500/20 shadow-2xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
+          <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
               <Flame className="w-3.5 h-3.5 text-amber-400" />
-              100% Verified Aggregator • Updated Every 6 Hours
+              100% Centralized All India Job Aggregator
             </div>
-            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-              All India Job Portal
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+              India&apos;s Centralized Job &amp; Teaching Portal
             </h1>
-            <p className="text-sm sm:text-base text-slate-300">
-              Direct access to Central & State <span className="text-amber-400 font-semibold">Sarkari Bhartiyas</span>,
-              admit cards, and top Indian <span className="text-indigo-400 font-semibold">Private & Tech Careers</span> with zero spam or intermediaries.
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Real-time aggregation across Central commissions (SSC, UPSC, Railway, Banking), State Governments, Teaching &amp; TET Boards (KVS, CTET, BPSC TRE, WB TET), and Corporate ATS feeds.
             </p>
           </div>
 
-          {/* Quick Bookmark Tab Button */}
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => setViewMode(viewMode === "feed" ? "bookmarks" : "feed")}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold border transition-all ${
-                viewMode === "bookmarks"
-                  ? "bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/25"
-                  : "bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700"
-              }`}
-            >
-              <Bookmark className="w-4 h-4 fill-current" />
-              Saved Jobs ({bookmarkedIds.length})
-            </button>
-          </div>
-        </div>
+          {/* Quick Counter Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">
+            <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+              <div className="text-lg sm:text-2xl font-black text-amber-400">
+                {stats.govtCount}
+              </div>
+              <div className="text-[10px] uppercase font-bold text-slate-300">Sarkari / State</div>
+            </div>
 
-        {/* Dynamic Metric Chips */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-800/80">
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Total Openings
+            <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+              <div className="text-lg sm:text-2xl font-black text-rose-400">
+                {stats.teachingCount}
+              </div>
+              <div className="text-[10px] uppercase font-bold text-slate-300">Teaching / TET</div>
             </div>
-            <div className="text-lg sm:text-2xl font-black text-white mt-0.5">
-              {jobs.length}+
-            </div>
-          </div>
 
-          <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 backdrop-blur-sm">
-            <div className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
-              <Landmark className="w-3.5 h-3.5" />
-              Sarkari Vacancies
+            <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+              <div className="text-lg sm:text-2xl font-black text-cyan-400">
+                {stats.privCount}
+              </div>
+              <div className="text-[10px] uppercase font-bold text-slate-300">Private Tech</div>
             </div>
-            <div className="text-lg sm:text-2xl font-black text-amber-400 mt-0.5">
-              {stats.totalVacancies.toLocaleString()}+
-            </div>
-          </div>
 
-          <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-sm">
-            <div className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5" />
-              Private Tech Roles
-            </div>
-            <div className="text-lg sm:text-2xl font-black text-indigo-300 mt-0.5">
-              {stats.privCount}+
-            </div>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm">
-            <div className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Direct Official Link
-            </div>
-            <div className="text-lg sm:text-2xl font-black text-emerald-400 mt-0.5">
-              100% Free
+            <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center">
+              <div className="text-lg sm:text-2xl font-black text-emerald-400">
+                {stats.totalVacancies.toLocaleString()}+
+              </div>
+              <div className="text-[10px] uppercase font-bold text-slate-300">Total Posts</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Search Chips */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
-        <span className="font-bold text-slate-400 shrink-0 flex items-center gap-1">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Popular:
-        </span>
-        {[
-          "SSC CGL",
-          "Railway RRB",
-          "UPSC 2026",
-          "Bank PO / Clerk",
-          "10th/12th Pass",
-          "React / Next.js",
-          "Fresher Trainee",
-          "Remote India",
-        ].map((item) => (
+      {/* Feed vs Bookmarks Toggle Header */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
           <button
-            key={item}
-            onClick={() => handleFilterChange({ searchQuery: item })}
-            className="px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-amber-100 hover:text-amber-900 dark:hover:bg-slate-700 font-medium transition-colors shrink-0"
+            onClick={() => setViewMode("feed")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+              viewMode === "feed"
+                ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
           >
-            {item}
+            <Layers className="w-4 h-4" />
+            Live Ingestion Feed
           </button>
-        ))}
+
+          <button
+            onClick={() => setViewMode("bookmarks")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+              viewMode === "bookmarks"
+                ? "bg-amber-500 text-white shadow-md shadow-amber-500/25"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <Bookmark className="w-4 h-4" />
+            Saved Bookmarks ({bookmarkedIds.length})
+          </button>
+        </div>
+
+        <div className="text-xs text-slate-500 hidden sm:block">
+          Showing <span className="font-bold text-slate-900 dark:text-slate-100">{filteredJobs.length}</span> Active Vacancies
+        </div>
       </div>
 
-      {/* Filter Component */}
+      {/* Multi-Parameter Filters */}
       <JobFilter
         filter={filter}
         onChange={handleFilterChange}
         totalCount={jobs.length}
         govtCount={stats.govtCount}
+        teachingCount={stats.teachingCount}
         privCount={stats.privCount}
-        onReset={handleResetFilter}
+        onReset={handleResetFilters}
       />
 
-      {/* Jobs Grid Header */}
-      <div className="flex items-center justify-between pt-2">
-        <div className="text-sm font-bold text-slate-700 dark:text-slate-300">
-          Showing <span className="text-amber-600 dark:text-amber-400">{filteredJobs.length}</span>{" "}
-          {viewMode === "bookmarks" ? "Saved Bookmarked" : "Available"} Opportunities
+      {/* Loading Skeleton */}
+      {loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="h-64 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse"
+            />
+          ))}
         </div>
-      </div>
+      )}
 
       {/* Jobs Grid */}
-      {filteredJobs.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {!loading && filteredJobs.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredJobs.map((job) => (
             <JobCard
               key={job.id}
               job={job}
-              onOpenDetails={(j) => setSelectedJob(j)}
+              onOpenDetails={setSelectedJob}
               isBookmarked={bookmarkedIds.includes(job.id)}
               onToggleBookmark={toggleBookmark}
               onShare={handleShare}
             />
           ))}
         </div>
-      ) : (
-        /* Empty State */
+      )}
+
+      {/* Empty State */}
+      {!loading && filteredJobs.length === 0 && (
         <div className="text-center py-16 px-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
             <Search className="w-8 h-8" />
           </div>
           <div className="space-y-1">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              No matching jobs found
+              No matching job notifications found
             </h3>
-            <p className="text-sm text-slate-500 max-w-md mx-auto">
-              We couldn't find any job opportunities matching your search or active filters. Try clearing your search or switching categories.
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              Try clearing some filters or searching for broader terms like &quot;Teacher&quot;, &quot;Officer&quot;, or &quot;All India&quot;.
             </p>
           </div>
           <button
-            onClick={handleResetFilter}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors shadow-md"
+            onClick={handleResetFilters}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md transition-colors"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
             Reset All Filters
           </button>
         </div>
       )}
 
-      {/* Detail Modal */}
-      <JobDetailModal
-        job={selectedJob}
-        onClose={() => setSelectedJob(null)}
-        isBookmarked={selectedJob ? bookmarkedIds.includes(selectedJob.id) : false}
-        onToggleBookmark={toggleBookmark}
-      />
+      {/* Deep Detail & Application Modal */}
+      {selectedJob && (
+        <JobDetailModal
+          job={selectedJob}
+          onClose={() => setSelectedJob(null)}
+          isBookmarked={bookmarkedIds.includes(selectedJob.id)}
+          onToggleBookmark={toggleBookmark}
+        />
+      )}
     </div>
   );
 }
