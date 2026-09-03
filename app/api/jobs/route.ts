@@ -127,6 +127,9 @@ export async function GET(request: NextRequest) {
               }
             });
           }
+        } else {
+          const errText = await res.text();
+          console.warn("Supabase fetch returned non-ok status:", res.status, errText);
         }
       } catch (err) {
         console.warn("Supabase live query failed, checking offline seed:", err);

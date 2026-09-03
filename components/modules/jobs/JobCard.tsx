@@ -266,7 +266,7 @@ export function JobCard({
         )}
 
         {/* Posted & Deadline Status Row */}
-        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-4 pb-1 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2 pb-1 border-b border-slate-100 dark:border-slate-800">
           <span className="flex items-center gap-1 truncate max-w-[55%]">
             <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <span className="truncate">
@@ -282,6 +282,14 @@ export function JobCard({
               {deadlineStatus.text}
             </span>
           )}
+        </div>
+
+        {/* Official Date Verification Advisory Note */}
+        <div className="mb-4 px-2.5 py-1.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 flex items-center gap-1.5 text-[11px] text-amber-800 dark:text-amber-300">
+          <span className="shrink-0 text-amber-600 dark:text-amber-400">📌</span>
+          <span className="leading-tight font-medium">
+            <strong>Note:</strong> Application date ek baar official website par bhi zaroor verify kar lein.
+          </span>
         </div>
       </div>
 
