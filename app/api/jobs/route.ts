@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { INITIAL_JOBS_DATA, Job } from "@/lib/jobs-data";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -11,9 +14,18 @@ export async function GET(request: NextRequest) {
     const experience = searchParams.get("experience") || "All Experience Levels";
     const qualification = searchParams.get("qualification") || "All Qualifications";
 
-    // 1. Try fetching from Supabase if configured in environment
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // 1. Fetch live jobs directly from Supabase PostgreSQL
+    const supabaseUrl =
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.SUPABASE_URL ||
+      "https://iydiafdwysbirlpcchlf.supabase.co";
+
+    const supabaseKey =
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_KEY ||
+      "sb_publishable_VFUfCc4-II0X6ql1o7iZHg_0LWxCdXA";
 
     let allJobs: Job[] = INITIAL_JOBS_DATA;
 
@@ -22,7 +34,9 @@ export async function GET(request: NextRequest) {
         const url = new URL(`${supabaseUrl}/rest/v1/jobs`);
         url.searchParams.set("select", "*");
         url.searchParams.set("is_active", "eq.true");
-        url.searchParams.set("order", "posted_date.desc");
+        url.searchParams.set("order", "posted_date.desc,created_at.desc");
+        url.searchParams.set("limit", "200");
+
         if (category !== "all") {
           url.searchParams.set("category", `eq.${category}`);
         }
@@ -32,7 +46,7 @@ export async function GET(request: NextRequest) {
             apikey: supabaseKey,
             Authorization: `Bearer ${supabaseKey}`,
           },
-          next: { revalidate: 3600 }, // ISR Cache for 1 hour
+          cache: "no-store",
         });
 
         if (res.ok) {
@@ -40,13 +54,15 @@ export async function GET(request: NextRequest) {
           if (Array.isArray(dbJobs) && dbJobs.length > 0) {
             allJobs = dbJobs;
           }
+        } else {
+          console.warn(`Supabase returned status: ${res.status}`);
         }
       } catch (err) {
         console.warn("Supabase fetch fallback to local seed data:", err);
       }
     }
 
-    // 2. Perform in-memory filtering & full-text match
+    // 2. Perform instant multi-parameter filtering & search
     let filtered = allJobs;
 
     // Filter by Category
@@ -54,21 +70,23 @@ export async function GET(request: NextRequest) {
       filtered = filtered.filter((j) => j.category === category);
     }
 
-    // Search query
+    // Search query match
     if (query) {
       filtered = filtered.filter((j) => {
         const titleMatch = j.title.toLowerCase().includes(query);
         const descMatch = (j.description || "").toLowerCase().includes(query);
-        
+
         if (j.category === "government") {
-          const boardMatch = (j.department_or_board || "").toLowerCase().includes(query);
-          const qualMatch = (j.qualification || "").toLowerCase().includes(query);
-          const locMatch = (j.state_or_location || "").toLowerCase().includes(query);
+          const boardMatch = ((j as any).department_or_board || "").toLowerCase().includes(query);
+          const qualMatch = ((j as any).qualification || "").toLowerCase().includes(query);
+          const locMatch = ((j as any).state_or_location || "").toLowerCase().includes(query);
           return titleMatch || descMatch || boardMatch || qualMatch || locMatch;
         } else {
-          const compMatch = (j.company_name || "").toLowerCase().includes(query);
-          const locMatch = (j.work_location || "").toLowerCase().includes(query);
-          const skillsMatch = (j.skills_tags || []).some((s) => s.toLowerCase().includes(query));
+          const compMatch = ((j as any).company_name || "").toLowerCase().includes(query);
+          const locMatch = ((j as any).work_location || "").toLowerCase().includes(query);
+          const skillsMatch = ((j as any).skills_tags || []).some((s: string) =>
+            s.toLowerCase().includes(query)
+          );
           return titleMatch || descMatch || compMatch || locMatch || skillsMatch;
         }
       });
@@ -77,7 +95,11 @@ export async function GET(request: NextRequest) {
     // Board filter (Govt)
     if (board !== "All Boards") {
       filtered = filtered.filter(
-        (j) => j.category === "government" && j.department_or_board.toLowerCase().includes(board.toLowerCase().split("/")[0].trim())
+        (j) =>
+          j.category === "government" &&
+          ((j as any).department_or_board || "")
+            .toLowerCase()
+            .includes(board.toLowerCase().split("/")[0].trim())
       );
     }
 
@@ -86,20 +108,22 @@ export async function GET(request: NextRequest) {
       filtered = filtered.filter((j) => {
         if (j.category === "government") {
           return (
-            j.state_or_location.toLowerCase().includes(state.toLowerCase()) ||
-            j.state_or_location.toLowerCase() === "all india"
+            ((j as any).state_or_location || "").toLowerCase().includes(state.toLowerCase()) ||
+            ((j as any).state_or_location || "").toLowerCase() === "all india"
           );
         } else {
-          return j.work_location.toLowerCase().includes(state.toLowerCase());
+          return ((j as any).work_location || "").toLowerCase().includes(state.toLowerCase());
         }
       });
     }
 
     // Experience filter (Private)
     if (experience !== "All Experience Levels") {
-      const expKey = experience.toLowerCase().split(" ")[0]; // "fresher", "mid-level", etc.
+      const expKey = experience.toLowerCase().split(" ")[0];
       filtered = filtered.filter(
-        (j) => j.category === "private" && j.experience_level.toLowerCase().includes(expKey)
+        (j) =>
+          j.category === "private" &&
+          ((j as any).experience_level || "").toLowerCase().includes(expKey)
       );
     }
 
@@ -107,7 +131,9 @@ export async function GET(request: NextRequest) {
     if (qualification !== "All Qualifications") {
       const qualKey = qualification.toLowerCase().split(" ")[0];
       filtered = filtered.filter(
-        (j) => j.category === "government" && j.qualification.toLowerCase().includes(qualKey)
+        (j) =>
+          j.category === "government" &&
+          ((j as any).qualification || "").toLowerCase().includes(qualKey)
       );
     }
 
