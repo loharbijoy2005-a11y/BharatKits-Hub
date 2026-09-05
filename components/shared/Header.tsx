@@ -186,16 +186,10 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
 
           {/* Right Controls */}
           <div className="flex items-center gap-3">
-            <a
-              href="https://github.com/loharbijoy2005-a11y/BharatKits-Hub"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition-all shadow-xs"
-              title="View GitHub Repository"
-            >
-              <span className="text-sm">⭐</span>
-              <span>GitHub</span>
-            </a>
+            <span className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300/80 dark:border-emerald-800/40 text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 select-none shadow-2xs transition-colors duration-400">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              100% Encrypted Local Processing
+            </span>
 
             {/* Interactive Theme Toggle Button with Particle Sparkle Effect */}
             <button
