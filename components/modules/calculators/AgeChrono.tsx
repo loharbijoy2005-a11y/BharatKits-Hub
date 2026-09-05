@@ -16,10 +16,6 @@ import {
   AlertCircle,
   Star,
   ShieldCheck,
-  Flame,
-  Droplets,
-  Wind,
-  Mountain,
 } from "lucide-react";
 
 const MONTH_NAMES = [
@@ -47,6 +43,15 @@ interface ZodiacDetail {
   luckyColor: string;
   luckyNumber: string;
   traits: string;
+}
+
+interface ChineseZodiacDetail {
+  name: string;
+  animal: string;
+  traits: string;
+  years: string;
+  description: string;
+  element: string;
 }
 
 /**
@@ -107,7 +112,7 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
   const [rawText, setRawText] = useState("");
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  // Sub-view mode inside popup for easy scrolling (calendar grid, month grid, year scroll list)
+  // Sub-view mode inside popup for easy scrolling
   const [popupView, setPopupView] = useState<"days" | "months" | "years">("days");
 
   const parsed = parseDateSmart(value);
@@ -445,9 +450,13 @@ export default function AgeChrono() {
     traits: "",
   });
 
-  const [chineseZodiac, setChineseZodiac] = useState<{ name: string; trait: string }>({
+  const [chineseZodiac, setChineseZodiac] = useState<ChineseZodiacDetail>({
     name: "",
-    trait: "",
+    animal: "",
+    traits: "",
+    years: "",
+    description: "",
+    element: "",
   });
 
   const [bornDay, setBornDay] = useState<string>("");
@@ -577,20 +586,104 @@ export default function AgeChrono() {
     };
   };
 
-  const getChineseZodiac = (year: number) => {
-    const animals = [
-      { name: "Year of the Rat", trait: "Quick-witted & Charming" },
-      { name: "Year of the Ox", trait: "Patient & Dependable" },
-      { name: "Year of the Tiger", trait: "Brave & Confident" },
-      { name: "Year of the Rabbit", trait: "Gentle & Elegant" },
-      { name: "Year of the Dragon", trait: "Charismatic & Strong" },
-      { name: "Year of the Snake", trait: "Wise & Enigmatic" },
-      { name: "Year of the Horse", trait: "Energetic & Independent" },
-      { name: "Year of the Goat", trait: "Calm & Creative" },
-      { name: "Year of the Monkey", trait: "Smart & Playful" },
-      { name: "Year of the Rooster", trait: "Observant & Hardworking" },
-      { name: "Year of the Dog", trait: "Honest & Loyal" },
-      { name: "Year of the Pig", trait: "Generous & Compassionate" },
+  const getChineseZodiacDetail = (year: number): ChineseZodiacDetail => {
+    const animals: ChineseZodiacDetail[] = [
+      {
+        name: "Year of the Rat",
+        animal: "Rat",
+        traits: "Quick-witted, Resourceful, Versatile & Charming",
+        years: "2020, 2008, 1996, 1984, 1972",
+        description: "People born in the Year of the Rat are sharp, adaptable, and great at spotting opportunities. They possess strong intuition and quick problem-solving skills.",
+        element: "Water",
+      },
+      {
+        name: "Year of the Ox",
+        animal: "Ox",
+        traits: "Patient, Dependable, Methodical & Strong",
+        years: "2021, 2009, 1997, 1985, 1973",
+        description: "Ox personalities are honest, industrious, and steadfast. They achieve success through steady dedication, patience, and unbreakable resilience.",
+        element: "Earth",
+      },
+      {
+        name: "Year of the Tiger",
+        animal: "Tiger",
+        traits: "Brave, Confident, Competitive & Ambitious",
+        years: "2022, 2010, 1998, 1986, 1974",
+        description: "Tigers are born leaders with high energy and bold courage. They take on big challenges with confidence and inspire others around them.",
+        element: "Wood",
+      },
+      {
+        name: "Year of the Rabbit",
+        animal: "Rabbit",
+        traits: "Gentle, Elegant, Compassionate & Careful",
+        years: "2023, 2011, 1999, 1987, 1975",
+        description: "Rabbits are polite, peaceful, and artistic. They excel in harmonious environments and approach life with grace, thoughtfulness, and good judgement.",
+        element: "Wood",
+      },
+      {
+        name: "Year of the Dragon",
+        animal: "Dragon",
+        traits: "Charismatic, Powerful, Energetic & Intelligent",
+        years: "2024, 2012, 2000, 1988, 1976",
+        description: "Dragons are vibrant and confident individuals who dream big. They carry natural charisma, leadership flair, and relentless momentum.",
+        element: "Earth",
+      },
+      {
+        name: "Year of the Snake",
+        animal: "Snake",
+        traits: "Wise, Enigmatic, Intuitive & Deep-Thinking",
+        years: "2025, 2013, 2001, 1989, 1977",
+        description: "Snakes are highly observant, wise, and refined. They act with quiet strategic thinking and have a keen eye for beauty and truth.",
+        element: "Fire",
+      },
+      {
+        name: "Year of the Horse",
+        animal: "Horse",
+        traits: "Energetic, Independent, Warm-hearted & Agile",
+        years: "2026, 2014, 2002, 1990, 1978",
+        description: "Horses are free-spirited, enthusiastic, and love personal freedom. They work with passionate drive and bring positive cheer wherever they go.",
+        element: "Fire",
+      },
+      {
+        name: "Year of the Goat",
+        animal: "Goat / Sheep",
+        traits: "Calm, Gentle, Creative & Empathetic",
+        years: "2027, 2015, 2003, 1991, 1979",
+        description: "Goat personalities are gentle, peace-loving, and deeply creative. They value sincerity, artistic expression, and meaningful relationships.",
+        element: "Earth",
+      },
+      {
+        name: "Year of the Monkey",
+        animal: "Monkey",
+        traits: "Smart, Innovative, Playful & Quick-Learner",
+        years: "2028, 2016, 2004, 1992, 1980",
+        description: "Monkeys are highly inventive and fast learners. They approach complex problems with clever humor, agility, and out-of-the-box ideas.",
+        element: "Metal",
+      },
+      {
+        name: "Year of the Rooster",
+        animal: "Rooster",
+        traits: "Observant, Hardworking, Punctual & Courageous",
+        years: "2029, 2017, 2005, 1993, 1981, 1969",
+        description: "People born in the Year of the Rooster (e.g. 2005) are deeply observant, punctual, and devoted to excellence. They pay great attention to detail, love clean organization, and work tirelessly to achieve perfection in everything they do.",
+        element: "Metal (Gold)",
+      },
+      {
+        name: "Year of the Dog",
+        animal: "Dog",
+        traits: "Honest, Loyal, Protective & Just",
+        years: "2030, 2018, 2006, 1994, 1982",
+        description: "Dogs are fiercely loyal, trustworthy, and righteous. They stand up for fairness, protect their loved ones, and build lifelong bonds.",
+        element: "Earth",
+      },
+      {
+        name: "Year of the Pig",
+        animal: "Pig / Boar",
+        traits: "Generous, Compassionate, Diligent & Pure-hearted",
+        years: "2031, 2019, 2007, 1995, 1983",
+        description: "Pigs are warm, optimistic, and generous. They work hard with patience and treat everyone with kindness and open-hearted sincerity.",
+        element: "Water",
+      },
     ];
     const index = (year - 1900) % 12;
     return animals[index >= 0 ? index : (index + 12) % 12];
@@ -688,7 +781,7 @@ export default function AgeChrono() {
     const dayName = WEEKDAYS[dob.getDay()];
     setBornDay(dayName);
     setZodiac(getZodiacDetail(dob.getDate(), dob.getMonth() + 1));
-    setChineseZodiac(getChineseZodiac(dob.getFullYear()));
+    setChineseZodiac(getChineseZodiacDetail(dob.getFullYear()));
 
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(updateAgeStats, 1000);
@@ -792,7 +885,7 @@ export default function AgeChrono() {
                     <span>{zodiac.rashiName}</span>
                   </div>
                   <p className="text-[11px] text-white/80">
-                    Element: {zodiac.element} | Ruling Planet: {zodiac.rulingPlanet}
+                    Element: {zodiac.element} | Planet: {zodiac.rulingPlanet}
                   </p>
                 </div>
               </div>
@@ -879,20 +972,43 @@ export default function AgeChrono() {
               </div>
             </div>
 
-            {/* Chinese Zodiac Details */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-5 shadow-sm flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Compass className="w-6 h-6 text-indigo-500" />
-                <div>
-                  <h4 className="text-xs font-extrabold text-slate-800 dark:text-slate-200">
-                    Chinese Zodiac Sign
+            {/* Expanded Chinese Lunar Zodiac Card */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-5 shadow-sm space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <Compass className="w-5 h-5 text-indigo-500" />
+                  <h4 className="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+                    Chinese Lunar Zodiac Sign Details
                   </h4>
-                  <p className="text-xs text-slate-500">
-                    <strong className="text-slate-800 dark:text-slate-200">{chineseZodiac.name}</strong> — {chineseZodiac.trait}
-                  </p>
+                </div>
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                  {chineseZodiac.animal}
+                </span>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 dark:text-white text-sm">
+                    {chineseZodiac.name}
+                  </span>
+                  <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-extrabold">
+                    {chineseZodiac.traits}
+                  </span>
+                </div>
+
+                <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-[11px]">
+                  {chineseZodiac.description}
+                </p>
+
+                <div className="pt-2 flex flex-wrap gap-2 text-[10px]">
+                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">
+                    12-Year Cycle: {chineseZodiac.years}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">
+                    Element: {chineseZodiac.element}
+                  </span>
                 </div>
               </div>
-              <ShieldCheck className="w-6 h-6 text-emerald-500" />
             </div>
 
             {/* Total Elapsed stats */}
