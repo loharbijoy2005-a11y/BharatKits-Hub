@@ -408,7 +408,7 @@ export default function Page() {
 
             {/* Category tabs pills */}
             <div className="flex justify-center">
-              <div className="flex gap-1.5 p-1 bg-slate-100/80 dark:bg-slate-900/60 backdrop-blur rounded-2xl border border-slate-200/30 dark:border-slate-800/30 w-fit max-w-full overflow-x-auto scrollbar-none">
+              <div className="flex gap-1.5 p-1 bg-slate-200/70 rounded-2xl border border-slate-300 w-fit max-w-full overflow-x-auto scrollbar-none">
                 {[
                   { id: "all", label: "All Tools" },
                   { id: "directory", label: "Govt Portals" },
@@ -419,10 +419,10 @@ export default function Page() {
                   <button
                     key={cat.id}
                     onClick={() => setActiveCat(cat.id)}
-                    className={`px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 whitespace-nowrap ${
+                    className={`px-4 py-2 text-xs font-black rounded-xl transition-all duration-200 whitespace-nowrap ${
                       activeCat === cat.id
-                        ? "bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm"
-                        : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
+                        ? "bg-white text-orange-600 shadow-sm border border-slate-200"
+                        : "text-slate-700 hover:text-slate-900 hover:bg-white/50"
                     }`}
                   >
                     {cat.label}
@@ -451,24 +451,24 @@ export default function Page() {
                     <div
                       key={tool.id}
                       onClick={() => setActiveView(tool.id)}
-                      className="group relative rounded-3xl utility-card p-6 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between overflow-hidden bg-white dark:bg-slate-900"
+                      className="group relative rounded-3xl utility-card p-6 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between overflow-hidden bg-white border border-slate-200/90 shadow-2xs hover:border-orange-400/50"
                     >
-                      <div className={`absolute -right-8 -top-8 w-24 h-24 bg-gradient-to-br ${tool.color} opacity-[0.02] group-hover:opacity-10 rounded-full transition-all duration-500 blur-xl`} />
+                      <div className={`absolute -right-8 -top-8 w-24 h-24 bg-gradient-to-br ${tool.color} opacity-[0.03] group-hover:opacity-15 rounded-full transition-all duration-500 blur-xl`} />
                       
                       <div>
                         <div className="flex items-center justify-between mb-4">
-                          <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${tool.color} flex items-center justify-center text-white shadow-md shadow-brand-500/10`}>
+                          <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${tool.color} flex items-center justify-center text-white shadow-md shadow-orange-500/10`}>
                             <Icon className="w-5 h-5" />
                           </div>
                           
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[9px] uppercase font-black tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 select-none">
+                            <span className="text-[9px] uppercase font-black tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 select-none">
                               {getCategoryLabel(tool.category)}
                             </span>
                             
                             <button
                               onClick={(e) => toggleFavorite(tool.id, e)}
-                              className="p-1 rounded hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-400"
+                              className="p-1 rounded hover:bg-slate-100 text-slate-400"
                               title={isFav ? "Remove Favorite" : "Add Favorite"}
                             >
                               <Star className={`w-4 h-4 ${isFav ? "text-amber-500 fill-amber-500" : "text-slate-300"}`} />
@@ -476,16 +476,16 @@ export default function Page() {
                           </div>
                         </div>
                         
-                        <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                        <h3 className="text-base font-black text-slate-900 mb-2 group-hover:text-orange-600 transition-colors">
                           {tool.title}
                         </h3>
                         
-                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                        <p className="text-xs font-semibold text-slate-600 leading-relaxed mb-6">
                           {tool.description}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-1.5 text-brand-600 dark:text-brand-400 font-bold text-xs mt-auto group-hover:gap-2.5 transition-all">
+                      <div className="flex items-center gap-1.5 text-orange-600 font-extrabold text-xs mt-auto group-hover:gap-2.5 transition-all">
                         Launch Tool
                         <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
                       </div>
