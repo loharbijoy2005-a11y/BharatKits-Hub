@@ -359,17 +359,16 @@ export function JobCard({
           href={job.apply_url}
           target="_blank"
           rel="noopener noreferrer"
+          title={`Direct apply at official portal: ${job.apply_url}`}
           className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl text-xs font-bold text-white transition-all shadow-md ${
-            isClosed
-              ? "bg-slate-600 hover:bg-slate-700 shadow-slate-500/20"
-              : isTeaching
+            isTeaching
               ? "bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 shadow-rose-500/20"
               : isGovt
               ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-orange-500/20"
               : "bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 shadow-indigo-500/20"
           }`}
         >
-          {isClosed ? "View Listing" : "Apply Online"}
+          🚀 Direct Apply Link
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
       </div>
