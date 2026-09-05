@@ -5,6 +5,7 @@ import { Header } from "@/components/shared/Header";
 import GovtDirectory from "@/components/modules/directory/GovtDirectory";
 import GovtImageResizer from "@/components/modules/media/GovtImageResizer";
 import IdPdfCombiner from "@/components/modules/media/IdPdfCombiner";
+import PassportPhotoMaker from "@/components/modules/media/PassportPhotoMaker";
 import BiodataGenerator from "@/components/modules/media/BiodataGenerator";
 import UpiQrGenerator from "@/components/modules/productivity/UpiQrGenerator";
 import GstSplitter from "@/components/modules/calculators/GstSplitter";
@@ -428,7 +429,8 @@ export default function Page() {
               {activeView === "job-portal" && <JobPortal />}
               {activeView === "govt-directory" && <GovtDirectory />}
               {activeView === "resizer-compressor" && <GovtImageResizer />}
-              {activeView === "passport-photo-sheet" && <IdPdfCombiner />}
+              {activeView === "passport-photo-sheet" && <PassportPhotoMaker />}
+              {activeView === "id-card-combiner" && <IdPdfCombiner />}
               {activeView === "image-pdf" && <PdfEditorStudio />}
               {activeView === "biodata-generator" && <BiodataGenerator />}
               {activeView === "gst-emi-calculator" && <EmiCalculator />}
