@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Calendar as CalendarIcon, Cake, Gift, CalendarDays, ChevronLeft, ChevronRight, Check, Compass, Sparkles, Sun } from "lucide-react";
+import { Calendar as CalendarIcon, Cake, Gift, CalendarDays, ChevronLeft, ChevronRight, Check, Compass, Sparkles, Sun, AlertCircle } from "lucide-react";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -163,7 +163,7 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
   }
 
   const yearsOptions = [];
-  for (let y = 2030; y >= 1920; y--) {
+  for (let y = currentYear; y >= 1920; y--) {
     yearsOptions.push(y);
   }
 
@@ -179,7 +179,7 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
           <input
             type="text"
             id={id}
-            placeholder="e.g. 12.10.2005"
+            placeholder="DD.MM.YYYY"
             value={rawText}
             onChange={handleTextInputChange}
             className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 shadow-sm"
@@ -472,8 +472,14 @@ export default function AgeChrono() {
     return animals[index >= 0 ? index : (index + 12) % 12];
   };
 
+  const [isFutureError, setIsFutureError] = useState<boolean>(false);
+
   const calculateAge = () => {
-    if (!birthdate) return;
+    if (!birthdate) {
+      setIsFutureError(false);
+      setHasCalculated(false);
+      return;
+    }
 
     const parsedDob = parseDateSmart(birthdate);
     if (!parsedDob) return;
@@ -482,12 +488,13 @@ export default function AgeChrono() {
     const now = new Date();
 
     if (dob > now) {
-      alert("Birthdate cannot be set in the future!");
-      setBirthdate("");
+      setIsFutureError(true);
       setHasCalculated(false);
+      if (intervalRef.current) clearInterval(intervalRef.current);
       return;
     }
 
+    setIsFutureError(false);
     setHasCalculated(true);
 
     const updateAgeStats = () => {
@@ -577,6 +584,7 @@ export default function AgeChrono() {
   const handleReset = () => {
     setBirthdate("");
     setHasCalculated(false);
+    setIsFutureError(false);
     if (intervalRef.current) clearInterval(intervalRef.current);
   };
 
@@ -599,6 +607,13 @@ export default function AgeChrono() {
               value={birthdate}
               onChange={(val) => setBirthdate(val)}
             />
+
+            {isFutureError && (
+              <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-amber-500" />
+                <span>Date of birth cannot be set in the future. Please select a past date.</span>
+              </div>
+            )}
           </div>
 
           <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">

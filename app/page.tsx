@@ -154,19 +154,19 @@ const tools: ToolItem[] = [
   },
   {
     id: "age-date",
-    title: "Govt Exam Cut-off Age Calculator",
+    title: "Age Calculator",
     description:
-      "Calculate age on a specific cut-off date (years, months, days).",
+      "Calculate exact age down to seconds, birth day of week, Rashi, and zodiac signs.",
     icon: CalendarDays,
     category: "calculators",
     color: "from-amber-500 to-orange-500",
     tags: [
-      "cut off age calculator",
-      "govt exam age",
-      "age calculation",
-      "ssc age limit",
-      "upsc age calc",
+      "age calculator",
       "exact age",
+      "birth day",
+      "rashi calculator",
+      "zodiac sign",
+      "age chrono",
     ],
   },
   {
