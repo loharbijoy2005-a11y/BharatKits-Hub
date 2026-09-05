@@ -33,7 +33,6 @@ import {
   ArrowLeft,
   Search,
   ShieldCheck,
-  Star,
   Receipt,
   PiggyBank,
   Languages,
@@ -56,6 +55,25 @@ interface ToolItem {
 }
 
 const tools: ToolItem[] = [
+  {
+    id: "job-portal",
+    title: "All India Job Portal (Sarkari & Private)",
+    description:
+      "Automated job aggregator for Central & State Govt (SSC, UPSC, RRB) and top Private Tech careers with official PDF downloads & direct links.",
+    icon: Briefcase,
+    category: "directory",
+    color: "from-amber-500 via-orange-500 to-indigo-600",
+    tags: [
+      "sarkari result",
+      "sarkari job",
+      "ssc cgl",
+      "upsc",
+      "railway job",
+      "all india jobs",
+      "bank po",
+      "private jobs",
+    ],
+  },
   {
     id: "resizer-compressor",
     title: "Govt Exam Photo & Sign Resizer",
@@ -200,25 +218,6 @@ const tools: ToolItem[] = [
       "voter id",
     ],
   },
-  {
-    id: "job-portal",
-    title: "All India Job Portal (Sarkari & Private)",
-    description:
-      "Automated job aggregator for Central & State Govt (SSC, UPSC, RRB) and top Private Tech careers with official PDF downloads & direct links.",
-    icon: Briefcase,
-    category: "directory",
-    color: "from-amber-500 via-orange-500 to-indigo-600",
-    tags: [
-      "sarkari result",
-      "sarkari job",
-      "ssc cgl",
-      "upsc",
-      "railway job",
-      "all india jobs",
-      "bank po",
-      "private jobs",
-    ],
-  },
 ];
 
 import { GovLoadingBar } from "@/components/shared/GovLoadingBar";
@@ -228,13 +227,6 @@ export default function Page() {
   const [searchVal, setSearchVal] = useState<string>("");
   const [activeCat, setActiveCat] = useState<string>("all");
   const [isNavigating, setIsNavigating] = useState<boolean>(false);
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("bharatkits_favs") || localStorage.getItem("bharatkits_favorites");
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
 
   // Handle high-speed government-grade view transition & scroll reset
   const handleViewChange = (newView: string) => {
@@ -257,29 +249,11 @@ export default function Page() {
     setTimeout(() => setIsNavigating(false), 180);
   };
 
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    let updated = [...favorites];
-    if (updated.includes(id)) {
-      updated = updated.filter((item) => item !== id);
-    } else {
-      updated.push(id);
-    }
-    setFavorites(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("bharatkits_favs", JSON.stringify(updated));
-      localStorage.setItem("bharatkits_favorites", JSON.stringify(updated));
-    }
-  };
-
   const activeTool = tools.find((t) => t.id === activeView);
 
   const filteredTools = tools.filter((tool) => {
     const matchesCategory =
-      activeCat === "all" ||
-      tool.category === activeCat ||
-      (activeCat === "favorites" && favorites.includes(tool.id));
+      activeCat === "all" || tool.category === activeCat;
       
     const matchesSearch =
       tool.title.toLowerCase().includes(searchVal.toLowerCase()) ||
@@ -348,10 +322,9 @@ export default function Page() {
               <div className="flex gap-1.5 p-1 bg-slate-200/70 dark:bg-slate-800/80 rounded-2xl border border-slate-300 dark:border-slate-700 w-fit max-w-full overflow-x-auto scrollbar-none">
                 {[
                   { id: "all", label: "All Tools" },
-                  { id: "directory", label: "Govt Portals" },
+                  { id: "directory", label: "Govt Portals & Jobs" },
                   { id: "cyber-cafe", label: "Cyber Cafe" },
                   { id: "calculators", label: "Calculators" },
-                  { id: "favorites", label: "Favorites ⭐" },
                 ].map((cat) => (
                   <button
                     key={cat.id}
@@ -374,33 +347,18 @@ export default function Page() {
             {/* Tools Grid */}
             {filteredTools.length === 0 ? (
               <div className="py-20 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 max-w-md mx-auto text-center">
-                {activeCat === "favorites" ? (
-                  <>
-                    <Star className="w-12 h-12 text-yellow-400 fill-yellow-400 mb-3 animate-bounce" />
-                    <h4 className="text-base font-extrabold text-slate-800 dark:text-slate-200">
-                      No favorite tools saved yet
-                    </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      Click the ⭐ icon on any tool to pin it here.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-12 h-12 text-slate-350 dark:text-slate-700 animate-pulse mb-3" />
-                    <h4 className="text-base font-extrabold text-slate-800 dark:text-slate-200">
-                      No matching utility tools found
-                    </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      Try typing Hinglish keywords like &apos;challan&apos;, &apos;rashan&apos;, or &apos;pan aadhar&apos;.
-                    </p>
-                  </>
-                )}
+                <Search className="w-12 h-12 text-slate-350 dark:text-slate-700 animate-pulse mb-3" />
+                <h4 className="text-base font-extrabold text-slate-800 dark:text-slate-200">
+                  No matching utility tools found
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Try typing Hinglish keywords like &apos;challan&apos;, &apos;rashan&apos;, or &apos;pan aadhar&apos;.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredTools.map((tool) => {
                   const Icon = tool.icon;
-                  const isFav = favorites.includes(tool.id);
                   return (
                     <div
                       key={tool.id}
@@ -415,19 +373,9 @@ export default function Page() {
                             <Icon className="w-5 h-5" />
                           </div>
                           
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[9px] uppercase font-black tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 select-none">
-                              {getCategoryLabel(tool.category)}
-                            </span>
-                            
-                            <button
-                              onClick={(e) => toggleFavorite(tool.id, e)}
-                              className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                              title={isFav ? "Remove Favorite" : "Add Favorite"}
-                            >
-                              <Star className={`w-4 h-4 transition-colors ${isFav ? "text-yellow-400 fill-yellow-400" : "text-slate-300 dark:text-slate-600"}`} />
-                            </button>
-                          </div>
+                          <span className="text-[9px] uppercase font-black tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 select-none">
+                            {getCategoryLabel(tool.category)}
+                          </span>
                         </div>
                         
                         <h3 className="text-base font-black text-slate-900 dark:text-white mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
