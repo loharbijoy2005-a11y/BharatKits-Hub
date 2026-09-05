@@ -188,20 +188,20 @@ export function JobFilter({
         </div>
 
         {/* Dropdowns Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-          {/* State / Region Filter */}
-          <div className="relative">
-            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-rose-500" /> State / Region
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          {/* Prominent State / Region Filter */}
+          <div className="relative p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/30">
+            <label className="block text-[11px] uppercase font-black text-amber-800 dark:text-amber-300 mb-1 flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-rose-500" /> 📍 SELECT STATE / REGION (राज्य चुनें)
             </label>
             <select
               value={filter.state}
               onChange={(e) => onChange({ state: e.target.value })}
-              className="w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full py-2 px-3 rounded-xl border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-900 text-xs font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
             >
               {INDIAN_STATES_LIST.map((st) => (
                 <option key={st} value={st}>
-                  {st}
+                  {st === "All India" ? "🇮🇳 All India Jobs (सभी राज्य)" : `📍 ${st} Jobs`}
                 </option>
               ))}
             </select>
