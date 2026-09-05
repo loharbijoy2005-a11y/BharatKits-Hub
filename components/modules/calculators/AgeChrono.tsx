@@ -2,7 +2,25 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Calendar as CalendarIcon, Cake, Gift, CalendarDays, ChevronLeft, ChevronRight, Check, Compass, Sparkles, Sun, AlertCircle } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Cake,
+  Gift,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Compass,
+  Sparkles,
+  Sun,
+  AlertCircle,
+  Star,
+  ShieldCheck,
+  Flame,
+  Droplets,
+  Wind,
+  Mountain,
+} from "lucide-react";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -24,9 +42,11 @@ const WEEKDAYS = [
 interface ZodiacDetail {
   name: string;
   rashiName: string;
-  icon: string;
   element: string;
   rulingPlanet: string;
+  luckyColor: string;
+  luckyNumber: string;
+  traits: string;
 }
 
 /**
@@ -87,12 +107,11 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
   const [rawText, setRawText] = useState("");
   const popoverRef = useRef<HTMLDivElement>(null);
 
+  // Sub-view mode inside popup for easy scrolling (calendar grid, month grid, year scroll list)
+  const [popupView, setPopupView] = useState<"days" | "months" | "years">("days");
+
   const parsed = parseDateSmart(value);
   const currentYear = new Date().getFullYear();
-
-  const dayVal = parsed ? parsed.day : "";
-  const monthVal = parsed ? parsed.month : "";
-  const yearVal = parsed ? parsed.year : "";
 
   const [viewYear, setViewYear] = useState<number>(parsed ? parsed.year : currentYear);
   const [viewMonth, setViewMonth] = useState<number>(parsed ? parsed.month - 1 : new Date().getMonth());
@@ -111,6 +130,7 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
     function handleClickOutside(event: MouseEvent) {
       if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setPopupView("days");
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -131,24 +151,6 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
     if (res) {
       updateDate(res.year, res.month, res.day);
     }
-  };
-
-  const handleDaySelect = (d: number) => {
-    const mVal = monthVal || (viewMonth + 1);
-    const yVal = yearVal || viewYear;
-    updateDate(Number(yVal), Number(mVal), d);
-  };
-
-  const handleMonthSelect = (m: number) => {
-    const dVal = dayVal || 1;
-    const yVal = yearVal || viewYear;
-    updateDate(Number(yVal), m, Number(dVal));
-  };
-
-  const handleYearSelect = (y: number) => {
-    const dVal = dayVal || 1;
-    const mVal = monthVal || (viewMonth + 1);
-    updateDate(y, Number(mVal), Number(dVal));
   };
 
   const daysInViewMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
@@ -174,77 +176,37 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
         <span className="text-[10px] text-brand-600 dark:text-brand-400 font-medium lowercase">Format: DD.MM.YYYY</span>
       </label>
 
-      <div className="space-y-2">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            id={id}
-            placeholder="DD.MM.YYYY"
-            value={rawText}
-            onChange={handleTextInputChange}
-            className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 shadow-sm"
-          />
+      {/* ONLY 2 OPTIONS: 1) DD.MM.YYYY Text Input  2) Calendar Button */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          id={id}
+          placeholder="DD.MM.YYYY"
+          value={rawText}
+          onChange={handleTextInputChange}
+          className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 shadow-sm"
+        />
 
-          <button
-            type="button"
-            onClick={() => setIsOpen(!isOpen)}
-            className={`px-3.5 py-2.5 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm ${
-              isOpen
-                ? "bg-brand-600 text-white border-brand-600"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
-            }`}
-            title="Open Interactive Calendar Widget"
-          >
-            <CalendarIcon className="w-4 h-4" />
-            <span className="hidden sm:inline">Calendar</span>
-          </button>
-        </div>
-
-        {/* Dropdowns for Explicit DD / MM / YYYY */}
-        <div className="grid grid-cols-3 gap-2">
-          <select
-            value={dayVal}
-            onChange={(e) => handleDaySelect(Number(e.target.value))}
-            className="px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-          >
-            <option value="" disabled>Day (DD)</option>
-            {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-              <option key={d} value={d}>
-                {String(d).padStart(2, "0")}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={monthVal}
-            onChange={(e) => handleMonthSelect(Number(e.target.value))}
-            className="px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-          >
-            <option value="" disabled>Month (MM)</option>
-            {MONTH_NAMES.map((name, idx) => (
-              <option key={name} value={idx + 1}>
-                {name} ({String(idx + 1).padStart(2, "0")})
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={yearVal}
-            onChange={(e) => handleYearSelect(Number(e.target.value))}
-            className="px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-          >
-            <option value="" disabled>Year (YYYY)</option>
-            {yearsOptions.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setIsOpen(!isOpen);
+            setPopupView("days");
+          }}
+          className={`px-4 py-3 rounded-2xl border font-bold text-xs flex items-center gap-2 transition-all shadow-sm ${
+            isOpen
+              ? "bg-brand-600 text-white border-brand-600 shadow-md"
+              : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
+          }`}
+          title="Open Interactive Calendar Widget"
+        >
+          <CalendarIcon className="w-4 h-4 text-brand-500 dark:text-brand-400" />
+          <span>Calendar</span>
+        </button>
       </div>
 
       {parsed ? (
-        <div className="p-2.5 px-3 rounded-xl bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800/60 text-xs text-brand-700 dark:text-brand-300 font-medium flex items-center justify-between">
+        <div className="p-2.5 px-3.5 rounded-xl bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800/60 text-xs text-brand-700 dark:text-brand-300 font-medium flex items-center justify-between">
           <span className="flex items-center gap-1.5">
             <Check className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400 shrink-0" />
             <span>Selected Date: <strong>{formatIndianDisplay(parsed.year, parsed.month, parsed.day)}</strong></span>
@@ -252,14 +214,15 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
         </div>
       ) : (
         <div className="text-[11px] text-amber-600 dark:text-amber-400 italic">
-          Enter date in DD.MM.YYYY format (e.g. 12.10.2005) or use calendar dropdowns.
+          Enter date in DD.MM.YYYY format (e.g. 12.10.2005) or click Calendar button.
         </div>
       )}
 
-      {/* Popover Calendar Grid */}
+      {/* Popover Calendar Grid with Smooth Scrollable Month & Year Views */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 z-50 w-full max-w-sm p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-3 animate-fade-in">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+        <div className="absolute top-full left-0 mt-2 z-50 w-full max-w-sm p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-3 animate-fade-in">
+          {/* Header Controls */}
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
             <button
               type="button"
               onClick={() => {
@@ -270,35 +233,28 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
                   setViewMonth(viewMonth - 1);
                 }
               }}
-              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+              className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
 
-            <div className="flex gap-1">
-              <select
-                value={viewMonth}
-                onChange={(e) => setViewMonth(Number(e.target.value))}
-                className="bg-transparent font-bold text-xs text-slate-800 dark:text-slate-200 cursor-pointer focus:outline-none"
+            {/* Clickable Header Toggles for Month and Year */}
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setPopupView(popupView === "months" ? "days" : "months")}
+                className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-extrabold text-xs text-slate-800 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/60"
               >
-                {MONTH_NAMES.map((name, idx) => (
-                  <option key={name} value={idx} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-                    {name}
-                  </option>
-                ))}
-              </select>
+                {MONTH_NAMES[viewMonth]} ▾
+              </button>
 
-              <select
-                value={viewYear}
-                onChange={(e) => setViewYear(Number(e.target.value))}
-                className="bg-transparent font-bold text-xs text-slate-800 dark:text-slate-200 cursor-pointer focus:outline-none"
+              <button
+                type="button"
+                onClick={() => setPopupView(popupView === "years" ? "days" : "years")}
+                className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-extrabold text-xs text-slate-800 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/60"
               >
-                {yearsOptions.map((y) => (
-                  <option key={y} value={y} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-                    {y}
-                  </option>
-                ))}
-              </select>
+                {viewYear} ▾
+              </button>
             </div>
 
             <button
@@ -311,59 +267,111 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
                   setViewMonth(viewMonth + 1);
                 }
               }}
-              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+              className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="grid grid-cols-7 text-center">
-            {WEEKDAY_SHORT.map((wd) => (
-              <span key={wd} className="text-[10px] font-extrabold uppercase text-slate-400">
-                {wd}
-              </span>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7 gap-1">
-            {daysArray.map((dayNum, idx) => {
-              if (dayNum === null) {
-                return <div key={`empty-${idx}`} />;
-              }
-
-              const isSelected =
-                parsed &&
-                parsed.year === viewYear &&
-                parsed.month === viewMonth + 1 &&
-                parsed.day === dayNum;
-
-              const isToday =
-                new Date().getFullYear() === viewYear &&
-                new Date().getMonth() === viewMonth &&
-                new Date().getDate() === dayNum;
-
-              return (
+          {/* VIEW MODE 1: Scrollable Month Selector Grid */}
+          {popupView === "months" && (
+            <div className="grid grid-cols-3 gap-2 max-h-52 overflow-y-auto p-1 scrollbar-thin">
+              {MONTH_NAMES.map((mName, mIdx) => (
                 <button
-                  key={dayNum}
+                  key={mName}
                   type="button"
                   onClick={() => {
-                    updateDate(viewYear, viewMonth + 1, dayNum);
-                    setIsOpen(false);
+                    setViewMonth(mIdx);
+                    setPopupView("days");
                   }}
-                  className={`py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    isSelected
-                      ? "bg-brand-600 text-white shadow-md scale-105"
-                      : isToday
-                      ? "border border-brand-500 text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950"
-                      : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                  className={`py-2 px-1 text-xs font-bold rounded-xl border transition-all ${
+                    viewMonth === mIdx
+                      ? "bg-brand-600 text-white border-brand-600 shadow-sm"
+                      : "bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100"
                   }`}
                 >
-                  {dayNum}
+                  {mName.substring(0, 3)}
                 </button>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
 
+          {/* VIEW MODE 2: Scrollable Year Selector List */}
+          {popupView === "years" && (
+            <div className="grid grid-cols-4 gap-1.5 max-h-52 overflow-y-auto p-1 scrollbar-thin">
+              {yearsOptions.map((y) => (
+                <button
+                  key={y}
+                  type="button"
+                  onClick={() => {
+                    setViewYear(y);
+                    setPopupView("days");
+                  }}
+                  className={`py-1.5 px-1 text-xs font-bold rounded-xl border transition-all ${
+                    viewYear === y
+                      ? "bg-brand-600 text-white border-brand-600 shadow-sm"
+                      : "bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  {y}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* VIEW MODE 3: Days Calendar Grid */}
+          {popupView === "days" && (
+            <>
+              <div className="grid grid-cols-7 text-center">
+                {WEEKDAY_SHORT.map((wd) => (
+                  <span key={wd} className="text-[10px] font-extrabold uppercase text-slate-400">
+                    {wd}
+                  </span>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-7 gap-1">
+                {daysArray.map((dayNum, idx) => {
+                  if (dayNum === null) {
+                    return <div key={`empty-${idx}`} />;
+                  }
+
+                  const isSelected =
+                    parsed &&
+                    parsed.year === viewYear &&
+                    parsed.month === viewMonth + 1 &&
+                    parsed.day === dayNum;
+
+                  const isToday =
+                    new Date().getFullYear() === viewYear &&
+                    new Date().getMonth() === viewMonth &&
+                    new Date().getDate() === dayNum;
+
+                  return (
+                    <button
+                      key={dayNum}
+                      type="button"
+                      onClick={() => {
+                        updateDate(viewYear, viewMonth + 1, dayNum);
+                        setIsOpen(false);
+                      }}
+                      className={`py-2 rounded-xl text-xs font-bold transition-all ${
+                        isSelected
+                          ? "bg-brand-600 text-white shadow-md scale-105"
+                          : isToday
+                          ? "border border-brand-500 text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950"
+                          : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      {dayNum}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* Quick Actions Footer */}
           <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
             <button
               type="button"
@@ -371,11 +379,23 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
                 const now = new Date();
                 updateDate(now.getFullYear(), now.getMonth() + 1, now.getDate());
                 setIsOpen(false);
+                setPopupView("days");
               }}
               className="text-xs text-brand-600 dark:text-brand-400 font-bold hover:underline"
             >
               Select Today
             </button>
+
+            {popupView !== "days" && (
+              <button
+                type="button"
+                onClick={() => setPopupView("days")}
+                className="text-xs text-slate-500 hover:text-slate-700 font-bold"
+              >
+                ← Back to Days
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setIsOpen(false)}
@@ -418,61 +438,163 @@ export default function AgeChrono() {
   const [zodiac, setZodiac] = useState<ZodiacDetail>({
     name: "",
     rashiName: "",
-    icon: "",
     element: "",
     rulingPlanet: "",
+    luckyColor: "",
+    luckyNumber: "",
+    traits: "",
   });
-  const [chineseZodiac, setChineseZodiac] = useState({ name: "", icon: "" });
+
+  const [chineseZodiac, setChineseZodiac] = useState<{ name: string; trait: string }>({
+    name: "",
+    trait: "",
+  });
+
   const [bornDay, setBornDay] = useState<string>("");
+  const [isFutureError, setIsFutureError] = useState<boolean>(false);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const getZodiacDetail = (day: number, month: number): ZodiacDetail => {
     if ((month === 3 && day >= 21) || (month === 4 && day <= 19))
-      return { name: "Aries", rashiName: "Mesh (Aries)", icon: "♈", element: "Fire", rulingPlanet: "Mars" };
+      return {
+        name: "Aries",
+        rashiName: "Mesh (Aries)",
+        element: "Fire",
+        rulingPlanet: "Mars",
+        luckyColor: "Red & Scarlet",
+        luckyNumber: "9 & 18",
+        traits: "Courageous, Energetic, Dynamic & Confident",
+      };
     if ((month === 4 && day >= 20) || (month === 5 && day <= 20))
-      return { name: "Taurus", rashiName: "Vrishabh (Taurus)", icon: "♉", element: "Earth", rulingPlanet: "Venus" };
+      return {
+        name: "Taurus",
+        rashiName: "Vrishabh (Taurus)",
+        element: "Earth",
+        rulingPlanet: "Venus",
+        luckyColor: "Emerald & Pink",
+        luckyNumber: "6 & 15",
+        traits: "Reliable, Patient, Practical & Loyal",
+      };
     if ((month === 5 && day >= 21) || (month === 6 && day <= 20))
-      return { name: "Gemini", rashiName: "Mithun (Gemini)", icon: "♊", element: "Air", rulingPlanet: "Mercury" };
+      return {
+        name: "Gemini",
+        rashiName: "Mithun (Gemini)",
+        element: "Air",
+        rulingPlanet: "Mercury",
+        luckyColor: "Yellow & Green",
+        luckyNumber: "5 & 14",
+        traits: "Adaptable, Outgoing, Intelligent & Curious",
+      };
     if ((month === 6 && day >= 21) || (month === 7 && day <= 22))
-      return { name: "Cancer", rashiName: "Kark (Cancer)", icon: "♋", element: "Water", rulingPlanet: "Moon" };
+      return {
+        name: "Cancer",
+        rashiName: "Kark (Cancer)",
+        element: "Water",
+        rulingPlanet: "Moon",
+        luckyColor: "Silver & White",
+        luckyNumber: "2 & 11",
+        traits: "Intuitive, Caring, Protective & Compassionate",
+      };
     if ((month === 7 && day >= 23) || (month === 8 && day <= 22))
-      return { name: "Leo", rashiName: "Singh (Leo)", icon: "♌", element: "Fire", rulingPlanet: "Sun" };
+      return {
+        name: "Leo",
+        rashiName: "Singh (Leo)",
+        element: "Fire",
+        rulingPlanet: "Sun",
+        luckyColor: "Gold & Amber",
+        luckyNumber: "1 & 10",
+        traits: "Generous, Passionate, Charismatic & Strong-willed",
+      };
     if ((month === 8 && day >= 23) || (month === 9 && day <= 22))
-      return { name: "Virgo", rashiName: "Kanya (Virgo)", icon: "♍", element: "Earth", rulingPlanet: "Mercury" };
+      return {
+        name: "Virgo",
+        rashiName: "Kanya (Virgo)",
+        element: "Earth",
+        rulingPlanet: "Mercury",
+        luckyColor: "Olive & Navy Blue",
+        luckyNumber: "5 & 23",
+        traits: "Analytical, Meticulous, Helpful & Hardworking",
+      };
     if ((month === 9 && day >= 23) || (month === 10 && day <= 22))
-      return { name: "Libra", rashiName: "Tula (Libra)", icon: "♎", element: "Air", rulingPlanet: "Venus" };
+      return {
+        name: "Libra",
+        rashiName: "Tula (Libra)",
+        element: "Air",
+        rulingPlanet: "Venus",
+        luckyColor: "Blue & Jade",
+        luckyNumber: "6 & 7",
+        traits: "Charming, Balanced, Diplomatic & Creative",
+      };
     if ((month === 10 && day >= 23) || (month === 11 && day <= 21))
-      return { name: "Scorpio", rashiName: "Vrishchik (Scorpio)", icon: "♏", element: "Water", rulingPlanet: "Mars" };
+      return {
+        name: "Scorpio",
+        rashiName: "Vrishchik (Scorpio)",
+        element: "Water",
+        rulingPlanet: "Mars",
+        luckyColor: "Maroon & Black",
+        luckyNumber: "8 & 17",
+        traits: "Passionate, Resourceful, Brave & Determined",
+      };
     if ((month === 11 && day >= 22) || (month === 12 && day <= 21))
-      return { name: "Sagittarius", rashiName: "Dhanu (Sagittarius)", icon: "♐", element: "Fire", rulingPlanet: "Jupiter" };
+      return {
+        name: "Sagittarius",
+        rashiName: "Dhanu (Sagittarius)",
+        element: "Fire",
+        rulingPlanet: "Jupiter",
+        luckyColor: "Purple & Indigo",
+        luckyNumber: "3 & 12",
+        traits: "Optimistic, Adventurous, Honest & Philosophical",
+      };
     if ((month === 12 && day >= 22) || (month === 1 && day <= 19))
-      return { name: "Capricorn", rashiName: "Makar (Capricorn)", icon: "♑", element: "Earth", rulingPlanet: "Saturn" };
+      return {
+        name: "Capricorn",
+        rashiName: "Makar (Capricorn)",
+        element: "Earth",
+        rulingPlanet: "Saturn",
+        luckyColor: "Brown & Charcoal",
+        luckyNumber: "4 & 8",
+        traits: "Disciplined, Ambitious, Responsible & Persistent",
+      };
     if ((month === 1 && day >= 20) || (month === 2 && day <= 18))
-      return { name: "Aquarius", rashiName: "Kumbh (Aquarius)", icon: "♒", element: "Air", rulingPlanet: "Saturn" };
-    return { name: "Pisces", rashiName: "Meen (Pisces)", icon: "♓", element: "Water", rulingPlanet: "Jupiter" };
+      return {
+        name: "Aquarius",
+        rashiName: "Kumbh (Aquarius)",
+        element: "Air",
+        rulingPlanet: "Saturn",
+        luckyColor: "Turquoise & Silver",
+        luckyNumber: "7 & 22",
+        traits: "Innovative, Independent, Visionary & Humanitarian",
+      };
+    return {
+      name: "Pisces",
+      rashiName: "Meen (Pisces)",
+      element: "Water",
+      rulingPlanet: "Jupiter",
+      luckyColor: "Sea Green & Violet",
+      luckyNumber: "3 & 7",
+      traits: "Empathetic, Artistic, Intuitive & Wise",
+    };
   };
 
   const getChineseZodiac = (year: number) => {
     const animals = [
-      { name: "Rat", icon: "🐀" },
-      { name: "Ox", icon: "🐂" },
-      { name: "Tiger", icon: "🐅" },
-      { name: "Rabbit", icon: "🐇" },
-      { name: "Dragon", icon: "🐉" },
-      { name: "Snake", icon: "🐍" },
-      { name: "Horse", icon: "🐎" },
-      { name: "Goat", icon: "🐐" },
-      { name: "Monkey", icon: "🐒" },
-      { name: "Rooster", icon: "🐓" },
-      { name: "Dog", icon: "🐕" },
-      { name: "Pig", icon: "🐖" },
+      { name: "Year of the Rat", trait: "Quick-witted & Charming" },
+      { name: "Year of the Ox", trait: "Patient & Dependable" },
+      { name: "Year of the Tiger", trait: "Brave & Confident" },
+      { name: "Year of the Rabbit", trait: "Gentle & Elegant" },
+      { name: "Year of the Dragon", trait: "Charismatic & Strong" },
+      { name: "Year of the Snake", trait: "Wise & Enigmatic" },
+      { name: "Year of the Horse", trait: "Energetic & Independent" },
+      { name: "Year of the Goat", trait: "Calm & Creative" },
+      { name: "Year of the Monkey", trait: "Smart & Playful" },
+      { name: "Year of the Rooster", trait: "Observant & Hardworking" },
+      { name: "Year of the Dog", trait: "Honest & Loyal" },
+      { name: "Year of the Pig", trait: "Generous & Compassionate" },
     ];
     const index = (year - 1900) % 12;
     return animals[index >= 0 ? index : (index + 12) % 12];
   };
-
-  const [isFutureError, setIsFutureError] = useState<boolean>(false);
 
   const calculateAge = () => {
     if (!birthdate) {
@@ -595,7 +717,7 @@ export default function AgeChrono() {
         <div className="utility-card p-6 rounded-3xl border shadow-sm space-y-5 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
           <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
             <CardTitle>Age Calculator &amp; Birth Details</CardTitle>
-            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+            <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
               Instant
             </span>
           </div>
@@ -649,28 +771,45 @@ export default function AgeChrono() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Birth Day of Week */}
-                <div className="bg-black/20 p-4 rounded-2xl border border-white/10 space-y-1">
+                <div className="bg-black/20 p-4 rounded-2xl border border-white/10 space-y-1.5">
                   <span className="text-[10px] uppercase tracking-wider text-purple-200 font-bold block">
                     Day of Birth
                   </span>
-                  <div className="text-2xl font-black text-amber-300">
-                    {bornDay}
+                  <div className="text-2xl font-black text-amber-300 flex items-center gap-2">
+                    <CalendarDays className="w-5 h-5 text-amber-300" />
+                    <span>{bornDay}</span>
                   </div>
                   <p className="text-[11px] text-white/80">You were born on a {bornDay}!</p>
                 </div>
 
                 {/* Rashi & Western Zodiac */}
-                <div className="bg-black/20 p-4 rounded-2xl border border-white/10 space-y-1">
+                <div className="bg-black/20 p-4 rounded-2xl border border-white/10 space-y-1.5">
                   <span className="text-[10px] uppercase tracking-wider text-purple-200 font-bold block">
                     Rashi / Zodiac Sign
                   </span>
                   <div className="text-2xl font-black text-white flex items-center gap-2">
-                    <span className="text-3xl">{zodiac.icon}</span>
+                    <Star className="w-5 h-5 text-amber-300" />
                     <span>{zodiac.rashiName}</span>
                   </div>
                   <p className="text-[11px] text-white/80">
-                    Element: {zodiac.element} | Planet: {zodiac.rulingPlanet}
+                    Element: {zodiac.element} | Ruling Planet: {zodiac.rulingPlanet}
                   </p>
+                </div>
+              </div>
+
+              {/* Rich Astrological Insights Bar */}
+              <div className="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs border-t border-white/10">
+                <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                  <span className="text-[10px] opacity-75 font-semibold block uppercase">Lucky Color</span>
+                  <span className="font-bold text-amber-200">{zodiac.luckyColor}</span>
+                </div>
+                <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                  <span className="text-[10px] opacity-75 font-semibold block uppercase">Lucky Numbers</span>
+                  <span className="font-bold text-amber-200">{zodiac.luckyNumber}</span>
+                </div>
+                <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                  <span className="text-[10px] opacity-75 font-semibold block uppercase">Personality Traits</span>
+                  <span className="font-medium text-purple-100 text-[11px] leading-tight block">{zodiac.traits}</span>
                 </div>
               </div>
             </div>
@@ -740,7 +879,7 @@ export default function AgeChrono() {
               </div>
             </div>
 
-            {/* Chinese Zodiac & Extras */}
+            {/* Chinese Zodiac Details */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-5 shadow-sm flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Compass className="w-6 h-6 text-indigo-500" />
@@ -749,11 +888,11 @@ export default function AgeChrono() {
                     Chinese Zodiac Sign
                   </h4>
                   <p className="text-xs text-slate-500">
-                    Based on your birth year: <strong className="text-slate-800 dark:text-slate-200">{chineseZodiac.name}</strong>
+                    <strong className="text-slate-800 dark:text-slate-200">{chineseZodiac.name}</strong> — {chineseZodiac.trait}
                   </p>
                 </div>
               </div>
-              <span className="text-3xl">{chineseZodiac.icon}</span>
+              <ShieldCheck className="w-6 h-6 text-emerald-500" />
             </div>
 
             {/* Total Elapsed stats */}
