@@ -57,7 +57,6 @@ export function JobPortalFooter() {
   };
 
   return (
-  return (
     <footer className="mt-16 relative overflow-hidden z-20">
       {/* Glowing Tricolor Top Accent Bar */}
       <div className="relative h-1 w-full flex shadow-[0_-4px_25px_rgba(245,158,11,0.25)]">
