@@ -218,9 +218,9 @@ function CalendarDatePicker({ label, id, value, onChange }: CalendarDatePickerPr
         </div>
       )}
 
-      {/* Popover Calendar Grid with Smooth Scrollable Month & Year Views */}
+      {/* Expandable Inline Calendar Widget (No Page Scroll Collisions) */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 z-50 w-full max-w-sm p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-3 animate-fade-in">
+        <div className="w-full mt-3 p-4 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 animate-fade-in">
           {/* Header Controls */}
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
             <button
