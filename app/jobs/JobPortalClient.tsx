@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Header } from "@/components/shared/Header";
 import JobPortal from "@/components/modules/jobs/JobPortal";
 import { JobPortalFooter } from "@/components/modules/jobs/JobPortalFooter";
@@ -10,6 +10,13 @@ import Link from "next/link";
 export default function JobPortalClient() {
   const router = useRouter();
   const [headerSearch, setHeaderSearch] = useState("");
+
+  // Force scroll to top on initial page visit
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 selection:bg-amber-500 selection:text-white transition-colors duration-300">

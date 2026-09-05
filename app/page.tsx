@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Header } from "@/components/shared/Header";
 import GovtDirectory from "@/components/modules/directory/GovtDirectory";
@@ -229,6 +229,13 @@ export default function Page() {
   const [searchVal, setSearchVal] = useState<string>("");
   const [activeCat, setActiveCat] = useState<string>("all");
   const [isNavigating, setIsNavigating] = useState<boolean>(false);
+
+  // Force scroll to top on initial page load / visit
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, []);
 
   // Handle high-speed government-grade view transition & scroll reset
   const handleViewChange = (newView: string) => {
@@ -488,177 +495,171 @@ export default function Page() {
         </div>
       </main>
 
-      {/* Global Footer — Premium */}
-      <footer className="mt-auto relative overflow-hidden">
-        {/* Tricolor Top Bar */}
-        <div className="h-1 w-full flex">
+      {/* Global Footer — Ultra-Compact & Glassmorphism Neon VFX */}
+      <footer className="mt-16 relative overflow-hidden z-20">
+        {/* Glowing Tricolor Top Accent Line with Ambient Glow Aura */}
+        <div className="relative h-1 w-full flex shadow-[0_-4px_25px_rgba(245,158,11,0.25)]">
           <div className="flex-1 bg-[#FF9933]" />
-          <div className="flex-1 bg-white dark:bg-slate-300" />
+          <div className="flex-1 bg-white dark:bg-slate-200" />
           <div className="flex-1 bg-[#138808]" />
         </div>
 
-        <div className="bg-slate-950 text-slate-300 relative">
-          {/* Subtle glow blobs */}
+        <div className="bg-slate-950/95 backdrop-blur-xl text-slate-300 relative border-t border-slate-800/80">
+          {/* Ambient VFX Backdrop Glow Blobs */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute -top-32 left-1/3 w-72 h-72 rounded-full bg-orange-900/15 blur-3xl" />
-            <div className="absolute -bottom-16 right-1/4 w-64 h-64 rounded-full bg-emerald-900/10 blur-3xl" />
+            <div className="absolute -top-24 left-1/4 w-80 h-80 rounded-full bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-transparent blur-3xl" />
+            <div className="absolute -bottom-24 right-1/4 w-80 h-80 rounded-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent blur-3xl" />
           </div>
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* ── MAIN GRID ── */}
-            <div className="py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 border-b border-slate-800/70">
+            {/* ── BALANCED 4-COLUMN GRID (NO BLANK SPOTS) ── */}
+            <div className="py-8 sm:py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 border-b border-slate-800/70 text-xs">
 
-              {/* Brand Column */}
-              <div className="space-y-5">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-emerald-600 flex items-center justify-center shadow-lg">
-                      <ShieldCheck className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-black text-white">BharatKits Hub</div>
-                      <div className="text-[10px] text-orange-400 font-bold uppercase tracking-widest">Digital India Utility Hub</div>
-                    </div>
+              {/* Col 1: Brand & Digital India Mission */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 via-amber-500 to-emerald-600 flex items-center justify-center shadow-md shadow-orange-500/20">
+                    <ShieldCheck className="w-4 h-4 text-white" />
                   </div>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    Free, open-source, all-in-one utility platform for Indian citizens, students, small businesses &amp; cyber cafes. Zero server logs. 100% client-side processing.
-                  </p>
-                </div>
-
-                {/* Digital India Badge */}
-                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[#FF9933]/10 via-white/5 to-[#138808]/10 border border-slate-800">
-                  <span className="text-xl">🇮🇳</span>
                   <div>
-                    <div className="text-xs font-black text-white">Made for Digital India</div>
-                    <div className="text-[10px] text-slate-500">Jai Hind 🙏</div>
+                    <div className="text-sm font-black text-white tracking-tight">BharatKits Hub</div>
+                    <div className="text-[9px] text-orange-400 font-extrabold uppercase tracking-widest">Digital India Citizen Utility</div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-semibold">
-                    <ShieldCheck className="w-3 h-3 text-emerald-400" /> 100% Private
+                <p className="text-slate-400 text-[11px] leading-relaxed">
+                  100% free browser-based utility platform for Indian citizens, cyber cafes &amp; students. Zero server tracking.
+                </p>
+
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800 text-[10px]">
+                  <span className="text-base">🇮🇳</span>
+                  <span className="font-bold text-slate-200">Made for Digital India • Jai Hind 🙏</span>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] text-emerald-400 font-bold">
+                    🔒 100% Client-Side
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-semibold">
+                  <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] text-amber-400 font-bold">
                     ⚡ Zero Cost
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-semibold">
-                    🔓 Open Source
-                  </span>
                 </div>
               </div>
 
-              {/* Cyber Cafe Tools */}
-              <div className="space-y-3">
-                <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Cyber Cafe Tools</h4>
-                <ul className="space-y-2 text-xs text-slate-400">
+              {/* Col 2: Cyber Cafe Tools */}
+              <div className="space-y-2.5">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  Cyber Cafe Utilities
+                </h4>
+                <ul className="space-y-1.5 text-[11px] text-slate-400">
                   {[
-                    "PDF Editor & Digital Signer",
-                    "HTML to PDF Studio",
-                    "ID Front-Back PDF Combiner",
-                    "Govt Form Image Resizer",
-                    "Biodata & Resume Builder",
-                    "Affidavit & Legal Draft",
-                    "Aadhaar Secure Masker",
-                    "Hindi Font Converter",
-                  ].map((t) => (
-                    <li key={t} className="flex items-center gap-1.5 hover:text-orange-400 transition-colors cursor-pointer" onClick={() => setActiveView("dashboard")}>
-                      <span className="text-slate-700">›</span> {t}
+                    { label: "PDF Editor & Signer", key: "pdf-editor" },
+                    { label: "ID Card Front-Back Combiner", key: "id-card-combiner" },
+                    { label: "Govt Form Image Resizer", key: "resizer-compressor" },
+                    { label: "Passport Photo Sheet Maker", key: "passport-photo-sheet" },
+                    { label: "Quick Biodata & Resume Builder", key: "biodata-generator" },
+                    { label: "Affidavit & Legal Drafts", key: "affidavit-generator" },
+                  ].map((item) => (
+                    <li
+                      key={item.key}
+                      className="hover:text-orange-400 transition-colors cursor-pointer flex items-center gap-1 group"
+                      onClick={() => handleViewChange(item.key)}
+                    >
+                      <span className="text-slate-600 group-hover:text-orange-400 transition-colors">›</span>
+                      <span>{item.label}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* Calculators & Portals */}
-              <div className="space-y-3">
-                <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Calculators & Portals</h4>
-                <ul className="space-y-2 text-xs text-slate-400">
+              {/* Col 3: Calculators & Direct Portals */}
+              <div className="space-y-2.5">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  Calculators &amp; Portals
+                </h4>
+                <ul className="space-y-1.5 text-[11px] text-slate-400">
                   {[
-                    "GST & Bill Splitter",
-                    "Loan EMI Calculator",
-                    "Govt Savings (PPF/SSY/NPS)",
-                    "Age & Chrono Engine",
-                    "GST Cash Memo Generator",
-                    "UPI Payment QR Studio",
-                    "Aadhaar QR Scanner",
-                    "Govt Portal Directory",
-                  ].map((t) => (
-                    <li key={t} className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors cursor-pointer" onClick={() => setActiveView("dashboard")}>
-                      <span className="text-slate-700">›</span> {t}
+                    { label: "Govt Exam Cut-Off Age Calc", key: "age-date" },
+                    { label: "GST & Loan EMI Calculator", key: "gst-emi-calculator" },
+                    { label: "Govt Direct Portal Directory", key: "govt-directory" },
+                    { label: "UPI Payment QR Studio", key: "dashboard" },
+                    { label: "Aadhaar Masker & Privacy", key: "aadhaar-masker" },
+                    { label: "Hindi Font Converter", key: "hindi-font-converter" },
+                  ].map((item) => (
+                    <li
+                      key={item.label}
+                      className="hover:text-emerald-400 transition-colors cursor-pointer flex items-center gap-1 group"
+                      onClick={() => handleViewChange(item.key)}
+                    >
+                      <span className="text-slate-600 group-hover:text-emerald-400 transition-colors">›</span>
+                      <span>{item.label}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* Job Portal & Legal */}
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Job Portal</h4>
-                  <ul className="space-y-2 text-xs text-slate-400">
-                    {[
-                      "All India Sarkari Jobs",
-                      "Private & Tech Careers",
-                      "Teaching & Education",
-                      "Railway & Defence",
-                      "Banking & PSU",
-                      "State PSC & SSC/UPSC",
-                    ].map((t) => (
-                      <li key={t} className="flex items-center gap-1.5 hover:text-indigo-400 transition-colors cursor-pointer" onClick={() => setActiveView("job-portal")}>
-                        <span className="text-slate-700">›</span> {t}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Legal &amp; Compliance</h4>
-                  <ul className="space-y-2 text-xs text-slate-400">
-                    <li>
-                      <Link href="/privacy" className="hover:text-indigo-400 transition-colors">
-                        Privacy Policy
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/terms" className="hover:text-indigo-400 transition-colors">
-                        Terms of Service
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/disclaimer" className="hover:text-amber-400 transition-colors">
-                        Legal Disclaimer
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/takedown" className="hover:text-amber-400 font-bold transition-colors text-amber-500">
-                        🛡️ Content Takedown
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/about" className="hover:text-orange-400 transition-colors">
-                        About BharatKits
-                      </Link>
-                    </li>
-                    <li>
-                      <a href="https://github.com/loharbijoy2005-a11y/BharatKits-Hub" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors inline-flex items-center gap-1">
-                        GitHub Repository ↗
-                      </a>
-                    </li>
-                  </ul>
-                </div>
+              {/* Col 4: All India Jobs & Compliance Links */}
+              <div className="space-y-2.5">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                  Jobs &amp; Compliance
+                </h4>
+                <ul className="space-y-1.5 text-[11px] text-slate-400">
+                  <li
+                    className="hover:text-amber-400 transition-colors cursor-pointer font-bold text-amber-300 flex items-center gap-1 group"
+                    onClick={() => handleViewChange("job-portal")}
+                  >
+                    <span className="text-amber-400">🔥</span>
+                    <span>All India Sarkari &amp; Private Jobs</span>
+                  </li>
+                  <li>
+                    <Link href="/privacy" className="hover:text-indigo-400 transition-colors">
+                      Privacy Policy
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/terms" className="hover:text-indigo-400 transition-colors">
+                      Terms of Service
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/disclaimer" className="hover:text-indigo-400 transition-colors">
+                      Legal Disclaimer
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/takedown" className="hover:text-rose-400 font-semibold transition-colors text-rose-400">
+                      🛡️ Content Takedown
+                    </Link>
+                  </li>
+                  <li>
+                    <a
+                      href="https://github.com/loharbijoy2005-a11y/BharatKits-Hub"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-orange-400 transition-colors inline-flex items-center gap-1"
+                    >
+                      GitHub Repo ↗
+                    </a>
+                  </li>
+                </ul>
               </div>
+
             </div>
 
-            {/* ── DISCLAIMER ── */}
-            <div className="py-4 border-b border-slate-800/50">
-              <p className="text-[11px] text-slate-600 text-center leading-relaxed max-w-4xl mx-auto">
-                <span className="font-bold text-amber-700">⚠️ Disclaimer:</span> BharatKits Hub is an independent open-source platform. All tools run 100% locally in your browser — no citizen data, Aadhaar scans, or documents are ever uploaded to any server.
+            {/* ── COMPACT DISCLAIMER BAR ── */}
+            <div className="py-3 border-b border-slate-800/50">
+              <p className="text-[10px] text-slate-500 text-center leading-relaxed max-w-3xl mx-auto">
+                <span className="font-bold text-amber-500">⚠️ Notice:</span> BharatKits Hub is an open-source citizen utility platform. All operations process locally inside your browser; no document data or scans are transmitted to any server.
               </p>
             </div>
 
-            {/* ── COPYRIGHT BAR ── */}
-            <div className="py-6 flex flex-col md:flex-row items-center justify-between gap-6">
-              {/* Creator VFX Card */}
-              <div className="flex items-center gap-4 text-center md:text-left">
-                {/* VFX Glowing Avatar Frame */}
+            {/* ── Sleek COPYRIGHT & VFX CREATOR BAR ── */}
+            <div className="py-5 flex flex-col sm:flex-row items-center justify-between gap-5">
+              {/* Premium Creator VFX Holographic Avatar Card */}
+              <div className="flex items-center gap-3.5 text-center sm:text-left">
                 <a
                   href="https://github.com/loharbijoy2005-a11y"
                   target="_blank"
@@ -667,18 +668,18 @@ export default function Page() {
                   title="Bijoy Lohar - Founder &amp; Lead Architect"
                 >
                   {/* Outer animated neon aura glow */}
-                  <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 opacity-75 blur-md group-hover:opacity-100 group-hover:blur-lg transition-all duration-500 animate-pulse" />
+                  <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 opacity-80 blur-md group-hover:opacity-100 group-hover:blur-lg transition-all duration-500 animate-pulse" />
                   
-                  {/* Holographic border container */}
-                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl p-0.5 bg-gradient-to-br from-amber-400 via-rose-500 to-indigo-600 shadow-2xl">
+                  {/* Holographic border frame container */}
+                  <div className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-2xl p-0.5 bg-gradient-to-br from-amber-400 via-rose-500 to-indigo-600 shadow-xl">
                     <div className="w-full h-full rounded-[14px] overflow-hidden bg-slate-950 flex items-center justify-center relative">
                       <img
                         src="https://avatars.githubusercontent.com/u/255526760?v=4"
                         alt="Bijoy Lohar - Creator of BharatKits Hub"
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-115 transition-transform duration-500"
                       />
-                      {/* Cyber scanline highlight */}
-                      <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 to-transparent pointer-events-none" />
+                      {/* Cyber scanline ambient highlight */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/20 via-transparent to-indigo-500/10 pointer-events-none" />
                     </div>
                   </div>
 
@@ -689,35 +690,28 @@ export default function Page() {
                   </span>
                 </a>
 
-                {/* Creator Title & Copyright */}
-                <div className="space-y-0.5">
-                  <div className="text-[14px] font-black text-white tracking-tight flex items-center justify-center md:justify-start gap-2">
-                    <span>© 2026 Bijoy Lohar. All Rights Reserved.</span>
-                  </div>
-                  <div className="text-xs text-slate-400 flex items-center justify-center md:justify-start gap-1.5 flex-wrap">
-                    <span>Designed &amp; Developed by</span>
+                <div className="space-y-0.5 text-xs text-slate-400">
+                  <div className="font-black text-white tracking-tight flex items-center justify-center sm:justify-start gap-1.5">
+                    <span>© 2026</span>
                     <a
                       href="https://github.com/loharbijoy2005-a11y"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-amber-400 font-bold hover:text-amber-300 transition-colors inline-flex items-center gap-1 group"
+                      className="text-amber-400 font-extrabold hover:text-amber-300 transition-colors inline-flex items-center gap-0.5 group"
                     >
-                      Bijoy Lohar <span className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
+                      Bijoy Lohar <span className="text-[10px] group-hover:translate-x-0.5 transition-transform">↗</span>
                     </a>
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-medium">
+                    Founder &amp; Lead Architect • Designed with ❤️ in India
                   </div>
                 </div>
               </div>
 
-              {/* Privacy & Architecture Badge */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 text-center md:text-right">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-400">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Zero-Server Retention Architecture · Encrypted Processing</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400">Made for Digital India</span>
-                  <span className="text-xl" title="Jai Hind 🇮🇳">🇮🇳</span>
-                </div>
+              {/* Zero Retention Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-400 shadow-sm">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>Zero Server Logs Architecture · 100% Encrypted</span>
               </div>
             </div>
           </div>
