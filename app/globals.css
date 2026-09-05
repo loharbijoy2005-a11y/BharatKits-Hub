@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FFFDF9;
+  --background: #f8fafc;
   --foreground: #0f172a;
   
-  --card-bg: rgba(255, 255, 255, 0.9);
-  --card-border: rgba(251, 146, 60, 0.2);
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
 }
 
 .dark {
-  --background: #0d131f;
+  --background: #0f172a;
   --foreground: #f8fafc;
   
-  --card-bg: rgba(15, 23, 42, 0.85);
-  --card-border: rgba(251, 146, 60, 0.25);
+  --card-bg: #1e293b;
+  --card-border: #334155;
 }
 
 @theme inline {
@@ -21,17 +21,17 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-plus-jakarta);
   
-  --color-brand-50: #fff7ed;
-  --color-brand-100: #ffedd5;
-  --color-brand-200: #fed7aa;
-  --color-brand-300: #fdba74;
-  --color-brand-400: #fb923c;
-  --color-brand-500: #f97316;
-  --color-brand-600: #ea580c;
-  --color-brand-700: #c2410c;
-  --color-brand-800: #9a3412;
-  --color-brand-900: #7c2d12;
-  --color-brand-950: #431407;
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+  --color-brand-950: #172554;
 }
 
 body {
@@ -42,10 +42,9 @@ body {
 }
 
 /* Tiranga Tricolor Animations & Utilities */
-@keyframes trishul-wave {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes triranga-sheen {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 @keyframes ashoka-spin {
@@ -53,44 +52,33 @@ body {
   to { transform: rotate(360deg); }
 }
 
-.animate-tiranga-wave {
-  background: linear-gradient(
-    90deg,
-    #FF9933 0%,
-    #FFA74D 20%,
-    #FFFFFF 45%,
-    #000080 50%,
-    #FFFFFF 55%,
-    #138808 80%,
-    #179A0B 100%
-  );
-  background-size: 200% 200%;
-  animation: trishul-wave 8s ease infinite;
+.animate-tiranga-sheen {
+  animation: triranga-sheen 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .animate-ashoka-spin {
-  animation: ashoka-spin 20s linear infinite;
+  animation: ashoka-spin 25s linear infinite;
 }
 
 .text-tiranga-gradient {
-  background: linear-gradient(135deg, #FF9933 0%, #1e40af 50%, #138808 100%);
+  background: linear-gradient(135deg, #FF9933 0%, #000080 50%, #138808 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 /* Glassmorphism Styles */
 .glass {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(251, 146, 60, 0.2);
+  border: 1px solid #e2e8f0;
 }
 
 .dark .glass {
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(30, 41, 59, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid #334155;
 }
 
 .utility-card {
@@ -98,8 +86,8 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--card-border);
-  box-shadow: 0 4px 25px rgba(249, 115, 22, 0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dark .utility-card {
