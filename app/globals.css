@@ -40,27 +40,55 @@
 *, ::before, ::after {
   transition-property: background-color, border-color, text-decoration-color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 400ms;
+  transition-duration: 350ms;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   min-height: 100vh;
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Ensure utility cards inherit theme variables properly with smooth transition */
 .utility-card {
   background-color: var(--card-bg);
   border-color: var(--card-border);
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, transform 0.25s ease;
+  transition: background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, transform 0.2s ease;
 }
 
 .dark .utility-card {
   background-color: var(--card-bg);
   border-color: var(--card-border);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Government-Grade Page Micro-Slide Fade Transition (<200ms) */
+@keyframes gov-micro-slide {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-gov-page-transition {
+  animation: gov-micro-slide 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Accessibility: Respect prefers-reduced-motion strictly (Instant swap, no movement) */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    transition-duration: 0.01ms !important;
+  }
+  .animate-gov-page-transition {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* Theme Particle Burst & Ring Keyframes */

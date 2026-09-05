@@ -322,10 +322,13 @@ const tools: ToolItem[] = [
   },
 ];
 
+import { GovLoadingBar } from "@/components/shared/GovLoadingBar";
+
 export default function Page() {
   const [activeView, setActiveView] = useState<string>("dashboard");
   const [searchVal, setSearchVal] = useState<string>("");
   const [activeCat, setActiveCat] = useState<string>("all");
+  const [isNavigating, setIsNavigating] = useState<boolean>(false);
   const [favorites, setFavorites] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("bharatkits_favorites");
@@ -333,6 +336,27 @@ export default function Page() {
     }
     return [];
   });
+
+  // Handle high-speed government-grade view transition & scroll reset
+  const handleViewChange = (newView: string) => {
+    if (newView === activeView) return;
+    setIsNavigating(true);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    setActiveView(newView);
+    setTimeout(() => setIsNavigating(false), 180);
+  };
+
+  const handleCatChange = (newCat: string) => {
+    if (newCat === activeCat) return;
+    setIsNavigating(true);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    setActiveCat(newCat);
+    setTimeout(() => setIsNavigating(false), 180);
+  };
 
   const toggleFavorite = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -371,6 +395,9 @@ export default function Page() {
 
   return (
     <div className="flex flex-col min-h-screen relative">
+      {/* Top Slim Government Loading Bar */}
+      <GovLoadingBar isLoading={isNavigating} />
+
       {/* Background Graphic Blobs */}
       <div className="fixed inset-0 -z-10 h-full w-full overflow-hidden pointer-events-none">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-orange-200 dark:bg-orange-950/10 rounded-full mix-blend-multiply filter blur-3xl opacity-20 dark:opacity-5 animate-blob"></div>
@@ -382,13 +409,20 @@ export default function Page() {
       <Header
         searchVal={searchVal}
         onSearch={setSearchVal}
-        onGoHome={() => setActiveView("dashboard")}
+        onGoHome={() => handleViewChange("dashboard")}
         showSearch={activeView === "dashboard"}
       />
 
       <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeView === "dashboard" ? (
-          <div className="space-y-8 animate-fade-in">
+        <div
+          key={activeView + activeCat}
+          role="region"
+          aria-live="polite"
+          aria-busy={isNavigating}
+          className="animate-gov-page-transition"
+        >
+          {activeView === "dashboard" ? (
+            <div className="space-y-8">
             {/* Hero Section */}
             <div className="text-center max-w-2xl mx-auto space-y-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/30 text-xs font-black text-orange-800 dark:text-orange-300 shadow-2xs">
@@ -418,7 +452,7 @@ export default function Page() {
                 ].map((cat) => (
                   <button
                     key={cat.id}
-                    onClick={() => setActiveCat(cat.id)}
+                    onClick={() => handleCatChange(cat.id)}
                     className={`px-4 py-2 text-xs font-black rounded-xl transition-all duration-200 whitespace-nowrap ${
                       activeCat === cat.id
                         ? "bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-sm border border-slate-200 dark:border-slate-800"
@@ -450,7 +484,7 @@ export default function Page() {
                   return (
                     <div
                       key={tool.id}
-                      onClick={() => setActiveView(tool.id)}
+                      onClick={() => handleViewChange(tool.id)}
                       className="group relative rounded-3xl utility-card p-6 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs hover:border-orange-400/50 dark:hover:border-orange-500/50"
                     >
                       <div className={`absolute -right-8 -top-8 w-24 h-24 bg-gradient-to-br ${tool.color} opacity-[0.03] group-hover:opacity-15 rounded-full transition-all duration-500 blur-xl`} />
@@ -496,12 +530,12 @@ export default function Page() {
             )}
           </div>
         ) : (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6">
             {/* Workspace Navigation Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setActiveView("dashboard")}
+                  onClick={() => handleViewChange("dashboard")}
                   className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 px-3.5 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-800/40"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" /> Back to Hub
@@ -544,6 +578,7 @@ export default function Page() {
             </div>
           </div>
         )}
+        </div>
       </main>
 
       {/* Global Footer — Premium */}
