@@ -3,18 +3,16 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { PDFDocument } from "pdf-lib";
 import {
-  Upload,
   Download,
   RefreshCw,
   Image as ImageIcon,
-  Sliders,
-  CheckCircle,
   Scissors,
   Grid,
   FileSpreadsheet,
   Printer,
   ChevronDown,
   Tag,
+  SlidersHorizontal,
 } from "lucide-react";
 
 interface SheetPreset {
@@ -82,6 +80,8 @@ export default function PassportPhotoMaker() {
   // Sheet Configurations
   const [selectedPresetId, setSelectedPresetId] = useState<string>("4x6-8");
   const [addCutLines, setAddCutLines] = useState<boolean>(true);
+  const [photoGap, setPhotoGap] = useState<number>(24); // Cut Gap spacing in canvas px (0 to 60px)
+  const [cutStyle, setCutStyle] = useState<"dashed" | "solid">("dashed");
   const [bgTint, setBgTint] = useState<"original" | "white" | "lightblue" | "lightgray">("original");
   
   // Name & Date Overlay Stamp
@@ -110,11 +110,11 @@ export default function PassportPhotoMaker() {
     }
   };
 
-  // Re-generate sheet when image, preset, or settings change
+  // Re-generate sheet when image, preset, gap or settings change
   useEffect(() => {
     if (!imageSrc) return;
     generateSheetPreview();
-  }, [imageSrc, selectedPresetId, addCutLines, bgTint, enableStamp, stampName, stampDate]);
+  }, [imageSrc, selectedPresetId, addCutLines, photoGap, cutStyle, bgTint, enableStamp, stampName, stampDate]);
 
   const generateSheetPreview = async () => {
     if (!imageSrc) return;
@@ -207,49 +207,116 @@ export default function PassportPhotoMaker() {
         }
       }
 
-      // Calculate grid layout maths for print sheet
+      // Grid Dimensions with Explicit Cutting Line Gap Spacing
       const cols = activePreset.cols;
       const rows = activePreset.rows;
-      
-      const marginX = is4x6 ? 60 : 120;
-      const marginY = is4x6 ? 80 : 160;
+
+      const marginX = is4x6 ? 50 : 100;
+      const marginY = is4x6 ? 60 : 120;
 
       const availW = sheetW - 2 * marginX;
       const availH = sheetH - 2 * marginY;
 
-      // Fit photo box width & height inside grid cell
-      const cellW = availW / cols;
-      const cellH = availH / rows;
+      // Max fit dimensions accounting for user photoGap between items
+      const maxFitW = (availW - (cols - 1) * photoGap) / cols;
+      const maxFitH = (availH - (rows - 1) * photoGap) / rows;
 
-      // Photo size inside grid
-      const photoW = Math.min(cellW * 0.88, is4x6 ? 320 : 420);
+      // Maintain exact 3.5 x 4.5 passport aspect ratio
+      const photoW_by_H = maxFitH * (3.5 / 4.5);
+      const photoW = Math.min(maxFitW, photoW_by_H, is4x6 ? 340 : 440);
       const photoH = photoW * (4.5 / 3.5);
+
+      // Center overall photo grid on sheet
+      const gridTotalW = cols * photoW + (cols - 1) * photoGap;
+      const gridTotalH = rows * photoH + (rows - 1) * photoGap;
+      const startX = (sheetW - gridTotalW) / 2;
+      const startY = (sheetH - gridTotalH) / 2;
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const cellX = marginX + c * cellW;
-          const cellY = marginY + r * cellH;
-
-          // Center photo inside grid cell
-          const px = cellX + (cellW - photoW) / 2;
-          const py = cellY + (cellH - photoH) / 2;
+          const px = startX + c * (photoW + photoGap);
+          const py = startY + r * (photoH + photoGap);
 
           // Draw Passport Photo
           ctx.drawImage(passCanvas, px, py, photoW, photoH);
 
-          // Draw Cut Border Lines
+          // Draw Scissors Cutting Border Lines
           if (addCutLines) {
-            ctx.strokeStyle = "#cbd5e1";
+            ctx.strokeStyle = "#64748b"; // Crisp slate cutting guide
             ctx.lineWidth = 2;
-            ctx.setLineDash([8, 6]);
-            ctx.strokeRect(px - 2, py - 2, photoW + 4, photoH + 4);
+            if (cutStyle === "dashed") {
+              ctx.setLineDash([8, 6]);
+            } else {
+              ctx.setLineDash([]);
+            }
+            // Draw cut line border around photo box
+            ctx.strokeRect(px, py, photoW, photoH);
             ctx.setLineDash([]);
           }
         }
       }
 
+      // Draw Corner Registration Cut Ticks on sheet margins for professional cutting alignment
+      if (addCutLines) {
+        ctx.strokeStyle = "#94a3b8";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([]);
+
+        // Horizontal crop ticks
+        for (let r = 0; r < rows; r++) {
+          const py = startY + r * (photoH + photoGap);
+          // Left margin tick
+          ctx.beginPath();
+          ctx.moveTo(startX - 30, py);
+          ctx.lineTo(startX - 8, py);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(startX - 30, py + photoH);
+          ctx.lineTo(startX - 8, py + photoH);
+          ctx.stroke();
+
+          // Right margin tick
+          ctx.beginPath();
+          ctx.moveTo(startX + gridTotalW + 8, py);
+          ctx.lineTo(startX + gridTotalW + 30, py);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(startX + gridTotalW + 8, py + photoH);
+          ctx.lineTo(startX + gridTotalW + 30, py + photoH);
+          ctx.stroke();
+        }
+
+        // Vertical crop ticks
+        for (let c = 0; c < cols; c++) {
+          const px = startX + c * (photoW + photoGap);
+          // Top margin tick
+          ctx.beginPath();
+          ctx.moveTo(px, startY - 30);
+          ctx.lineTo(px, startY - 8);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(px + photoW, startY - 30);
+          ctx.lineTo(px + photoW, startY - 8);
+          ctx.stroke();
+
+          // Bottom margin tick
+          ctx.beginPath();
+          ctx.moveTo(px, startY + gridTotalH + 8);
+          ctx.lineTo(px, startY + gridTotalH + 30);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(px + photoW, startY + gridTotalH + 8);
+          ctx.lineTo(px + photoW, startY + gridTotalH + 30);
+          ctx.stroke();
+        }
+      }
+
       // Output preview Data URL
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.94);
       setPreviewDataUrl(dataUrl);
 
       // Generate High-Res PDF using pdf-lib
@@ -332,6 +399,101 @@ export default function PassportPhotoMaker() {
             </p>
           </div>
 
+          {/* Scissors Cut Lines & Photo Gap Controls */}
+          <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Scissors className="w-4 h-4 text-amber-500" />
+                <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200">
+                  Scissors Cut Gap &amp; Border Lines
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                checked={addCutLines}
+                onChange={(e) => setAddCutLines(e.target.checked)}
+                className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+              />
+            </div>
+
+            {addCutLines && (
+              <div className="space-y-3 pt-2 border-t border-amber-500/10">
+                {/* Gap Presets */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 flex justify-between">
+                    <span>Gap Between Photos (Cut Margin)</span>
+                    <span className="font-mono text-amber-600 dark:text-amber-400 font-extrabold">{photoGap}px</span>
+                  </label>
+
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[
+                      { label: "None (0)", gap: 0 },
+                      { label: "Small (15)", gap: 15 },
+                      { label: "Medium (25)", gap: 25 },
+                      { label: "Wide (40)", gap: 40 },
+                    ].map((g) => (
+                      <button
+                        key={g.gap}
+                        type="button"
+                        onClick={() => setPhotoGap(g.gap)}
+                        className={`py-1.5 px-1 rounded-lg text-[10px] font-bold transition-all border ${
+                          photoGap === g.gap
+                            ? "bg-amber-500 text-white border-amber-600 shadow-sm"
+                            : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800"
+                        }`}
+                      >
+                        {g.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Custom Gap Slider */}
+                  <div className="flex items-center gap-3 pt-1">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
+                    <input
+                      type="range"
+                      min={0}
+                      max={60}
+                      step={2}
+                      value={photoGap}
+                      onChange={(e) => setPhotoGap(Number(e.target.value))}
+                      className="w-full accent-amber-500 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                {/* Line Style Toggle */}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Cut Line Style</span>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setCutStyle("dashed")}
+                      className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all border ${
+                        cutStyle === "dashed"
+                          ? "bg-amber-500 text-white border-amber-600"
+                          : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800"
+                      }`}
+                    >
+                      Dashed (- -)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCutStyle("solid")}
+                      className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all border ${
+                        cutStyle === "solid"
+                          ? "bg-amber-500 text-white border-amber-600"
+                          : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800"
+                      }`}
+                    >
+                      Solid (—)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Background Tint Option */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
@@ -357,22 +519,6 @@ export default function PassportPhotoMaker() {
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* Scissors Cut Lines Option */}
-          <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <Scissors className="w-4 h-4 text-amber-500" />
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                Print Dashed Cutting Lines
-              </span>
-            </div>
-            <input
-              type="checkbox"
-              checked={addCutLines}
-              onChange={(e) => setAddCutLines(e.target.checked)}
-              className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
-            />
           </div>
 
           {/* SSC / UPSC Name & Date Overlay Stamp */}
