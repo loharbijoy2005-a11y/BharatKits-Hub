@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Tag,
   SlidersHorizontal,
+  Wand2,
 } from "lucide-react";
 
 interface SheetPreset {
@@ -81,8 +82,14 @@ export default function PassportPhotoMaker() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>("4x6-8");
   const [addCutLines, setAddCutLines] = useState<boolean>(true);
   const [photoGap, setPhotoGap] = useState<number>(24); // Cut Gap spacing in canvas px (0 to 60px)
-  const [cutStyle, setCutStyle] = useState<"dashed" | "solid">("dashed");
+  
+  // Border Line Style: Default SOLID continuous line (Black/White/Slate)
+  const [cutStyle, setCutStyle] = useState<"solid" | "dashed">("solid");
+  const [cutColor, setCutColor] = useState<string>("#000000"); // Default solid black line
+
+  // Background Removal & Color Replacement
   const [bgTint, setBgTint] = useState<"original" | "white" | "lightblue" | "lightgray">("original");
+  const [bgSensitivity, setBgSensitivity] = useState<number>(75); // Background keying sensitivity threshold (30 to 120)
   
   // Name & Date Overlay Stamp
   const [enableStamp, setEnableStamp] = useState<boolean>(false);
@@ -110,11 +117,23 @@ export default function PassportPhotoMaker() {
     }
   };
 
-  // Re-generate sheet when image, preset, gap or settings change
+  // Re-generate sheet when image, preset, gap, bgTint, sensitivity or line settings change
   useEffect(() => {
     if (!imageSrc) return;
     generateSheetPreview();
-  }, [imageSrc, selectedPresetId, addCutLines, photoGap, cutStyle, bgTint, enableStamp, stampName, stampDate]);
+  }, [
+    imageSrc,
+    selectedPresetId,
+    addCutLines,
+    photoGap,
+    cutStyle,
+    cutColor,
+    bgTint,
+    bgSensitivity,
+    enableStamp,
+    stampName,
+    stampDate,
+  ]);
 
   const generateSheetPreview = async () => {
     if (!imageSrc) return;
@@ -124,7 +143,7 @@ export default function PassportPhotoMaker() {
     img.src = imageSrc;
     img.onload = async () => {
       // 300 DPI Canvas Setup
-      // 4x6 inches @ 300 DPI = 1200 x 1800 px (Portrait: 1200 x 1800)
+      // 4x6 inches @ 300 DPI = 1200 x 1800 px
       // A4 inches @ 300 DPI = 2480 x 3508 px
       const is4x6 = activePreset.paper === "4x6";
       const sheetW = is4x6 ? 1200 : 2480;
@@ -152,18 +171,6 @@ export default function PassportPhotoMaker() {
       const passCtx = passCanvas.getContext("2d");
 
       if (passCtx) {
-        // Fill passport photo background if tinted
-        if (bgTint === "white") {
-          passCtx.fillStyle = "#ffffff";
-          passCtx.fillRect(0, 0, passportW, passportH);
-        } else if (bgTint === "lightblue") {
-          passCtx.fillStyle = "#dbeafe";
-          passCtx.fillRect(0, 0, passportW, passportH);
-        } else if (bgTint === "lightgray") {
-          passCtx.fillStyle = "#f3f4f6";
-          passCtx.fillRect(0, 0, passportW, passportH);
-        }
-
         // Center crop cover image onto passport ratio
         const imgRatio = img.width / img.height;
         const targetRatio = passportW / passportH;
@@ -178,6 +185,56 @@ export default function PassportPhotoMaker() {
         }
 
         passCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, passportW, passportH);
+
+        // Smart Automatic Background Removal & Color Replacement
+        if (bgTint !== "original") {
+          const imgData = passCtx.getImageData(0, 0, passportW, passportH);
+          const data = imgData.data;
+
+          // Determine target RGB color according to bgTint
+          let targetR = 255, targetG = 255, targetB = 255;
+          if (bgTint === "lightblue") {
+            targetR = 59; targetG = 130; targetB = 246; // Studio Blue #3b82f6
+          } else if (bgTint === "lightgray") {
+            targetR = 243; targetG = 244; targetB = 246; // Light Gray #f3f4f6
+          } else if (bgTint === "white") {
+            targetR = 255; targetG = 255; targetB = 255; // Pure White #ffffff
+          }
+
+          // Sample corner pixels to detect original backdrop color
+          const topLeftIdx = (5 * passportW + 5) * 4;
+          const topRightIdx = (5 * passportW + (passportW - 5)) * 4;
+          const sampleR = (data[topLeftIdx] + data[topRightIdx]) / 2;
+          const sampleG = (data[topLeftIdx + 1] + data[topRightIdx + 1]) / 2;
+          const sampleB = (data[topLeftIdx + 2] + data[topRightIdx + 2]) / 2;
+
+          for (let y = 0; y < passportH; y++) {
+            for (let x = 0; x < passportW; x++) {
+              const i = (y * passportW + x) * 4;
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+
+              // Color distance from detected backdrop
+              const dist = Math.sqrt(
+                (r - sampleR) ** 2 +
+                (g - sampleG) ** 2 +
+                (b - sampleB) ** 2
+              );
+
+              // Check if pixel is light/white backdrop area
+              const isLightBackdrop = (r > 190 && g > 190 && b > 190);
+
+              if (dist < bgSensitivity || (y < passportH * 0.8 && isLightBackdrop && dist < bgSensitivity * 1.3)) {
+                data[i] = targetR;
+                data[i + 1] = targetG;
+                data[i + 2] = targetB;
+              }
+            }
+          }
+
+          passCtx.putImageData(imgData, 0, 0);
+        }
 
         // Optional Name & Date Stamp strip at bottom of passport photo
         if (enableStamp && (stampName || stampDate)) {
@@ -240,16 +297,16 @@ export default function PassportPhotoMaker() {
           // Draw Passport Photo
           ctx.drawImage(passCanvas, px, py, photoW, photoH);
 
-          // Draw Scissors Cutting Border Lines
+          // Draw Solid or Dashed Scissors Cutting Border Lines
           if (addCutLines) {
-            ctx.strokeStyle = "#64748b"; // Crisp slate cutting guide
+            ctx.strokeStyle = cutColor; // Solid black or selected color line
             ctx.lineWidth = 2;
             if (cutStyle === "dashed") {
               ctx.setLineDash([8, 6]);
             } else {
               ctx.setLineDash([]);
             }
-            // Draw cut line border around photo box
+            // Draw clean border around photo box
             ctx.strokeRect(px, py, photoW, photoH);
             ctx.setLineDash([]);
           }
@@ -258,14 +315,13 @@ export default function PassportPhotoMaker() {
 
       // Draw Corner Registration Cut Ticks on sheet margins for professional cutting alignment
       if (addCutLines) {
-        ctx.strokeStyle = "#94a3b8";
+        ctx.strokeStyle = cutColor === "#ffffff" ? "#cbd5e1" : cutColor;
         ctx.lineWidth = 2;
         ctx.setLineDash([]);
 
         // Horizontal crop ticks
         for (let r = 0; r < rows; r++) {
           const py = startY + r * (photoH + photoGap);
-          // Left margin tick
           ctx.beginPath();
           ctx.moveTo(startX - 30, py);
           ctx.lineTo(startX - 8, py);
@@ -276,7 +332,6 @@ export default function PassportPhotoMaker() {
           ctx.lineTo(startX - 8, py + photoH);
           ctx.stroke();
 
-          // Right margin tick
           ctx.beginPath();
           ctx.moveTo(startX + gridTotalW + 8, py);
           ctx.lineTo(startX + gridTotalW + 30, py);
@@ -291,7 +346,6 @@ export default function PassportPhotoMaker() {
         // Vertical crop ticks
         for (let c = 0; c < cols; c++) {
           const px = startX + c * (photoW + photoGap);
-          // Top margin tick
           ctx.beginPath();
           ctx.moveTo(px, startY - 30);
           ctx.lineTo(px, startY - 8);
@@ -302,7 +356,6 @@ export default function PassportPhotoMaker() {
           ctx.lineTo(px + photoW, startY - 8);
           ctx.stroke();
 
-          // Bottom margin tick
           ctx.beginPath();
           ctx.moveTo(px, startY + gridTotalH + 8);
           ctx.lineTo(px, startY + gridTotalH + 30);
@@ -355,6 +408,7 @@ export default function PassportPhotoMaker() {
     setPreviewDataUrl(null);
     setPdfUrl(null);
     setEnableStamp(false);
+    setBgTint("original");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -397,6 +451,59 @@ export default function PassportPhotoMaker() {
             <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
               {activePreset.desc}
             </p>
+          </div>
+
+          {/* Automatic Background Removal & Color Replacement */}
+          <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide flex items-center gap-2">
+                <Wand2 className="w-4 h-4 text-indigo-500" />
+                Background Color &amp; Auto Removal
+              </label>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { id: "original", label: "Original" },
+                { id: "white", label: "Pure White" },
+                { id: "lightblue", label: "Studio Blue" },
+                { id: "lightgray", label: "Light Gray" },
+              ].map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => setBgTint(b.id as any)}
+                  className={`py-2 px-1 rounded-xl text-[10px] font-bold border transition-all ${
+                    bgTint === b.id
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                      : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100"
+                  }`}
+                >
+                  {b.label}
+                </button>
+              ))}
+            </div>
+
+            {bgTint !== "original" && (
+              <div className="space-y-1.5 pt-2 border-t border-indigo-500/10">
+                <div className="flex justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                  <span>Background Removal Sensitivity</span>
+                  <span className="font-mono text-indigo-600 dark:text-indigo-400">{bgSensitivity}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
+                  <input
+                    type="range"
+                    min={30}
+                    max={120}
+                    step={2}
+                    value={bgSensitivity}
+                    onChange={(e) => setBgSensitivity(Number(e.target.value))}
+                    className="w-full accent-indigo-500 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Scissors Cut Lines & Photo Gap Controls */}
@@ -462,63 +569,62 @@ export default function PassportPhotoMaker() {
                   </div>
                 </div>
 
-                {/* Line Style Toggle */}
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Cut Line Style</span>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCutStyle("dashed")}
-                      className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all border ${
-                        cutStyle === "dashed"
-                          ? "bg-amber-500 text-white border-amber-600"
-                          : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800"
-                      }`}
-                    >
-                      Dashed (- -)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCutStyle("solid")}
-                      className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all border ${
-                        cutStyle === "solid"
-                          ? "bg-amber-500 text-white border-amber-600"
-                          : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800"
-                      }`}
-                    >
-                      Solid (—)
-                    </button>
+                {/* Line Style Toggle & Color Selection */}
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">Cut Line Style</span>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setCutStyle("solid")}
+                        className={`flex-1 py-1 text-[10px] font-bold rounded-lg transition-all border ${
+                          cutStyle === "solid"
+                            ? "bg-amber-500 text-white border-amber-600"
+                            : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800"
+                        }`}
+                      >
+                        Solid (—)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCutStyle("dashed")}
+                        className={`flex-1 py-1 text-[10px] font-bold rounded-lg transition-all border ${
+                          cutStyle === "dashed"
+                            ? "bg-amber-500 text-white border-amber-600"
+                            : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800"
+                        }`}
+                      >
+                        Dashed (- -)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">Border Color</span>
+                    <div className="flex gap-1">
+                      {[
+                        { color: "#000000", label: "Black" },
+                        { color: "#334155", label: "Slate" },
+                        { color: "#ffffff", label: "White" },
+                      ].map((c) => (
+                        <button
+                          key={c.color}
+                          type="button"
+                          onClick={() => setCutColor(c.color)}
+                          className={`flex-1 py-1 text-[10px] font-bold rounded-lg transition-all border ${
+                            cutColor === c.color
+                              ? "bg-slate-900 text-white border-slate-900 ring-2 ring-amber-500"
+                              : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800"
+                          }`}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Background Tint Option */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
-              Background Color
-            </label>
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { id: "original", label: "Original" },
-                { id: "white", label: "Pure White" },
-                { id: "lightblue", label: "Studio Blue" },
-                { id: "lightgray", label: "Light Gray" },
-              ].map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => setBgTint(b.id as any)}
-                  className={`py-2 px-1 rounded-xl text-[10px] font-bold border transition-all ${
-                    bgTint === b.id
-                      ? "bg-amber-500 text-white border-amber-600 shadow-sm"
-                      : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
-                  }`}
-                >
-                  {b.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* SSC / UPSC Name & Date Overlay Stamp */}
