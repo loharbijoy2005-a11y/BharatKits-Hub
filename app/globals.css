@@ -9,11 +9,11 @@
 }
 
 .dark {
-  --background: #0f172a;
-  --foreground: #f8fafc;
+  --background: #f8fafc;
+  --foreground: #0f172a;
   
-  --card-bg: #1e293b;
-  --card-border: #334155;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
 }
 
 @theme inline {
