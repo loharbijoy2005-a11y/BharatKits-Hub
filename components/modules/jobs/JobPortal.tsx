@@ -135,8 +135,12 @@ export default function JobPortal() {
     }
 
     // Category
-    if (filter.category !== "all") {
-      list = list.filter((j) => j.category === filter.category);
+    if (filter.category === "government") {
+      list = list.filter((j) => j.category === "government" || j.category === "teaching");
+    } else if (filter.category === "private") {
+      list = list.filter((j) => j.category === "private");
+    } else if (filter.category === "teaching") {
+      list = list.filter((j) => j.category === "teaching");
     }
 
     // Sector
