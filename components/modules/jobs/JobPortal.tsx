@@ -193,12 +193,12 @@ export default function JobPortal() {
       });
     }
 
-    // State
+    // State Filter: Strictly show only selected state's jobs
     if (filter.state !== "All India") {
       list = list.filter((j) => {
         const jobState = (j.state || "").toLowerCase();
         const targetState = filter.state.toLowerCase();
-        return jobState.includes(targetState) || jobState === "all india";
+        return jobState.includes(targetState) || targetState.includes(jobState);
       });
     }
 

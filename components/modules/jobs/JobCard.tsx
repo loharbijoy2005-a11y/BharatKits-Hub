@@ -149,19 +149,19 @@ export function JobCard({
             )}
 
             {/* Sector / Category Tag */}
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold bg-slate-100 text-slate-800 border border-slate-200">
               {job.sector || (isGovt ? govtJob?.gov_sector : "Corporate")}
             </span>
 
             {/* State Tag */}
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300">
-              <MapPin className="w-3 h-3 text-rose-500" />
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold bg-rose-50 text-rose-800 border border-rose-200">
+              <MapPin className="w-3 h-3 text-rose-600" />
               {job.state || (isGovt ? govtJob?.state_or_location : privJob?.work_location)}
             </span>
 
             {/* Direct Official Link Badge */}
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800">
-              <CheckCircle className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-300">
+              <CheckCircle className="w-3 h-3 text-emerald-600" />
               Verified Official Link
             </span>
           </div>
@@ -171,7 +171,7 @@ export function JobCard({
             <button
               onClick={() => onShare(job)}
               title="Share on WhatsApp"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-slate-100 transition-colors"
             >
               <Share2 className="w-4 h-4" />
             </button>
@@ -180,8 +180,8 @@ export function JobCard({
               title={isBookmarked ? "Remove Bookmark" : "Save Job"}
               className={`p-1.5 rounded-lg transition-colors ${
                 isBookmarked
-                  ? "text-amber-500 bg-amber-50 dark:bg-amber-950/40"
-                  : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  ? "text-amber-600 bg-amber-50"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
               }`}
             >
               <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-amber-500" : ""}`} />
@@ -193,12 +193,12 @@ export function JobCard({
         <div className="mb-4">
           <h3
             onClick={() => onOpenDetails(job)}
-            className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors cursor-pointer line-clamp-2 leading-snug"
+            className="text-base sm:text-lg font-black text-slate-900 hover:text-orange-600 transition-colors cursor-pointer line-clamp-2 leading-snug"
           >
             {job.title}
           </h3>
 
-          <div className="mt-1.5 flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
+          <div className="mt-1.5 flex items-center gap-2 text-xs sm:text-sm font-extrabold text-slate-800">
             {isGovt ? (
               <span>🏛️ {govtJob?.department_or_board}</span>
             ) : (
@@ -218,21 +218,21 @@ export function JobCard({
         <div className="grid grid-cols-2 gap-2 mb-4">
           {isGovt && govtJob && (
             <>
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-xs">
-                <GraduationCap className="w-4 h-4 text-emerald-500 shrink-0" />
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-100 border border-slate-200 text-xs">
+                <GraduationCap className="w-4 h-4 text-emerald-600 shrink-0" />
                 <div className="truncate">
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Eligibility</div>
-                  <div className="font-bold text-slate-800 dark:text-slate-200 truncate">
+                  <div className="text-[10px] uppercase font-bold text-slate-500">Eligibility</div>
+                  <div className="font-extrabold text-slate-900 truncate">
                     {govtJob.qualification}
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-xs">
-                <Users className="w-4 h-4 text-blue-500 shrink-0" />
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-100 border border-slate-200 text-xs">
+                <Users className="w-4 h-4 text-blue-600 shrink-0" />
                 <div className="truncate">
-                  <div className="text-[10px] uppercase font-bold text-slate-400">Vacancies</div>
-                  <div className="font-bold text-slate-800 dark:text-slate-200 truncate">
+                  <div className="text-[10px] uppercase font-bold text-slate-500">Vacancies</div>
+                  <div className="font-extrabold text-slate-900 truncate">
                     {(govtJob.vacancies_count || 0) > 0
                       ? `${govtJob.vacancies_count.toLocaleString()} Posts`
                       : "Official Notice"}
