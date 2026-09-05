@@ -18,6 +18,20 @@
   --card-border: #26334d;
 }
 
+/* Explicit Select & Option Dropdown Text Contrast Fix */
+select,
+select option {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+select option:checked,
+select option:hover {
+  background-color: #374151 !important;
+  color: #ffffff !important;
+}
+
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

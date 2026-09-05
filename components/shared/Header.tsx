@@ -211,7 +211,7 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
           <div className="flex items-center gap-3">
             <span className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300/80 dark:border-emerald-800/40 text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 select-none shadow-2xs transition-colors duration-400">
               <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              100% Encrypted Local Processing
+              ⚡ 100% Client-Side • Private &amp; Free Utilities for Citizens &amp; Cyber Cafes
             </span>
 
             {/* Interactive Theme Toggle Button with Particle Sparkle Effect */}

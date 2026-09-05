@@ -50,7 +50,7 @@ export function TirangaBanner() {
         <div className="flex items-center gap-3 text-[11px] font-semibold text-slate-700">
           <span className="hidden md:flex items-center gap-1.5 text-amber-700 font-bold">
             <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-            100% Free Encrypted Local Tools
+            ⚡ 100% Client-Side • Private &amp; Free Utilities for Citizens &amp; Cyber Cafes
           </span>
           <span className="hidden sm:inline text-slate-300">•</span>
           <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-300/80 text-[10px] font-bold">

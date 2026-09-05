@@ -57,6 +57,150 @@ interface ToolItem {
 
 const tools: ToolItem[] = [
   {
+    id: "resizer-compressor",
+    title: "Govt Exam Photo & Sign Resizer",
+    description:
+      "Pre-set dimensions & KB limits for SSC, UPSC, IBPS, Police, Railway.",
+    icon: Shrink,
+    category: "cyber-cafe",
+    color: "from-rose-500 to-red-500",
+    tags: [
+      "photo resize",
+      "signature resize",
+      "ssc photo",
+      "upsc photo",
+      "ibps",
+      "police",
+      "railway photo",
+      "kb limits",
+      "compress image",
+      "crop photo",
+    ],
+  },
+  {
+    id: "passport-photo-sheet",
+    title: "Passport Photo Sheet Maker",
+    description:
+      "Convert 1 portrait into 6, 8, or 12 passport prints on 4x6 / A4.",
+    icon: FileImage,
+    category: "cyber-cafe",
+    color: "from-amber-500 to-orange-500",
+    tags: [
+      "passport photo",
+      "photo sheet",
+      "4x6 print",
+      "a4 photo print",
+      "passport sheet maker",
+      "cyber cafe prints",
+      "id card print",
+    ],
+  },
+  {
+    id: "pdf-editor",
+    title: "Smart PDF Toolkit",
+    description:
+      "Merge, compress, and organize PDF pages securely.",
+    icon: FileText,
+    category: "cyber-cafe",
+    color: "from-indigo-600 via-purple-600 to-pink-600",
+    tags: [
+      "smart pdf toolkit",
+      "merge pdf",
+      "compress pdf",
+      "organize pdf",
+      "pdf editor",
+      "pdf studio",
+      "edit pdf",
+      "sign pdf",
+    ],
+  },
+  {
+    id: "age-date",
+    title: "Govt Exam Cut-off Age Calculator",
+    description:
+      "Calculate age on a specific cut-off date (years, months, days).",
+    icon: CalendarDays,
+    category: "calculators",
+    color: "from-amber-500 to-orange-500",
+    tags: [
+      "cut off age calculator",
+      "govt exam age",
+      "age calculation",
+      "ssc age limit",
+      "upsc age calc",
+      "exact age",
+    ],
+  },
+  {
+    id: "biodata-generator",
+    title: "Quick Biodata & Resume Builder",
+    description:
+      "Clean single-page PDF generator for jobs and matrimony.",
+    icon: FileText,
+    category: "cyber-cafe",
+    color: "from-fuchsia-500 to-pink-500",
+    tags: [
+      "resume builder",
+      "biodata maker",
+      "matrimony biodata",
+      "job resume",
+      "cv generator",
+      "marriage bio",
+    ],
+  },
+  {
+    id: "affidavit-generator",
+    title: "Affidavit & Rent Agreement Drafts",
+    description:
+      "Standard editable templates for stamp paper printing.",
+    icon: FileSignature,
+    category: "cyber-cafe",
+    color: "from-amber-500 to-yellow-600",
+    tags: [
+      "affidavit",
+      "rent agreement",
+      "stamp paper template",
+      "legal drafts",
+      "gap certificate",
+      "self declaration",
+    ],
+  },
+  {
+    id: "gst-emi-calculator",
+    title: "GST & Loan EMI Calculator",
+    description:
+      "Instant tax breakup and monthly installment summary.",
+    icon: Calculator,
+    category: "calculators",
+    color: "from-emerald-500 to-teal-500",
+    tags: [
+      "gst calculator",
+      "loan emi",
+      "tax breakup",
+      "monthly installment",
+      "interest calculator",
+      "bill split",
+    ],
+  },
+  {
+    id: "govt-directory",
+    title: "Direct Govt Portals Directory",
+    description:
+      "One-click links to UIDAI, Pan UTI/NSDL, Parivahan, and State Portals.",
+    icon: Landmark,
+    category: "directory",
+    color: "from-blue-500 to-indigo-500",
+    tags: [
+      "uidai",
+      "pan uti nsdl",
+      "parivahan",
+      "state portals",
+      "official links",
+      "govt directory",
+      "voter id",
+    ],
+  },
+  {
     id: "job-portal",
     title: "All India Job Portal (Sarkari & Private)",
     description:
@@ -70,254 +214,9 @@ const tools: ToolItem[] = [
       "ssc cgl",
       "upsc",
       "railway job",
-      "rrb ntpc",
+      "all india jobs",
       "bank po",
       "private jobs",
-      "tech jobs",
-      "fresher jobs",
-      "naukri",
-      "gov jobs",
-      "job portal",
-      "jobs",
-    ],
-  },
-  {
-    id: "govt-directory",
-    title: "Govt Portal Directory",
-    description:
-      "Direct filtered links for identity updates, DL/RC, e-Challan checks, and state land records.",
-    icon: Landmark,
-    category: "directory",
-    color: "from-blue-500 to-indigo-500",
-    tags: [
-      "gov",
-      "government",
-      "voter id",
-      "pan card",
-      "aadhar",
-      "uidai",
-      "challan",
-      "chalan",
-      "gadi",
-      "driving licence",
-      "rc",
-      "digilocker",
-      "udyam",
-      "msme",
-      "rashan",
-      "ration card",
-      "land records",
-      "bhulekh",
-      "banglarbhumi",
-      "eshram",
-    ],
-  },
-  {
-    id: "resizer-compressor",
-    title: "Govt Form Image Resizer",
-    description:
-      "Rescale photo and signature scans to exact government portal upload sizes (under 20KB/50KB).",
-    icon: Shrink,
-    category: "cyber-cafe",
-    color: "from-rose-500 to-red-500",
-    tags: [
-      "photo resize",
-      "signature resize",
-      "photo sign crop",
-      "compress image",
-      "crop photo",
-      "ssc photo",
-      "upsc photo",
-      "photo under 20kb",
-      "photo under 50kb",
-    ],
-  },
-
-  {
-    id: "biodata-generator",
-    title: "Biodata & Resume Builder",
-    description:
-      "Generate clean CV resumes or marriage biodata forms downloadable client-side as vector PDFs.",
-    icon: FileText,
-    category: "cyber-cafe",
-    color: "from-fuchsia-500 to-pink-500",
-    tags: ["resume", "biodata", "cv maker", "marriage bio", "job biodata", "resume maker"],
-  },
-  {
-    id: "upi-qr",
-    title: "UPI Payment QR Studio",
-    description:
-      "Generate scan-to-pay QR codes using custom UPI IDs, payee names, and amounts with instant download.",
-    icon: QrCode,
-    category: "cyber-cafe",
-    color: "from-violet-500 to-purple-500",
-    tags: ["upi payment scan link", "upi qr generator", "gpay qr", "phonepe qr", "bhim upi qr", "scan to pay"],
-  },
-  {
-    id: "gst-split",
-    title: "GST & Bill Splitter",
-    description:
-      "Calculate CGST/SGST/IGST tax rates with precision financial math and split bill shares among people.",
-    icon: Calculator,
-    category: "calculators",
-    color: "from-emerald-500 to-teal-500",
-    tags: ["gst split", "bill split", "cgst sgst", "tax calculator", "expense split", "split bill"],
-  },
-  {
-    id: "emi-calculator",
-    title: "Loan EMI Repayment Schedule",
-    description:
-      "Estimate monthly EMI payments and view full principal vs interest monthly amortization schedules.",
-    icon: Coins,
-    category: "calculators",
-    color: "from-indigo-500 to-purple-500",
-    tags: ["emi loan", "loan repayment schedule", "home loan emi", "car loan emi", "mortgage calculator"],
-  },
-  {
-    id: "age-date",
-    title: "Age & Chrono Engine",
-    description:
-      "Check exact chronological lived timings, countdown birthday milestones, and map zodiac signs.",
-    icon: CalendarDays,
-    category: "calculators",
-    color: "from-amber-500 to-orange-500",
-    tags: ["age check", "birthday countdown", "exact age", "zodiac sign", "date diff"],
-  },
-  {
-    id: "cash-memo",
-    title: "GST Cash Memo Generator",
-    description:
-      "Generate itemized shop cash memos with SGST/CGST and automatic Indian Rupee words conversion.",
-    icon: Receipt,
-    category: "cyber-cafe",
-    color: "from-teal-500 to-emerald-500",
-    tags: ["cash memo", "shop bill", "invoice maker", "shop receipt", "store bill"],
-  },
-  {
-    id: "govt-savings",
-    title: "Govt Savings Calculator",
-    description:
-      "Estimate returns for Sukanya Samriddhi Yojana (SSY), PPF, National Pension System (NPS), and Recurring Deposits (RD).",
-    icon: PiggyBank,
-    category: "calculators",
-    color: "from-emerald-500 to-indigo-500",
-    tags: [
-      "ssy",
-      "sukanya samriddhi",
-      "ppf",
-      "provident fund",
-      "nps",
-      "national pension",
-      "rd",
-      "recurring deposit",
-      "savings calculator",
-      "government schemes",
-      "post office savings",
-    ],
-  },
-
-  {
-    id: "aadhaar-masker",
-    title: "Aadhaar Card Secure Masker",
-    description:
-      "Upload your Aadhaar scan and securely mask the first 8 digits locally in browser before sharing.",
-    icon: ShieldAlert,
-    category: "cyber-cafe",
-    color: "from-red-500 to-rose-500",
-    tags: [
-      "mask aadhaar",
-      "hide aadhaar number",
-      "aadhaar privacy",
-      "redact aadhaar",
-      "secure card masker",
-      "citizen privacy",
-    ],
-  },
-  {
-    id: "hindi-font-converter",
-    title: "Hindi Font Converter & Typing",
-    description:
-      "Phonetic Hinglish-to-Hindi transliteration editor and standard Hindi Unicode to Kruti Dev 010 font converter.",
-    icon: Languages,
-    category: "cyber-cafe",
-    color: "from-violet-500 to-fuchsia-500",
-    tags: [
-      "hinglish to hindi",
-      "unicode to kruti dev",
-      "kruti dev 010",
-      "hindi typing converter",
-      "regional typing editor",
-      "devlys to unicode",
-    ],
-  },
-  {
-    id: "affidavit-generator",
-    title: "Affidavit & Legal Draft Builder",
-    description:
-      "Generate printable Rent Agreements, Gap Certificates, and self-declarations with stamp paper templates.",
-    icon: FileSignature,
-    category: "cyber-cafe",
-    color: "from-amber-500 to-yellow-600",
-    tags: [
-      "rent agreement draft",
-      "gap certificate affidavit",
-      "address self declaration",
-      "income declaration",
-      "legal draft generator",
-      "stamp paper pdf",
-    ],
-  },
-  {
-    id: "aadhaar-qr-scanner",
-    title: "Aadhaar QR Scanner & Parser",
-    description:
-      "Scan Aadhaar QR via camera/file to decode Name, DOB, and Address with quick copy-paste badges.",
-    icon: QrCode,
-    category: "cyber-cafe",
-    color: "from-teal-500 to-emerald-600",
-    tags: [
-      "aadhaar qr scanner",
-      "decode aadhaar xml",
-      "barcode parser",
-      "demographic details reader",
-      "cyber cafe helper",
-      "copy name address",
-    ],
-  },
-  {
-    id: "pdf-editor",
-    title: "All-in-One PDF Master Studio & Gallery Document Manager",
-    description:
-      "Upload & edit any PDF, append phone gallery photos/documents as new pages, combine ID cards, merge scans, add digital signatures, whiteout text, and export vector PDFs.",
-    icon: FileText,
-    category: "cyber-cafe",
-    color: "from-indigo-600 via-purple-600 to-pink-600",
-    tags: [
-      "pdf editor",
-      "pdf studio",
-      "edit pdf",
-      "sign pdf",
-      "gallery photo to pdf",
-      "add photo to pdf",
-      "insert image pdf",
-      "photo se pdf",
-      "pdf compiler",
-      "scanner clean filters",
-      "black and white scan",
-      "photocopy",
-      "image stitch pdf",
-      "id card print",
-      "merge id cards",
-      "combine aadhar",
-      "html to pdf",
-      "html converter",
-      "html se pdf",
-      "code to pdf",
-      "pdf signature",
-      "pdf text edit",
-      "redact pdf",
-      "highlight pdf",
-      "pdf stamp",
     ],
   },
 ];
@@ -331,7 +230,7 @@ export default function Page() {
   const [isNavigating, setIsNavigating] = useState<boolean>(false);
   const [favorites, setFavorites] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("bharatkits_favorites");
+      const saved = localStorage.getItem("bharatkits_favs") || localStorage.getItem("bharatkits_favorites");
       return saved ? JSON.parse(saved) : [];
     }
     return [];
@@ -359,6 +258,7 @@ export default function Page() {
   };
 
   const toggleFavorite = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     let updated = [...favorites];
     if (updated.includes(id)) {
@@ -367,7 +267,10 @@ export default function Page() {
       updated.push(id);
     }
     setFavorites(updated);
-    localStorage.setItem("bharatkits_favorites", JSON.stringify(updated));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("bharatkits_favs", JSON.stringify(updated));
+      localStorage.setItem("bharatkits_favorites", JSON.stringify(updated));
+    }
   };
 
   const activeTool = tools.find((t) => t.id === activeView);
@@ -426,8 +329,8 @@ export default function Page() {
             {/* Hero Section */}
             <div className="text-center max-w-2xl mx-auto space-y-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/30 text-xs font-black text-orange-800 dark:text-orange-300 shadow-2xs">
-                <span>🇮🇳</span>
-                <span>The Ultimate Digital India Citizen &amp; Cafe Utility Hub</span>
+                <span>⚡</span>
+                <span>100% Client-Side • Private &amp; Free Utilities for Citizens &amp; Cyber Cafes</span>
               </div>
               <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
                 Bharat
@@ -452,7 +355,10 @@ export default function Page() {
                 ].map((cat) => (
                   <button
                     key={cat.id}
-                    onClick={() => handleCatChange(cat.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCatChange(cat.id);
+                    }}
                     className={`px-4 py-2 text-xs font-black rounded-xl transition-all duration-200 whitespace-nowrap ${
                       activeCat === cat.id
                         ? "bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-sm border border-slate-200 dark:border-slate-800"
@@ -468,13 +374,27 @@ export default function Page() {
             {/* Tools Grid */}
             {filteredTools.length === 0 ? (
               <div className="py-20 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 max-w-md mx-auto text-center">
-                <Search className="w-12 h-12 text-slate-350 dark:text-slate-700 animate-pulse mb-3" />
-                <h4 className="text-base font-extrabold text-slate-800 dark:text-slate-200">
-                  No matching utility tools found
-                </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Try typing Hinglish keywords like &apos;challan&apos;, &apos;rashan&apos;, or &apos;pan aadhar&apos;.
-                </p>
+                {activeCat === "favorites" ? (
+                  <>
+                    <Star className="w-12 h-12 text-yellow-400 fill-yellow-400 mb-3 animate-bounce" />
+                    <h4 className="text-base font-extrabold text-slate-800 dark:text-slate-200">
+                      No favorite tools saved yet
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Click the ⭐ icon on any tool to pin it here.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-12 h-12 text-slate-350 dark:text-slate-700 animate-pulse mb-3" />
+                    <h4 className="text-base font-extrabold text-slate-800 dark:text-slate-200">
+                      No matching utility tools found
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Try typing Hinglish keywords like &apos;challan&apos;, &apos;rashan&apos;, or &apos;pan aadhar&apos;.
+                    </p>
+                  </>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -502,10 +422,10 @@ export default function Page() {
                             
                             <button
                               onClick={(e) => toggleFavorite(tool.id, e)}
-                              className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"
+                              className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                               title={isFav ? "Remove Favorite" : "Add Favorite"}
                             >
-                              <Star className={`w-4 h-4 ${isFav ? "text-amber-500 fill-amber-500" : "text-slate-300 dark:text-slate-600"}`} />
+                              <Star className={`w-4 h-4 transition-colors ${isFav ? "text-yellow-400 fill-yellow-400" : "text-slate-300 dark:text-slate-600"}`} />
                             </button>
                           </div>
                         </div>
@@ -560,9 +480,10 @@ export default function Page() {
               {activeView === "job-portal" && <JobPortal />}
               {activeView === "govt-directory" && <GovtDirectory />}
               {activeView === "resizer-compressor" && <GovtImageResizer />}
+              {activeView === "passport-photo-sheet" && <IdPdfCombiner />}
               {activeView === "image-pdf" && <PdfEditorStudio />}
               {activeView === "biodata-generator" && <BiodataGenerator />}
-              {activeView === "upi-qr" && <UpiQrGenerator />}
+              {activeView === "gst-emi-calculator" && <EmiCalculator />}
               {activeView === "gst-split" && <GstSplitter />}
               {activeView === "age-date" && <AgeChrono />}
               {activeView === "emi-calculator" && <EmiCalculator />}
@@ -572,7 +493,6 @@ export default function Page() {
               {activeView === "aadhaar-masker" && <AadhaarMasker />}
               {activeView === "hindi-font-converter" && <HindiFontConverter />}
               {activeView === "affidavit-generator" && <AffidavitGenerator />}
-              {activeView === "aadhaar-qr-scanner" && <AadhaarQrScanner />}
               {activeView === "html-to-pdf" && <PdfEditorStudio />}
               {activeView === "pdf-editor" && <PdfEditorStudio />}
             </div>

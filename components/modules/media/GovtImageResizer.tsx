@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { CardDescription, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Image, Download, Sliders, CheckCircle, RefreshCw, Info } from "lucide-react";
+import { Image, Download, Sliders, CheckCircle, RefreshCw, Info, ChevronDown } from "lucide-react";
 
 interface Preset {
   name: string;
@@ -222,18 +222,22 @@ export default function GovtImageResizer() {
           {/* Presets Select */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide">Select Preset</label>
-            <select
-              value={presetIdx}
-              onChange={(e) => setPresetIdx(parseInt(e.target.value))}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-150"
-            >
-              {govtPresets.map((p, idx) => (
-                <option key={idx} value={idx}>
-                  {p.name} ({p.widthCm}x{p.heightCm} cm)
-                </option>
-              ))}
-              <option value={-1}>Custom Dimensions</option>
-            </select>
+            <div className="relative">
+              <select
+                value={presetIdx}
+                onChange={(e) => setPresetIdx(parseInt(e.target.value))}
+                className="w-full px-3 py-2.5 pr-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-[#1f2937] text-white font-bold text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/50 appearance-none cursor-pointer"
+                style={{ backgroundColor: "#1f2937", color: "#ffffff" }}
+              >
+                {govtPresets.map((p, idx) => (
+                  <option key={idx} value={idx} style={{ backgroundColor: "#1f2937", color: "#f9fafb" }}>
+                    {p.name} ({p.widthCm}x{p.heightCm} cm)
+                  </option>
+                ))}
+                <option value={-1} style={{ backgroundColor: "#1f2937", color: "#f9fafb" }}>Custom Dimensions</option>
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
           {presetIdx !== -1 && (
@@ -289,19 +293,23 @@ export default function GovtImageResizer() {
           {/* Scan Filter Options */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide">Enhance / Filter Scan</label>
-            <select
-              value={filter}
-              onChange={(e) => {
-                setFilter(e.target.value as any);
-                setResizedUrl(null);
-              }}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-slate-800 dark:text-slate-150"
-            >
-              <option value="none">Original Colors (No Filter)</option>
-              <option value="grayscale">Clean Grayscale (Gray Document)</option>
-              <option value="monochrome">Pure Black & White (Text Scan)</option>
-              <option value="high-contrast">High Contrast (Signature Booster)</option>
-            </select>
+            <div className="relative">
+              <select
+                value={filter}
+                onChange={(e) => {
+                  setFilter(e.target.value as any);
+                  setResizedUrl(null);
+                }}
+                className="w-full px-3 py-2.5 pr-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-[#1f2937] text-white font-bold text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/50 appearance-none cursor-pointer"
+                style={{ backgroundColor: "#1f2937", color: "#ffffff" }}
+              >
+                <option value="none" style={{ backgroundColor: "#1f2937", color: "#f9fafb" }}>Original Colors (No Filter)</option>
+                <option value="grayscale" style={{ backgroundColor: "#1f2937", color: "#f9fafb" }}>Clean Grayscale (Gray Document)</option>
+                <option value="monochrome" style={{ backgroundColor: "#1f2937", color: "#f9fafb" }}>Pure Black & White (Text Scan)</option>
+                <option value="high-contrast" style={{ backgroundColor: "#1f2937", color: "#f9fafb" }}>High Contrast (Signature Booster)</option>
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-850">
