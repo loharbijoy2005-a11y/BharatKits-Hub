@@ -391,14 +391,18 @@ export default function Page() {
           <div className="space-y-8 animate-fade-in">
             {/* Hero Section */}
             <div className="text-center max-w-2xl mx-auto space-y-3">
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/30 text-xs font-bold text-orange-700 dark:text-orange-300 shadow-2xs">
+                <span>🇮🇳</span>
+                <span>The Ultimate Digital India Citizen &amp; Cafe Utility Hub</span>
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
                 Bharat
-                <span className="bg-gradient-to-r from-orange-500 via-slate-400 to-emerald-600 dark:from-orange-400 dark:to-emerald-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-600 dark:from-orange-400 dark:via-amber-400 dark:to-emerald-400 bg-clip-text text-transparent">
                   Kits Hub
                 </span>
               </h1>
-              <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed font-semibold">
-                Encrypted Local-First Utility Hub for Indian citizens & cyber cafes. Zero server logs, complete document privacy, processing securely on your terminal.
+              <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed font-semibold">
+                100% Free &amp; Encrypted Local-First Citizen Utility Platform for India. Zero server logs, complete privacy, processing securely inside your browser.
               </p>
             </div>
 
