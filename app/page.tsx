@@ -401,7 +401,7 @@ export default function Page() {
                   Kits Hub
                 </span>
               </h1>
-              <p className="text-slate-700 dark:text-slate-200 text-sm sm:text-base leading-relaxed font-bold">
+              <p className="text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed font-bold">
                 100% Free &amp; Encrypted Local-First Citizen Utility Platform for India. Zero server logs, complete privacy, processing securely inside your browser.
               </p>
             </div>
@@ -480,7 +480,7 @@ export default function Page() {
                           {tool.title}
                         </h3>
                         
-                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200 leading-relaxed mb-6">
                           {tool.description}
                         </p>
                       </div>
