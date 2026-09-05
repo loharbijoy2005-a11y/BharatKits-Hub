@@ -14,6 +14,7 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
+    // Clear any legacy dark setting if user previously opened dark mode
     const savedTheme = (localStorage.getItem("omnikits_theme") as "light" | "dark") || "light";
     setTheme(savedTheme);
     if (savedTheme === "dark") {
