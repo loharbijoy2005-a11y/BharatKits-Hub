@@ -77,6 +77,24 @@ const tools: ToolItem[] = [
     ],
   },
   {
+    id: "govt-directory",
+    title: "Direct Govt Portals Directory",
+    description:
+      "One-click links to UIDAI, Pan UTI/NSDL, Parivahan, and State Portals.",
+    icon: Landmark,
+    category: "directory",
+    color: "from-blue-500 to-indigo-500",
+    tags: [
+      "uidai",
+      "pan uti nsdl",
+      "parivahan",
+      "state portals",
+      "official links",
+      "govt directory",
+      "voter id",
+    ],
+  },
+  {
     id: "resizer-compressor",
     title: "Govt Exam Photo & Sign Resizer",
     description:
@@ -200,24 +218,6 @@ const tools: ToolItem[] = [
       "monthly installment",
       "interest calculator",
       "bill split",
-    ],
-  },
-  {
-    id: "govt-directory",
-    title: "Direct Govt Portals Directory",
-    description:
-      "One-click links to UIDAI, Pan UTI/NSDL, Parivahan, and State Portals.",
-    icon: Landmark,
-    category: "directory",
-    color: "from-blue-500 to-indigo-500",
-    tags: [
-      "uidai",
-      "pan uti nsdl",
-      "parivahan",
-      "state portals",
-      "official links",
-      "govt directory",
-      "voter id",
     ],
   },
 ];
