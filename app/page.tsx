@@ -33,6 +33,7 @@ import {
   Coins,
   ArrowLeft,
   Search,
+  X,
   ShieldCheck,
   Receipt,
   PiggyBank,
@@ -301,21 +302,57 @@ export default function Page() {
         >
           {activeView === "dashboard" ? (
             <div className="space-y-8">
-            {/* Hero Section */}
-            <div className="text-center max-w-2xl mx-auto space-y-3">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/30 text-xs font-black text-orange-800 dark:text-orange-300 shadow-2xs">
-                <span>⚡</span>
-                <span>100% Client-Side • Private &amp; Free Utilities for Citizens &amp; Cyber Cafes</span>
+            {/* Hero & Sub-Header Section */}
+            <div className="text-center max-w-2xl mx-auto space-y-4">
+              {/* Flag Badge & Tagline Clean-up */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 dark:bg-slate-900 border border-slate-700/60 text-xs font-bold text-slate-200 shadow-sm">
+                <span>🇮🇳</span>
+                <span>Jai Hind • Dedicated to Indian Citizens &amp; Cyber Cafes</span>
               </div>
+
+              {/* Main Title */}
               <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
                 Bharat
                 <span className="bg-gradient-to-r from-orange-600 via-amber-500 to-emerald-600 dark:from-orange-400 dark:via-amber-400 dark:to-emerald-400 bg-clip-text text-transparent ml-1.5">
                   Kits Hub
                 </span>
               </h1>
-              <p className="text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed font-bold">
-                100% Free &amp; Encrypted Local-First Citizen Utility Platform for India. Zero server logs, complete privacy, processing securely inside your browser.
+
+              {/* Clean Subtitle */}
+              <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed font-semibold">
+                Instant browser-based utilities for daily citizen &amp; cyber cafe tasks
               </p>
+
+              {/* Centered Search Bar Section */}
+              <div className="w-full flex justify-center items-center my-6">
+                <div className="relative max-w-2xl w-full mx-auto">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 dark:text-slate-500">
+                    <Search className="w-5 h-5" />
+                  </span>
+                  <input
+                    type="search"
+                    value={searchVal}
+                    onChange={(e) => setSearchVal(e.target.value)}
+                    placeholder="Search citizen tools... (e.g. Sarkari job, photo resize, Aadhaar, PAN)"
+                    className="w-full pl-12 pr-12 py-3.5 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-md"
+                  />
+                  {searchVal ? (
+                    <button
+                      onClick={() => setSearchVal("")}
+                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                      title="Clear search"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <span className="hidden sm:flex absolute inset-y-0 right-0 items-center pr-4 pointer-events-none">
+                      <kbd className="px-2 py-0.5 text-[10px] font-mono font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md">
+                        Ctrl K
+                      </kbd>
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Category tabs pills */}

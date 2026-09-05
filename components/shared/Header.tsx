@@ -184,41 +184,24 @@ export function Header({ searchVal, onSearch, onGoHome, showSearch }: HeaderProp
             </div>
           </button>
 
-          {/* Search Bar (Shared element inside Header) */}
-          <div className={`relative max-w-md w-full transition-opacity duration-200 ${showSearch ? "opacity-100" : "opacity-30 pointer-events-none"}`}>
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 dark:text-slate-500">
-              <Search className="w-4 h-4" />
-            </span>
-            <input
-              type="search"
-              value={searchVal}
-              disabled={!showSearch}
-              onChange={(e) => onSearch(e.target.value)}
-              placeholder="Search citizen tools... (e.g. Sarkari job, photo resize, Aadhaar, PAN)"
-              className="w-full pl-10 pr-10 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-bold focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-2xs"
-            />
-            {searchVal && (
-              <button
-                onClick={() => onSearch("")}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
           {/* Right Controls */}
           <div className="flex items-center gap-3">
-            <span className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300/80 dark:border-emerald-800/40 text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 select-none shadow-2xs transition-colors duration-400">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              ⚡ 100% Client-Side • Private &amp; Free Utilities for Citizens &amp; Cyber Cafes
-            </span>
+            <a
+              href="https://github.com/loharbijoy2005-a11y/BharatKits-Hub"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition-all shadow-xs"
+              title="View GitHub Repository"
+            >
+              <span className="text-sm">⭐</span>
+              <span>GitHub</span>
+            </a>
 
             {/* Interactive Theme Toggle Button with Particle Sparkle Effect */}
             <button
               onClick={toggleTheme}
               aria-label="Toggle dark mode"
-              title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode (Click for particle animation ✨)`}
+              title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
               className="relative w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-slate-700 flex items-center justify-center border border-slate-300 dark:border-slate-700 transition-all duration-300 shadow-md group overflow-hidden"
             >
               <div
