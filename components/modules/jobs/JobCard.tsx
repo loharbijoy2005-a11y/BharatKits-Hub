@@ -159,18 +159,11 @@ export function JobCard({
               {job.state || (isGovt ? govtJob?.state_or_location : privJob?.work_location)}
             </span>
 
-            {/* Application Status Badge */}
-            {isClosed ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
-                <Lock className="w-3 h-3 text-rose-600 dark:text-rose-400" />
-                Closed
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800">
-                <CheckCircle className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                Active
-              </span>
-            )}
+            {/* Direct Official Link Badge */}
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800">
+              <CheckCircle className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+              Verified Official Link
+            </span>
           </div>
 
           {/* Action Bookmark & Share Icons */}
@@ -276,7 +269,7 @@ export function JobCard({
 
         {/* Private Tags */}
         {!isGovt && privJob && privJob.skills_tags && privJob.skills_tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
+          <div className="flex flex-wrap gap-1.5 mb-2">
             {privJob.skills_tags.slice(0, 4).map((tag, idx) => (
               <span
                 key={idx}
@@ -287,33 +280,6 @@ export function JobCard({
             ))}
           </div>
         )}
-
-        {/* Posted & Deadline Status Row */}
-        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-4 pb-1 border-b border-slate-100 dark:border-slate-800">
-          <span className="flex items-center gap-1 truncate max-w-[55%]">
-            <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span className="truncate">
-              {isGovt && govtJob?.last_date && govtJob.last_date !== "Open until filled"
-                ? `Last Date: ${formatDisplayDate(govtJob.last_date)}`
-                : `Posted: ${formatDisplayDate(job.posted_date)}`}
-            </span>
-          </span>
-          {deadlineStatus && (
-            <span
-              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] shrink-0 border ${deadlineStatus.color}`}
-            >
-              {deadlineStatus.text}
-            </span>
-          )}
-        </div>
-
-        {/* Official Date Verification Advisory Note */}
-        <div className="mb-4 px-2.5 py-1.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 flex items-center gap-1.5 text-[11px] text-amber-800 dark:text-amber-300">
-          <span className="shrink-0 text-amber-600 dark:text-amber-400">📌</span>
-          <span className="leading-tight font-medium">
-            <strong>Note:</strong> Application date ek baar official website par bhi zaroor verify kar lein.
-          </span>
-        </div>
       </div>
 
       {/* Action Buttons Row */}

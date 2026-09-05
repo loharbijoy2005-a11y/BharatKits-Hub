@@ -82,17 +82,9 @@ export function JobDetailModal({
                 Private Career Post
               </span>
             )}
-            {isClosed ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
-                <Lock className="w-3 h-3" />
-                Application Closed
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                Active
-              </span>
-            )}
-            <span className="text-xs text-slate-500">Posted: {formatDisplayDate(job.posted_date)}</span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+              Verified Official Link
+            </span>
           </div>
 
           <button
@@ -139,12 +131,11 @@ export function JobDetailModal({
               </div>
 
               <div className="flex items-start gap-2.5">
-                <Clock className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                <ShieldCheck className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                 <div>
-                  <div className="text-[11px] uppercase font-bold text-slate-400">Last Date to Apply</div>
-                  <div className="text-sm font-bold text-rose-600 dark:text-rose-400">
-                    {formatDisplayDate(govtJob.last_date_to_apply || govtJob.last_date)}
-                    {isClosed && " (Expired)"}
+                  <div className="text-[11px] uppercase font-bold text-slate-400">Age Limit</div>
+                  <div className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    {govtJob.age_limit || "18 - 37 Years"}
                   </div>
                 </div>
               </div>
