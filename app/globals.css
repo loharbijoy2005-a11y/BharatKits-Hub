@@ -5,7 +5,7 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
-  
+
   --card-bg: #ffffff;
   --card-border: #e2e8f0;
 }
@@ -13,7 +13,7 @@
 .dark {
   --background: #0b1120;
   --foreground: #f8fafc;
-  
+
   --card-bg: #151e32;
   --card-border: #26334d;
 }
@@ -36,7 +36,7 @@ select option:hover {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-plus-jakarta);
-  
+
   --color-brand-50: #fff7ed;
   --color-brand-100: #ffedd5;
   --color-brand-200: #fed7aa;
@@ -51,7 +51,9 @@ select option:hover {
 }
 
 /* Silky smooth global theme transitions */
-*, ::before, ::after {
+*,
+::before,
+::after {
   transition-property: background-color, border-color, text-decoration-color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 350ms;
@@ -83,6 +85,7 @@ body {
     opacity: 0;
     transform: translateY(6px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -95,9 +98,13 @@ body {
 
 /* Accessibility: Respect prefers-reduced-motion strictly (Instant swap, no movement) */
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
+
+  *,
+  ::before,
+  ::after {
     transition-duration: 0.01ms !important;
   }
+
   .animate-gov-page-transition {
     animation: none !important;
     opacity: 1 !important;
@@ -111,9 +118,11 @@ body {
     opacity: 1;
     transform: translate(0, 0) scale(0.6);
   }
+
   50% {
     opacity: 0.9;
   }
+
   100% {
     opacity: 0;
     transform: translate(var(--dx), var(--dy)) scale(1.6);
@@ -129,6 +138,7 @@ body {
     transform: scale(0.3);
     opacity: 0.9;
   }
+
   100% {
     transform: scale(3.5);
     opacity: 0;
@@ -141,13 +151,23 @@ body {
 
 /* Tiranga Tricolor Animations & Utilities */
 @keyframes triranga-sheen {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @keyframes ashoka-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-tiranga-sheen {
@@ -155,7 +175,7 @@ body {
 }
 
 .animate-ashoka-spin {
-  animation: ashoka-spin 15s linear infinite;
+  animation: ashoka-spin 25s linear infinite;
 }
 
 .text-tiranga-gradient {
@@ -181,10 +201,21 @@ body {
 
 /* Blob Animation */
 @keyframes blob {
-  0% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.95); }
-  100% { transform: translate(0px, 0px) scale(1); }
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
 }
 
 .animate-blob {
@@ -204,12 +235,12 @@ body {
   body * {
     visibility: hidden;
   }
-  
+
   .printable-document,
   .printable-document * {
     visibility: visible;
   }
-  
+
   .printable-document {
     position: absolute;
     left: 0;
