@@ -36,24 +36,65 @@
   --color-brand-950: #431407;
 }
 
+/* Silky smooth global theme transitions */
+*, ::before, ::after {
+  transition-property: background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 400ms;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
   min-height: 100vh;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Ensure utility cards inherit theme variables properly */
+/* Ensure utility cards inherit theme variables properly with smooth transition */
 .utility-card {
   background-color: var(--card-bg);
   border-color: var(--card-border);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, transform 0.25s ease;
 }
 
 .dark .utility-card {
   background-color: var(--card-bg);
   border-color: var(--card-border);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Theme Particle Burst & Ring Keyframes */
+@keyframes theme-particle-float {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.6);
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(1.6);
+  }
+}
+
+.animate-theme-particle {
+  animation: theme-particle-float 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes theme-pulse-ring {
+  0% {
+    transform: scale(0.3);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3.5);
+    opacity: 0;
+  }
+}
+
+.animate-theme-ring {
+  animation: theme-pulse-ring 0.7s cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 
 /* Tiranga Tricolor Animations & Utilities */
