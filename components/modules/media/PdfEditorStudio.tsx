@@ -1,6 +1,9 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
+import IdPdfCombiner from "./IdPdfCombiner";
+import ImagePdfBuilder from "./ImagePdfBuilder";
+import HtmlPdfStudio from "@/components/modules/productivity/HtmlPdfStudio";
 import {
   FileSignature,
   Download,
@@ -29,6 +32,12 @@ import {
   X,
   Check,
   Copy,
+  PlusCircle,
+  FilePlus,
+  ScanLine,
+  FileCode2,
+  CreditCard,
+  Camera,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { PDFDocument, degrees, rgb } from "pdf-lib";
@@ -158,9 +167,113 @@ export default function PdfEditorStudio() {
   const [selectedSignFont, setSelectedSignFont] = useState<string>("cursive");
   const [sigPenColor, setSigPenColor] = useState<string>("#0f172a");
 
+  // Studio Mode & Gallery Inserter State
+  const [activeStudioMode, setActiveStudioMode] = useState<"editor" | "id-combiner" | "photo-compiler" | "html-studio">("editor");
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [pendingGalleryFile, setPendingGalleryFile] = useState<File | null>(null);
+  const [showGalleryInsertModal, setShowGalleryInsertModal] = useState<boolean>(false);
+
   // Dragging / Drawing refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sigImageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleGalleryFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPendingGalleryFile(file);
+      setShowGalleryInsertModal(true);
+    }
+  };
+
+  const handleAppendGalleryAsPage = async () => {
+    if (!pendingGalleryFile) return;
+    setIsPdfLoading(true);
+    setShowGalleryInsertModal(false);
+
+    try {
+      const buffer = await pendingGalleryFile.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      const isPng = pendingGalleryFile.type.toLowerCase().includes("png");
+
+      let pdfDoc: PDFDocument;
+      if (pdfBytes && pdfBytes.length > 0) {
+        pdfDoc = await PDFDocument.load(pdfBytes.slice(0), { ignoreEncryption: true });
+      } else {
+        pdfDoc = await PDFDocument.create();
+      }
+
+      let embeddedImg;
+      if (isPng) {
+        embeddedImg = await pdfDoc.embedPng(bytes);
+      } else {
+        embeddedImg = await pdfDoc.embedJpg(bytes);
+      }
+
+      let imgWidth = embeddedImg.width;
+      let imgHeight = embeddedImg.height;
+
+      // Fit to standard A4 dimensions (595.28 x 841.89) if oversized
+      if (imgWidth > 595.28 || imgHeight > 841.89) {
+        const scale = Math.min(595.28 / imgWidth, 841.89 / imgHeight);
+        imgWidth = Math.round(imgWidth * scale);
+        imgHeight = Math.round(imgHeight * scale);
+      }
+
+      const newPage = pdfDoc.addPage([imgWidth, imgHeight]);
+      newPage.drawImage(embeddedImg, {
+        x: 0,
+        y: 0,
+        width: imgWidth,
+        height: imgHeight,
+      });
+
+      const newPdfBytes = await pdfDoc.save();
+      const count = pdfDoc.getPageCount();
+
+      setPdfBytes(newPdfBytes);
+      setPageCount(count);
+      setCurrentPageIndex(count - 1);
+      setPageRotations((prev) => [...prev, 0]);
+      setPageDimensions((prev) => [...prev, { width: imgWidth, height: imgHeight }]);
+      if (!pdfFileName) {
+        setPdfFileName("Gallery_Document.pdf");
+      }
+    } catch (err) {
+      console.error("Failed to append gallery photo as new page:", err);
+      alert("Could not append image. Please select a valid PNG or JPG photo.");
+    } finally {
+      setIsPdfLoading(false);
+      setPendingGalleryFile(null);
+    }
+  };
+
+  const handleInsertGalleryAsOverlay = () => {
+    if (!pendingGalleryFile) return;
+    setShowGalleryInsertModal(false);
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      if (dataUrl) {
+        const newAnn: ImageAnnotation = {
+          id: `img-${Date.now()}-${Math.random()}`,
+          type: "image",
+          pageIndex: currentPageIndex,
+          dataUrl,
+          x: 25,
+          y: 25,
+          width: 40,
+          height: 30,
+          rotation: 0,
+        };
+        setAnnotations((prev) => [...prev, newAnn]);
+        setSelectedAnnotationId(newAnn.id);
+        setActiveTool("select");
+      }
+      setPendingGalleryFile(null);
+    };
+    reader.readAsDataURL(pendingGalleryFile);
+  };
   const pdfCanvasRef = useRef<HTMLCanvasElement>(null);
   const drawCanvasRef = useRef<HTMLCanvasElement>(null);
   const sigPadCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -1216,82 +1329,156 @@ export default function PdfEditorStudio() {
         accept="application/pdf"
         className="hidden"
       />
+      <input
+        type="file"
+        ref={galleryInputRef}
+        onChange={handleGalleryFileSelect}
+        accept="image/png,image/jpeg,image/jpg,image/webp"
+        className="hidden"
+      />
 
-      {/* --- IF NO PDF IS LOADED YET: SHOW PROMINENT UPLOAD LANDING SCREEN --- */}
-      {!pdfBytes ? (
-        <div className="utility-card p-8 sm:p-14 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/40 shadow-sm text-center">
-          <div className="max-w-xl mx-auto space-y-6">
-            <div className="inline-flex p-4 rounded-3xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 shadow-sm border border-brand-100 dark:border-brand-900/40">
-              <FileSignature className="w-10 h-10" />
-            </div>
+      {/* --- UNIFIED ALL-IN-ONE PDF MASTER STUDIO NAVIGATION TABS --- */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-inner">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveStudioMode("editor")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeStudioMode === "editor"
+                ? "bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <FileSignature className="w-4 h-4 text-brand-500" />
+            📝 PDF Editor, Signer &amp; Gallery Inserter
+          </button>
 
-            <div className="space-y-2">
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-                PDF Editor & Digital Signer Studio
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                Add digital signatures, text annotations, highlighters, whiteouts, and official stamps to any PDF document with 100% in-browser privacy.
-              </p>
-            </div>
+          <button
+            onClick={() => setActiveStudioMode("id-combiner")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeStudioMode === "id-combiner"
+                ? "bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <CreditCard className="w-4 h-4 text-sky-500" />
+            🪪 ID Front-Back A4 PDF Compiler
+          </button>
 
-            {/* Drag and Drop Zone */}
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDraggingFile(true);
-              }}
-              onDragLeave={() => setIsDraggingFile(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setIsDraggingFile(false);
-                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                  processPdfFile(e.dataTransfer.files[0]);
-                }
-              }}
-              className={`p-10 border-2 border-dashed rounded-3xl cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-3 ${
-                isDraggingFile
-                  ? "border-brand-500 bg-brand-50/60 dark:bg-brand-950/40 scale-102"
-                  : "border-slate-300 dark:border-slate-700 hover:border-brand-400 bg-slate-50/60 dark:bg-slate-950/40 hover:bg-slate-100/70"
-              }`}
-            >
-              <div className="w-14 h-14 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-lg shadow-brand-500/30">
-                <Upload className="w-7 h-7" />
-              </div>
-              <span className="text-sm font-extrabold text-slate-900 dark:text-white">
-                Click to Browse or Drag & Drop PDF File
-              </span>
-              <span className="text-xs text-slate-400 font-medium">
-                Supports all standard PDF documents, government forms, bills, and legal drafts
-              </span>
+          <button
+            onClick={() => setActiveStudioMode("photo-compiler")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeStudioMode === "photo-compiler"
+                ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <ScanLine className="w-4 h-4 text-emerald-500" />
+            📷 Gallery Photo Scanner &amp; PDF Builder
+          </button>
 
-              <Button
-                variant="primary"
-                size="md"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  fileInputRef.current?.click();
-                }}
-                className="mt-2 font-bold px-6 shadow-md shadow-brand-500/20"
-              >
-                <Upload className="w-4 h-4 mr-1.5" />
-                Select PDF Document
-              </Button>
-            </div>
-
-            {/* Try with Demo document option */}
-            <div className="pt-2">
-              <button
-                onClick={loadStarterPdf}
-                className="text-xs font-bold text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 inline-flex items-center gap-1.5 hover:underline"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                Don&apos;t have a file right now? Try with a Sample PDF Document
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={() => setActiveStudioMode("html-studio")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeStudioMode === "html-studio"
+                ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <FileCode2 className="w-4 h-4 text-indigo-500" />
+            💻 HTML Code to PDF Studio
+          </button>
         </div>
-      ) : (
+      </div>
+
+      {/* RENDER SUB-TOOL MODULE OR MAIN PDF EDITOR */}
+      {activeStudioMode === "id-combiner" && <IdPdfCombiner />}
+      {activeStudioMode === "photo-compiler" && <ImagePdfBuilder />}
+      {activeStudioMode === "html-studio" && <HtmlPdfStudio />}
+
+      {activeStudioMode === "editor" && (
+        <>
+          {/* --- IF NO PDF IS LOADED YET: SHOW PROMINENT UPLOAD LANDING SCREEN --- */}
+          {!pdfBytes ? (
+            <div className="utility-card p-8 sm:p-14 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/40 shadow-sm text-center">
+              <div className="max-w-xl mx-auto space-y-6">
+                <div className="inline-flex p-4 rounded-3xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 shadow-sm border border-brand-100 dark:border-brand-900/40">
+                  <FileSignature className="w-10 h-10" />
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+                    PDF Editor &amp; Gallery Document Studio
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Upload any PDF, append photos/documents directly from your phone gallery as new pages, add digital signatures, whiteout text, and export vector PDFs.
+                  </p>
+                </div>
+
+                {/* Action Buttons: Browse PDF or Pick Gallery Photo */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full sm:w-auto font-bold px-6 shadow-md shadow-brand-500/20 gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload PDF Document
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="w-full sm:w-auto font-bold px-6 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 gap-2"
+                  >
+                    <Camera className="w-4 h-4 text-emerald-500" />
+                    📷 Add Gallery Photo to PDF
+                  </Button>
+                </div>
+
+                {/* Drag and Drop Zone */}
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDraggingFile(true);
+                  }}
+                  onDragLeave={() => setIsDraggingFile(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingFile(false);
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                      processPdfFile(e.dataTransfer.files[0]);
+                    }
+                  }}
+                  className={`p-8 border-2 border-dashed rounded-3xl cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
+                    isDraggingFile
+                      ? "border-brand-500 bg-brand-50/60 dark:bg-brand-950/40 scale-102"
+                      : "border-slate-300 dark:border-slate-700 hover:border-brand-400 bg-slate-50/60 dark:bg-slate-950/40 hover:bg-slate-100/70"
+                  }`}
+                >
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Or Drag &amp; Drop PDF / Gallery Document here
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    100% Client-Side Local Processing (Zero server uploads)
+                  </span>
+                </div>
+
+                {/* Try with Demo document option */}
+                <div className="pt-2">
+                  <button
+                    onClick={loadStarterPdf}
+                    className="text-xs font-bold text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 inline-flex items-center gap-1.5 hover:underline"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    Don&apos;t have a file right now? Try with a Sample PDF Document
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
         /* --- IF PDF IS LOADED: SHOW COMPLETE EDITOR SUITE --- */
         <div className="space-y-4">
           {/* Top Main Studio Banner */}
@@ -1319,6 +1506,16 @@ export default function PdfEditorStudio() {
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="gap-1.5 font-bold border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                >
+                  <Camera className="w-3.5 h-3.5 text-emerald-500" />
+                  📷 Add Gallery Photo / Doc
+                </Button>
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -2096,6 +2293,58 @@ export default function PdfEditorStudio() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Modal for Gallery Photo Insertion Option */}
+      {showGalleryInsertModal && pendingGalleryFile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-5 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center mx-auto">
+              <Camera className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                Insert Gallery Photo / Document
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Selected: <strong className="text-slate-700 dark:text-slate-200">{pendingGalleryFile.name}</strong>
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              <button
+                onClick={handleAppendGalleryAsPage}
+                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+              >
+                <FilePlus className="w-4 h-4" />
+                📄 Add as New Page in PDF
+              </button>
+
+              {pdfBytes && (
+                <button
+                  onClick={handleInsertGalleryAsOverlay}
+                  className="w-full py-3 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-2"
+                >
+                  <ImageIcon className="w-4 h-4 text-emerald-500" />
+                  🖼️ Place on Current Page as Overlay
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => {
+                setShowGalleryInsertModal(false);
+                setPendingGalleryFile(null);
+              }}
+              className="text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+        </>
       )}
     </div>
   );

@@ -132,23 +132,7 @@ const tools: ToolItem[] = [
       "photo under 50kb",
     ],
   },
-  {
-    id: "image-pdf",
-    title: "ID Front-Back PDF Combiner",
-    description:
-      "Combine front and back scans of Aadhar, PAN, or Voter ID cards onto a single print-ready A4 PDF.",
-    icon: FileImage,
-    category: "cyber-cafe",
-    color: "from-sky-500 to-cyan-500",
-    tags: [
-      "aadhar card print front back",
-      "pan card front back",
-      "merge id cards",
-      "document combiner",
-      "combine aadhar",
-      "pdf front back",
-    ],
-  },
+
   {
     id: "biodata-generator",
     title: "Biodata & Resume Builder",
@@ -231,24 +215,7 @@ const tools: ToolItem[] = [
       "post office savings",
     ],
   },
-  {
-    id: "document-scanner",
-    title: "Document Scanner & PDF Builder",
-    description:
-      "Stitch photos into a single PDF with B&W photocopy cleaner filters, cropping, and 90° rotations.",
-    icon: ScanLine,
-    category: "cyber-cafe",
-    color: "from-blue-500 to-cyan-500",
-    tags: [
-      "document scanner",
-      "photo to pdf",
-      "pdf compiler",
-      "scanner clean filters",
-      "black and white scan",
-      "photocopy",
-      "image stitch pdf",
-    ],
-  },
+
   {
     id: "aadhaar-masker",
     title: "Aadhaar Card Secure Masker",
@@ -318,48 +285,39 @@ const tools: ToolItem[] = [
     ],
   },
   {
-    id: "html-to-pdf",
-    title: "HTML to PDF Studio & Converter",
+    id: "pdf-editor",
+    title: "All-in-One PDF Master Studio & Gallery Document Manager",
     description:
-      "Paste raw HTML/CSS code or upload HTML files to instantly compile and download high-resolution PDFs with live sheet preview & templates.",
-    icon: FileCode2,
+      "Upload & edit any PDF, append phone gallery photos/documents as new pages, combine ID cards, merge scans, add digital signatures, whiteout text, and export vector PDFs.",
+    icon: FileText,
     category: "cyber-cafe",
-    color: "from-blue-600 to-indigo-600",
+    color: "from-indigo-600 via-purple-600 to-pink-600",
     tags: [
+      "pdf editor",
+      "pdf studio",
+      "edit pdf",
+      "sign pdf",
+      "gallery photo to pdf",
+      "add photo to pdf",
+      "insert image pdf",
+      "photo se pdf",
+      "pdf compiler",
+      "scanner clean filters",
+      "black and white scan",
+      "photocopy",
+      "image stitch pdf",
+      "id card print",
+      "merge id cards",
+      "combine aadhar",
       "html to pdf",
       "html converter",
       "html se pdf",
-      "html dalunga pdf bana dega",
       "code to pdf",
-      "convert html to pdf",
-      "web to pdf",
-      "invoice html to pdf",
-      "html print",
-      "html pdf maker",
-    ],
-  },
-  {
-    id: "pdf-editor",
-    title: "PDF Editor & Digital Signer Studio",
-    description:
-      "Upload and edit any PDF, add digital signatures (draw/type/upload), text annotations, highlighters, whiteouts, and official stamps locally.",
-    icon: PenTool,
-    category: "cyber-cafe",
-    color: "from-indigo-600 to-violet-600",
-    tags: [
-      "pdf editor",
-      "edit pdf",
-      "sign pdf",
       "pdf signature",
-      "pdf par sign karna",
-      "upload pdf edit",
       "pdf text edit",
       "redact pdf",
       "highlight pdf",
       "pdf stamp",
-      "pdf annotation",
-      "e-sign pdf",
-      "digital sign",
     ],
   },
 ];
@@ -564,7 +522,7 @@ export default function Page() {
               {activeView === "job-portal" && <JobPortal />}
               {activeView === "govt-directory" && <GovtDirectory />}
               {activeView === "resizer-compressor" && <GovtImageResizer />}
-              {activeView === "image-pdf" && <IdPdfCombiner />}
+              {activeView === "image-pdf" && <PdfEditorStudio />}
               {activeView === "biodata-generator" && <BiodataGenerator />}
               {activeView === "upi-qr" && <UpiQrGenerator />}
               {activeView === "gst-split" && <GstSplitter />}
@@ -572,12 +530,12 @@ export default function Page() {
               {activeView === "emi-calculator" && <EmiCalculator />}
               {activeView === "cash-memo" && <CashMemoGenerator />}
               {activeView === "govt-savings" && <GovtSavingsCalculator />}
-              {activeView === "document-scanner" && <ImagePdfBuilder />}
+              {activeView === "document-scanner" && <PdfEditorStudio />}
               {activeView === "aadhaar-masker" && <AadhaarMasker />}
               {activeView === "hindi-font-converter" && <HindiFontConverter />}
               {activeView === "affidavit-generator" && <AffidavitGenerator />}
               {activeView === "aadhaar-qr-scanner" && <AadhaarQrScanner />}
-              {activeView === "html-to-pdf" && <HtmlPdfStudio />}
+              {activeView === "html-to-pdf" && <PdfEditorStudio />}
               {activeView === "pdf-editor" && <PdfEditorStudio />}
             </div>
           </div>
