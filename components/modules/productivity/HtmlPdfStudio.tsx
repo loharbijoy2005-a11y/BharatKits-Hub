@@ -1328,8 +1328,8 @@ export default function HtmlPdfStudio() {
   const [aiTab, setAiTab] = useState<"edit" | "convert-pdf" | "generate">("edit");
 
   // Find & Replace Text State
-  const [findText, setFindText] = useState<string>("bijoy");
-  const [replaceText, setReplaceText] = useState<string>("shadowarrow");
+  const [findText, setFindText] = useState<string>("");
+  const [replaceText, setReplaceText] = useState<string>("");
   const [showFindReplace, setShowFindReplace] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -2058,7 +2058,7 @@ export default function HtmlPdfStudio() {
                 }`}
               >
                 <FileSearch className="w-3 h-3" />
-                🔍 Find &amp; Replace (e.g. bijoy ➔ shadowarrow)
+                🔍 Find &amp; Replace PDF Text
               </button>
             </div>
 
@@ -2074,7 +2074,7 @@ export default function HtmlPdfStudio() {
                     type="text"
                     value={findText}
                     onChange={(e) => setFindText(e.target.value)}
-                    placeholder="Find (e.g. bijoy)"
+                    placeholder="Find text in PDF..."
                     className="flex-1 px-2.5 py-1.5 rounded-lg text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                   />
                   <span className="text-xs text-purple-500 font-bold">➔</span>
@@ -2082,7 +2082,7 @@ export default function HtmlPdfStudio() {
                     type="text"
                     value={replaceText}
                     onChange={(e) => setReplaceText(e.target.value)}
-                    placeholder="Replace with (e.g. shadowarrow)"
+                    placeholder="Replace with new text..."
                     className="flex-1 px-2.5 py-1.5 rounded-lg text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                   />
                   <Button
