@@ -1380,12 +1380,12 @@ export default function PdfEditorStudio() {
             onClick={() => setActiveStudioMode("html-studio")}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeStudioMode === "html-studio"
-                ? "bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white shadow-md"
-                : "bg-purple-50/80 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200/60 dark:border-purple-800/40"
+                ? "bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
-            <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-            ✨ AI PDF Text Editor &amp; Studio
+            <FileCode2 className="w-4 h-4 text-brand-500" />
+            💻 Advanced HTML/CSS PDF Studio
           </button>
         </div>
       </div>
