@@ -1380,12 +1380,12 @@ export default function PdfEditorStudio() {
             onClick={() => setActiveStudioMode("html-studio")}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeStudioMode === "html-studio"
-                ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                ? "bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white shadow-md"
+                : "bg-purple-50/80 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200/60 dark:border-purple-800/40"
             }`}
           >
-            <FileCode2 className="w-4 h-4 text-indigo-500" />
-            💻 HTML Code to PDF Studio
+            <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+            ✨ AI PDF Text Editor &amp; Studio
           </button>
         </div>
       </div>
@@ -1916,6 +1916,46 @@ export default function PdfEditorStudio() {
                                 </button>
 
                                 <div className="h-3.5 w-px bg-slate-700 mx-0.5" />
+
+                                {ann.type === "text" && (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        recordHistory();
+                                        setAnnotations((prev) =>
+                                          prev.map((a) => (a.id === ann.id && a.type === "text" ? { ...a, isBold: !a.isBold } : a))
+                                        );
+                                      }}
+                                      className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${
+                                        ann.isBold ? "bg-brand-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                                      }`}
+                                      title="Bold Text (Mota Akshar)"
+                                    >
+                                      B
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        recordHistory();
+                                        setAnnotations((prev) =>
+                                          prev.map((a) =>
+                                            a.id === ann.id && a.type === "text"
+                                              ? { ...a, bgColor: a.bgColor === "#ffffff" ? undefined : "#ffffff" }
+                                              : a
+                                          )
+                                        );
+                                      }}
+                                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                        ann.bgColor === "#ffffff" ? "bg-emerald-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                                      }`}
+                                      title="Cover original text with white background (Purana text chhupayein)"
+                                    >
+                                      ⬜ Cover BG
+                                    </button>
+
+                                    <div className="h-3.5 w-px bg-slate-700 mx-0.5" />
+                                  </>
+                                )}
 
                                 <button
                                   onClick={() => handleDuplicateAnnotation(ann.id)}

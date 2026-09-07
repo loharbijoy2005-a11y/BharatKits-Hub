@@ -21,6 +21,16 @@ import {
   ZoomOut,
   FileCheck2,
   FileSignature,
+  Sparkles,
+  Wand2,
+  Languages,
+  FileText,
+  Bot,
+  Send,
+  FileSearch,
+  X,
+  Sparkle,
+  ArrowRight,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import jsPDF from "jspdf";
@@ -1310,7 +1320,20 @@ export default function HtmlPdfStudio() {
   const [previewZoom, setPreviewZoom] = useState<number>(100);
   const [splitViewMobile, setSplitViewMobile] = useState<"editor" | "preview">("preview");
 
+  // AI PDF Assistant State
+  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
+  const [aiCustomPrompt, setAiCustomPrompt] = useState<string>("");
+  const [aiStatusMsg, setAiStatusMsg] = useState<string>("");
+  const [showAiModal, setShowAiModal] = useState<boolean>(false);
+  const [aiTab, setAiTab] = useState<"edit" | "convert-pdf" | "generate">("edit");
+
+  // Find & Replace Text State
+  const [findText, setFindText] = useState<string>("bijoy");
+  const [replaceText, setReplaceText] = useState<string>("shadowarrow");
+  const [showFindReplace, setShowFindReplace] = useState<boolean>(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pdfFileInputRef = useRef<HTMLInputElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
@@ -1486,6 +1509,143 @@ export default function HtmlPdfStudio() {
       }
     };
     reader.readAsText(file);
+  };
+
+  // Handle AI Text Editing & Modification
+  const handleAiEditText = async (subAction: string, customInstruction?: string) => {
+    setIsAiLoading(true);
+    setAiStatusMsg("Gemini AI is analyzing and updating your document text...");
+    try {
+      const resp = await fetch("/api/pdf-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "edit-text",
+          subAction,
+          customPrompt: customInstruction || aiCustomPrompt,
+          htmlCode,
+          cssCode,
+        }),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok || !data.success) {
+        throw new Error(data.error || "Failed to edit document text with AI.");
+      }
+
+      if (data.data?.html) setHtmlCode(data.data.html);
+      if (data.data?.css) setCssCode(data.data.css);
+      setAiStatusMsg(`✨ ${data.data?.changeSummary || "Document updated successfully!"}`);
+      setTimeout(() => setAiStatusMsg(""), 4000);
+      setAiCustomPrompt("");
+      setShowAiModal(false);
+    } catch (err: any) {
+      alert(`AI Edit Error: ${err.message || "Failed to update text"}`);
+      setAiStatusMsg("");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  // Handle PDF file upload & AI conversion to editable HTML
+  const handleAiPdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsAiLoading(true);
+    setAiStatusMsg(`Extracting text from "${file.name}" & converting with Gemini AI...`);
+    try {
+      let payload: any = { action: "pdf-to-html" };
+
+      if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        payload.pdfBase64 = base64;
+      } else {
+        const text = await file.text();
+        payload.textContent = text;
+      }
+
+      const resp = await fetch("/api/pdf-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok || !data.success) {
+        throw new Error(data.error || "Failed to parse PDF and generate editable template.");
+      }
+
+      if (data.data?.html) setHtmlCode(data.data.html);
+      if (data.data?.css) setCssCode(data.data.css);
+      if (data.data?.documentTitle) setDocumentTitle(data.data.documentTitle.replace(/[^a-zA-Z0-9_-]/g, "_"));
+
+      setAiStatusMsg("🎉 PDF text successfully extracted & loaded into editor!");
+      setTimeout(() => setAiStatusMsg(""), 4000);
+      setShowAiModal(false);
+    } catch (err: any) {
+      alert(`PDF AI Extraction Failed: ${err.message || "Could not parse PDF"}`);
+      setAiStatusMsg("");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  // Handle AI Template Generation from Prompt
+  const handleAiGenerateTemplate = async (promptText: string) => {
+    if (!promptText.trim()) return;
+    setIsAiLoading(true);
+    setAiStatusMsg("Generating custom PDF document template with Gemini AI...");
+    try {
+      const resp = await fetch("/api/pdf-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "generate-template",
+          customPrompt: promptText,
+        }),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok || !data.success) {
+        throw new Error(data.error || "Failed to generate AI template.");
+      }
+
+      if (data.data?.html) setHtmlCode(data.data.html);
+      if (data.data?.css) setCssCode(data.data.css);
+      if (data.data?.documentTitle) setDocumentTitle(data.data.documentTitle.replace(/[^a-zA-Z0-9_-]/g, "_"));
+
+      setAiStatusMsg("✨ New template generated successfully!");
+      setTimeout(() => setAiStatusMsg(""), 4000);
+      setAiCustomPrompt("");
+      setShowAiModal(false);
+    } catch (err: any) {
+      alert(`AI Template Generation Error: ${err.message || "Could not generate template"}`);
+      setAiStatusMsg("");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  // Find & Replace Text in Document HTML
+  const handleFindReplaceAll = (search: string, replaceWith: string) => {
+    if (!search.trim()) return;
+    const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escaped, "gi");
+    const matches = (htmlCode.match(regex) || []).length;
+    if (matches === 0) {
+      alert(`Could not find "${search}" in document text.`);
+      return;
+    }
+    const newHtml = htmlCode.replace(regex, replaceWith);
+    setHtmlCode(newHtml);
+    setAiStatusMsg(`🎉 Replaced ${matches} occurrence(s) of "${search}" with "${replaceWith}"!`);
+    setTimeout(() => setAiStatusMsg(""), 4000);
   };
 
   // Copy code
@@ -1693,6 +1853,36 @@ export default function HtmlPdfStudio() {
               accept=".html,.htm,.txt"
               className="hidden"
             />
+            <input
+              type="file"
+              ref={pdfFileInputRef}
+              onChange={handleAiPdfUpload}
+              accept=".pdf,.txt"
+              className="hidden"
+            />
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => pdfFileInputRef.current?.click()}
+              disabled={isAiLoading}
+              className="gap-1.5 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 font-semibold"
+            >
+              <Upload className="w-3.5 h-3.5 text-purple-500" />
+              Upload & Extract PDF
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowAiModal(true)}
+              disabled={isAiLoading}
+              className="gap-1.5 font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white shadow-md shadow-indigo-500/20 hover:opacity-95"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+              ✨ AI PDF Assistant
+            </Button>
+
             <Button
               variant="outline"
               size="sm"
@@ -1795,6 +1985,150 @@ export default function HtmlPdfStudio() {
             splitViewMobile === "preview" ? "hidden lg:block" : "block"
           }`}
         >
+          {/* AI Status Message Alert */}
+          {aiStatusMsg && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-blue-500/10 border border-purple-300/40 dark:border-purple-800/60 flex items-center justify-between gap-2 text-xs font-semibold text-purple-900 dark:text-purple-200 shadow-sm animate-fade-in">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-500 animate-spin" />
+                <span>{aiStatusMsg}</span>
+              </div>
+              <button
+                onClick={() => setAiStatusMsg("")}
+                className="p-1 rounded-lg text-purple-500 hover:bg-purple-200/50 dark:hover:bg-purple-900/50"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* AI Quick Actions Bar */}
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-900/5 via-indigo-900/5 to-slate-900/5 dark:from-purple-950/40 dark:via-indigo-950/30 dark:to-slate-950/40 border border-purple-200/60 dark:border-purple-800/40 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-extrabold text-purple-900 dark:text-purple-300">
+                <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+                <span>AI PDF Text Magic Actions</span>
+              </div>
+              <span className="text-[10px] font-medium text-slate-400">Powered by Gemini AI</span>
+            </div>
+
+            {/* Action Badges */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+              <button
+                onClick={() => handleAiEditText("polish")}
+                disabled={isAiLoading}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-400 shadow-2xs transition-all whitespace-nowrap"
+              >
+                <Wand2 className="w-3 h-3 text-amber-500" />
+                Polish & Fix Typos
+              </button>
+
+              <button
+                onClick={() => handleAiEditText("translate_hi")}
+                disabled={isAiLoading}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-400 shadow-2xs transition-all whitespace-nowrap"
+              >
+                <Languages className="w-3 h-3 text-blue-500" />
+                Translate to Hindi
+              </button>
+
+              <button
+                onClick={() => handleAiEditText("formalize")}
+                disabled={isAiLoading}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-400 shadow-2xs transition-all whitespace-nowrap"
+              >
+                <FileText className="w-3 h-3 text-emerald-500" />
+                Legal / Official Tone
+              </button>
+
+              <button
+                onClick={() => handleAiEditText("summarize")}
+                disabled={isAiLoading}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-400 shadow-2xs transition-all whitespace-nowrap"
+              >
+                <Bot className="w-3 h-3 text-indigo-500" />
+                Summarize Text
+              </button>
+
+              <button
+                onClick={() => setShowFindReplace(!showFindReplace)}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold border shadow-2xs transition-all whitespace-nowrap ${
+                  showFindReplace
+                    ? "bg-purple-600 text-white border-purple-600"
+                    : "bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 hover:bg-purple-50"
+                }`}
+              >
+                <FileSearch className="w-3 h-3" />
+                🔍 Find &amp; Replace (e.g. bijoy ➔ shadowarrow)
+              </button>
+            </div>
+
+            {/* Find & Replace Input Row */}
+            {showFindReplace && (
+              <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 space-y-2 animate-fade-in">
+                <div className="text-[11px] font-bold text-purple-900 dark:text-purple-200 flex items-center justify-between">
+                  <span>🔍 Replace text across PDF document:</span>
+                  <span className="text-[10px] text-purple-600 dark:text-purple-400 font-normal">Instant replace all</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={findText}
+                    onChange={(e) => setFindText(e.target.value)}
+                    placeholder="Find (e.g. bijoy)"
+                    className="flex-1 px-2.5 py-1.5 rounded-lg text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                  />
+                  <span className="text-xs text-purple-500 font-bold">➔</span>
+                  <input
+                    type="text"
+                    value={replaceText}
+                    onChange={(e) => setReplaceText(e.target.value)}
+                    placeholder="Replace with (e.g. shadowarrow)"
+                    className="flex-1 px-2.5 py-1.5 rounded-lg text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => handleFindReplaceAll(findText, replaceText)}
+                    className="px-3 py-1.5 text-xs font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg whitespace-nowrap"
+                  >
+                    Replace All
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Custom AI Prompt Input */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (aiCustomPrompt.trim()) handleAiEditText("custom", aiCustomPrompt);
+              }}
+              className="flex items-center gap-1.5"
+            >
+              <input
+                type="text"
+                value={aiCustomPrompt}
+                onChange={(e) => setAiCustomPrompt(e.target.value)}
+                placeholder='e.g. "Replace bijoy with shadowarrow and update all dates"'
+                className="flex-1 px-3 py-1.5 rounded-xl text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              />
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isAiLoading || !aiCustomPrompt.trim()}
+                className="px-3 py-1.5 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-xl gap-1"
+              >
+                {isAiLoading ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <>
+                    <span>Apply</span>
+                    <Send className="w-3 h-3" />
+                  </>
+                )}
+              </Button>
+            </form>
+          </div>
+
           {/* Editor Header & Tabs */}
           <div className="utility-card rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/40 overflow-hidden shadow-xs">
             <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-950/40 border-b border-slate-200/60 dark:border-slate-800/60">
@@ -2116,6 +2450,281 @@ export default function HtmlPdfStudio() {
           </div>
         </div>
       </div>
+
+      {/* --- AI PDF ASSISTANT MODAL DIALOG --- */}
+      {showAiModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in">
+          <div className="utility-card w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xl space-y-0">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-400/30">
+                  <Sparkles className="w-5 h-5 text-amber-300 animate-spin" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold flex items-center gap-2">
+                    <span>✨ AI PDF Studio Assistant</span>
+                  </h3>
+                  <p className="text-xs text-purple-200">
+                    Extract text from PDF, edit with AI prompts, or generate printable templates
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAiModal(false)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-2 gap-2">
+              <button
+                onClick={() => setAiTab("edit")}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+                  aiTab === "edit"
+                    ? "bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs border border-slate-200 dark:border-slate-800"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                🪄 Edit Current Text
+              </button>
+              <button
+                onClick={() => setAiTab("convert-pdf")}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+                  aiTab === "convert-pdf"
+                    ? "bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs border border-slate-200 dark:border-slate-800"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                📄 Upload & Extract PDF
+              </button>
+              <button
+                onClick={() => setAiTab("generate")}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+                  aiTab === "generate"
+                    ? "bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs border border-slate-200 dark:border-slate-800"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                ✨ Generate Template
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              {/* TAB 1: Edit Current Text */}
+              {aiTab === "edit" && (
+                <div className="space-y-4">
+                  <div className="p-3 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900 text-xs text-purple-900 dark:text-purple-200 flex items-start gap-2.5">
+                    <Wand2 className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong>AI Text Editing:</strong> Use Gemini AI to rewrite, correct spelling/grammar, translate to Hindi/English, or adjust tone in the active document text.
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                    <button
+                      onClick={() => handleAiEditText("polish")}
+                      disabled={isAiLoading}
+                      className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-left hover:border-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-all group"
+                    >
+                      <Wand2 className="w-4 h-4 text-amber-500 mb-1" />
+                      <div className="font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                        Fix & Polish
+                      </div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                        Grammar, typos & neat spacing
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleAiEditText("translate_hi")}
+                      disabled={isAiLoading}
+                      className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-left hover:border-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-all group"
+                    >
+                      <Languages className="w-4 h-4 text-blue-500 mb-1" />
+                      <div className="font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                        Translate Hindi
+                      </div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                        Convert document into Hindi
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleAiEditText("translate_en")}
+                      disabled={isAiLoading}
+                      className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-left hover:border-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-all group"
+                    >
+                      <Languages className="w-4 h-4 text-indigo-500 mb-1" />
+                      <div className="font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                        Translate English
+                      </div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                        Convert text to English
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleAiEditText("formalize")}
+                      disabled={isAiLoading}
+                      className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-left hover:border-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-all group"
+                    >
+                      <FileText className="w-4 h-4 text-emerald-500 mb-1" />
+                      <div className="font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                        Formal Legal Tone
+                      </div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                        Court & Govt paper style
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleAiEditText("summarize")}
+                      disabled={isAiLoading}
+                      className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-left hover:border-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-all group"
+                    >
+                      <Bot className="w-4 h-4 text-purple-500 mb-1" />
+                      <div className="font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                        Summarize Text
+                      </div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                        Condense key details
+                      </div>
+                    </button>
+                  </div>
+
+                  <div className="space-y-1.5 pt-2">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Or type custom AI editing instruction:
+                    </label>
+                    <textarea
+                      value={aiCustomPrompt}
+                      onChange={(e) => setAiCustomPrompt(e.target.value)}
+                      placeholder='e.g. "Add a company terms & conditions table at the bottom and replace all prices with 18% GST added"'
+                      rows={3}
+                      className="w-full p-3 text-xs rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    />
+                    <Button
+                      onClick={() => handleAiEditText("custom", aiCustomPrompt)}
+                      disabled={isAiLoading || !aiCustomPrompt.trim()}
+                      className="w-full font-bold bg-purple-600 hover:bg-purple-700 text-white gap-2 py-2.5 rounded-2xl"
+                    >
+                      {isAiLoading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          Processing with AI...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 text-amber-300" />
+                          Apply Custom AI Instruction
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: Upload & Extract PDF */}
+              {aiTab === "convert-pdf" && (
+                <div className="space-y-4 text-center py-4">
+                  <div className="border-2 border-dashed border-purple-300 dark:border-purple-800 rounded-3xl p-8 bg-purple-50/40 dark:bg-purple-950/20 flex flex-col items-center justify-center space-y-3">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-300 flex items-center justify-center shadow-inner">
+                      <FileSearch className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                        Upload Any PDF File to Extract & Edit Text
+                      </h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mt-1">
+                        Gemini AI will parse document text and automatically rebuild an editable, printable HTML/CSS sheet.
+                      </p>
+                    </div>
+
+                    <Button
+                      onClick={() => pdfFileInputRef.current?.click()}
+                      disabled={isAiLoading}
+                      className="font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-white gap-2 px-6 py-2.5 rounded-2xl shadow-md"
+                    >
+                      {isAiLoading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          Extracting Text with AI...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          Select PDF Document
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: Generate Template from Prompt */}
+              {aiTab === "generate" && (
+                <div className="space-y-4">
+                  <div className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900 text-xs text-indigo-900 dark:text-indigo-200">
+                    💡 Describe any document format you need (e.g. <em>"Relieving letter for software engineer"</em>, <em>"NOC for passport application"</em>, <em>"Cyber cafe rent agreement"</em>).
+                  </div>
+
+                  <div className="space-y-2">
+                    <textarea
+                      value={aiCustomPrompt}
+                      onChange={(e) => setAiCustomPrompt(e.target.value)}
+                      placeholder='e.g. "Create a formal Affidavit for Change of Name after marriage in Delhi, with notary signature box"'
+                      rows={4}
+                      className="w-full p-3.5 text-xs rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                    />
+
+                    {/* Quick Preset Ideas */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Ideas:</span>
+                      {[
+                        "Legal Notice for Unpaid Dues",
+                        "NOC for Passport Application",
+                        "Rent Agreement 11 Months",
+                        "Salary Slip with PF & Tax",
+                        "School Character Certificate",
+                      ].map((idea) => (
+                        <button
+                          key={idea}
+                          onClick={() => setAiCustomPrompt(idea)}
+                          className="px-2.5 py-1 rounded-xl text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-purple-100 dark:hover:bg-purple-900 hover:text-purple-700 dark:hover:text-purple-300 transition-all"
+                        >
+                          + {idea}
+                        </button>
+                      ))}
+                    </div>
+
+                    <Button
+                      onClick={() => handleAiGenerateTemplate(aiCustomPrompt)}
+                      disabled={isAiLoading || !aiCustomPrompt.trim()}
+                      className="w-full font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white gap-2 py-3 rounded-2xl shadow-md mt-2"
+                    >
+                      {isAiLoading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          Generating HTML/CSS Template...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 text-amber-300" />
+                          Generate Printable PDF Template
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
